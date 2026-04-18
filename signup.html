@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Create Account | BANIK Books</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+    <script src="./app-config.js" defer></script>
+  </head>
+  <body>
+    <div class="page-shell signup-page">
+      <header class="topbar">
+        <a class="brand" href="./index.html">
+          <span class="brand-mark" aria-hidden="true">
+            <span class="brand-mark__inner">B</span>
+          </span>
+          <span class="brand-copy">
+            <span class="brand-copy__title">BANIK Books</span>
+            <span class="brand-copy__tag">Simple accounting for growing businesses</span>
+          </span>
+        </a>
+      </header>
+
+      <main class="signup-layout">
+        <section class="signup-intro">
+          <span class="eyebrow">Set up your company in minutes</span>
+          <h1>Create your BANIK Books workspace</h1>
+          <p class="lead">
+            This signup flow is designed for simple Bangladeshi business
+            accounting. First create your account, then add the company details
+            needed to start bookkeeping.
+          </p>
+
+          <div class="process-steps">
+            <article class="process-card">
+              <span class="process-card__number">01</span>
+              <h2>Account owner details</h2>
+              <p>
+                Add the owner or admin name, business email, phone number, and
+                secure password.
+              </p>
+            </article>
+            <article class="process-card">
+              <span class="process-card__number">02</span>
+              <h2>Company setup</h2>
+              <p>
+                Save business type, address, currency, and fiscal year so the
+                software is ready for daily accounting.
+              </p>
+            </article>
+          </div>
+        </section>
+
+        <section class="signup-sheet">
+          <div class="sheet-header">
+            <div>
+              <p class="sheet-header__eyebrow">Step 1 of 2</p>
+              <h2>Create account</h2>
+            </div>
+            <a class="text-link" href="./index.html">Back to home</a>
+          </div>
+
+          <form class="account-form" action="./workspace.html">
+            <div class="field-grid">
+              <label class="stacked-field">
+                <span>Company name</span>
+                <input type="text" placeholder="BANIK Traders Ltd." />
+              </label>
+              <label class="stacked-field">
+                <span>Full name</span>
+                <input type="text" placeholder="Md. Rahim Uddin" />
+              </label>
+            </div>
+
+            <div class="field-grid">
+              <label class="stacked-field">
+                <span>Work email</span>
+                <input type="email" placeholder="accounts@company.com" />
+              </label>
+              <label class="stacked-field">
+                <span>Mobile number</span>
+                <input type="tel" placeholder="+8801XXXXXXXXX" />
+              </label>
+            </div>
+
+            <div class="field-grid">
+              <label class="stacked-field">
+                <span>Password</span>
+                <input type="password" placeholder="Create a secure password" />
+              </label>
+              <label class="stacked-field">
+                <span>Confirm password</span>
+                <input type="password" placeholder="Re-enter password" />
+              </label>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="sheet-header sheet-header--compact">
+              <div>
+                <p class="sheet-header__eyebrow">Step 2 of 2</p>
+                <h2>Company setup</h2>
+              </div>
+            </div>
+
+            <div class="field-grid">
+              <label class="stacked-field">
+                <span>Business type</span>
+                <select>
+                  <option>Trading business</option>
+                  <option>Retail shop</option>
+                  <option>Service company</option>
+                  <option>Manufacturing</option>
+                  <option>Other</option>
+                </select>
+              </label>
+              <label class="stacked-field">
+                <span>Currency</span>
+                <select>
+                  <option>BDT - Bangladeshi Taka</option>
+                  <option>USD - US Dollar</option>
+                </select>
+              </label>
+            </div>
+
+            <div class="field-grid">
+              <label class="stacked-field stacked-field--full">
+                <span>Company address</span>
+                <input type="text" placeholder="House, Road, Area, City" />
+              </label>
+            </div>
+
+            <div class="field-grid">
+              <label class="stacked-field">
+                <span>Fiscal year start</span>
+                <input type="date" />
+              </label>
+              <label class="stacked-field">
+                <span>Preferred plan</span>
+                <select>
+                  <option>Start Free</option>
+                  <option>Business</option>
+                  <option>Enterprise</option>
+                </select>
+              </label>
+            </div>
+
+            <label class="checkbox-row">
+              <input type="checkbox" checked />
+              <span>I agree to create a BANIK Books workspace for my company.</span>
+            </label>
+
+            <div class="form-actions">
+              <a class="secondary-button" href="./index.html">Cancel</a>
+              <button type="submit">Create workspace</button>
+            </div>
+          </form>
+        </section>
+      </main>
+    </div>
+  </body>
+</html>

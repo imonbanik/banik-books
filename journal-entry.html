@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Journal Entry | BANIK Books</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+    <script src="./app-config.js" defer></script>
+    <script src="./journal-entry.js" defer></script>
+  </head>
+  <body>
+    <div class="page-shell journal-page">
+      <header class="topbar">
+        <a class="brand" href="./workspace.html">
+          <span class="brand-mark" aria-hidden="true">
+            <span class="brand-mark__inner">B</span>
+          </span>
+          <span class="brand-copy">
+            <span class="brand-copy__title">BANIK Books</span>
+            <span class="brand-copy__tag">Workspace modules</span>
+          </span>
+        </a>
+      </header>
+
+      <main class="journal-layout">
+        <section class="journal-hero">
+          <div>
+            <p class="sheet-header__eyebrow">Module</p>
+            <h1>Journal Entry</h1>
+            <p class="lead">
+              Create balanced journal entries with fiscal-year-based numbering,
+              ledger selection, attachments, and line-by-line controls.
+            </p>
+          </div>
+          <a class="secondary-button" href="./workspace.html">Back to workspace</a>
+        </section>
+
+        <section class="journal-card">
+          <form id="journal-form" novalidate>
+            <div class="journal-meta-grid">
+              <label class="journal-meta-field">
+                <span>Journal date</span>
+                <input class="journal-control" id="journal-date" type="date" required />
+                <small>Selecting a date updates the fiscal year automatically.</small>
+              </label>
+
+              <label class="journal-meta-field">
+                <span>Journal no.</span>
+                <input class="journal-control journal-control--readonly" id="journal-number" type="text" readonly />
+                <small id="journal-number-note">
+                  Unique journal number based on fiscal year and running serial.
+                </small>
+              </label>
+            </div>
+
+            <div class="journal-toolbar-row">
+              <p class="journal-ledger-note" id="ledger-source-note">
+                Ledger dropdown pulls data from Chart of Accounts.
+              </p>
+              <div class="journal-policy-banner">
+                <strong data-accounting-basis-label>Accrual basis accounting</strong>
+                <span data-accounting-basis-description>
+                  Income and expenses are recognized when earned or incurred, not
+                  only when cash is received or paid.
+                </span>
+              </div>
+              <div class="journal-status journal-status--pending" id="journal-status" aria-live="polite">
+                Debit and credit must match before the journal can be saved.
+              </div>
+            </div>
+
+            <div class="journal-table-shell">
+              <div class="journal-table">
+                <div class="journal-grid journal-grid--head">
+                  <div class="journal-cell">Sl.</div>
+                  <div class="journal-cell">Account</div>
+                  <div class="journal-cell">Debit</div>
+                  <div class="journal-cell">Credit</div>
+                  <div class="journal-cell">Description</div>
+                  <div class="journal-cell">Name</div>
+                  <div class="journal-cell">Copy</div>
+                  <div class="journal-cell">Delete</div>
+                </div>
+
+                <div id="journal-lines"></div>
+
+                <div class="journal-grid journal-grid--total">
+                  <div class="journal-cell"></div>
+                  <div class="journal-cell journal-total-label">Total</div>
+                  <div class="journal-cell journal-total-amount" id="table-total-debit">Tk 0.00</div>
+                  <div class="journal-cell journal-total-amount" id="table-total-credit">Tk 0.00</div>
+                  <div class="journal-cell"></div>
+                  <div class="journal-cell"></div>
+                  <div class="journal-cell"></div>
+                  <div class="journal-cell"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="journal-line-actions">
+              <button class="journal-button journal-button--ghost" id="add-line-btn" type="button">
+                Add line
+              </button>
+              <button class="journal-button journal-button--ghost" id="clear-lines-btn" type="button">
+                Clear all lines
+              </button>
+            </div>
+
+            <div class="journal-bottom-grid">
+              <label class="journal-block-field">
+                <span>Description</span>
+                <textarea
+                  id="journal-description"
+                  rows="7"
+                  placeholder="Optional description of this transaction"
+                ></textarea>
+                <small>This field is optional. You can keep it blank and still save the journal.</small>
+              </label>
+
+              <div class="journal-block-field">
+                <span>Attachments</span>
+                <label class="attachment-dropzone" for="journal-attachment" id="attachment-dropzone">
+                  <input id="journal-attachment" type="file" multiple />
+                  <strong>Add attachment</strong>
+                  <small>Any file type. Up to 20 MB total per transaction.</small>
+                  <span class="attachment-dropzone__hint">Click to browse or drag and drop files</span>
+                </label>
+                <ul class="attachment-list" id="attachment-list"></ul>
+              </div>
+            </div>
+
+            <div class="journal-footer">
+              <div class="journal-balance-summary">
+                <div class="journal-balance-chip">
+                  <span>Total debit</span>
+                  <strong id="footer-total-debit">Tk 0.00</strong>
+                </div>
+                <div class="journal-balance-chip">
+                  <span>Total credit</span>
+                  <strong id="footer-total-credit">Tk 0.00</strong>
+                </div>
+                <div class="journal-balance-chip">
+                  <span>Difference</span>
+                  <strong id="footer-total-difference">Tk 0.00</strong>
+                </div>
+              </div>
+
+              <div class="journal-submit-actions">
+                <button class="journal-button journal-button--primary" id="save-btn" type="submit">
+                  Save
+                </button>
+                <button class="journal-button journal-button--primary-alt" id="save-new-btn" type="button">
+                  Save and new
+                </button>
+              </div>
+            </div>
+          </form>
+        </section>
+      </main>
+    </div>
+
+    <template id="journal-row-template">
+      <div class="journal-grid journal-row">
+        <div class="journal-cell journal-cell--serial">
+          <span class="line-number">1</span>
+        </div>
+        <div class="journal-cell">
+          <select class="line-input line-account" aria-label="Account"></select>
+        </div>
+        <div class="journal-cell">
+          <input class="line-input line-number-input line-debit" type="number" min="0" step="0.01" placeholder="0.00" aria-label="Debit" />
+        </div>
+        <div class="journal-cell">
+          <input class="line-input line-number-input line-credit" type="number" min="0" step="0.01" placeholder="0.00" aria-label="Credit" />
+        </div>
+        <div class="journal-cell">
+          <input class="line-input" type="text" placeholder="Line description" aria-label="Description" />
+        </div>
+        <div class="journal-cell">
+          <input class="line-input" type="text" placeholder="Name" aria-label="Name" />
+        </div>
+        <div class="journal-cell">
+          <button class="line-action line-action--copy" type="button">Copy</button>
+        </div>
+        <div class="journal-cell">
+          <button class="line-action line-action--delete" type="button">Delete</button>
+        </div>
+      </div>
+    </template>
+  </body>
+</html>
