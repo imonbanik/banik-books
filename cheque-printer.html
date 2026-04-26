@@ -1,0 +1,1079 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cheque Printer | BANIK Books</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Azeret+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&family=Outfit:wght@300;400;500;600;700;800&family=Ubuntu:wght@500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+    <script src="./app-config.js" defer></script>
+    <style>
+      :root {
+        --cheque-width: 7.6in;
+        --cheque-height: 3.5in;
+        --print-ink: #1f1a17;
+        --guide-line: rgba(31, 26, 23, 0.52);
+        --panel-border: rgba(127, 16, 16, 0.12);
+        --panel-bg: rgba(255, 255, 255, 0.9);
+      }
+
+      .printer-page {
+        padding-bottom: 56px;
+      }
+
+      .printer-layout {
+        display: grid;
+        grid-template-columns: minmax(320px, 380px) minmax(0, 1fr);
+        gap: 28px;
+        padding: 38px 0 24px;
+        align-items: start;
+      }
+
+      .printer-panel,
+      .preview-panel {
+        border-radius: 30px;
+        border: 1px solid var(--panel-border);
+        background: var(--panel-bg);
+        box-shadow: var(--shadow);
+      }
+
+      .printer-panel {
+        padding: 28px;
+        display: grid;
+        gap: 18px;
+      }
+
+      .printer-panel h1 {
+        margin: 10px 0 8px;
+        max-width: none;
+        font-size: clamp(2rem, 3vw, 2.75rem);
+      }
+
+      .printer-panel__lead {
+        margin: 0;
+        color: var(--muted);
+        line-height: 1.65;
+      }
+
+      .printer-form {
+        display: grid;
+        gap: 14px;
+      }
+
+      .printer-field {
+        display: grid;
+        gap: 8px;
+      }
+
+      .printer-field label {
+        font-size: 0.96rem;
+        font-weight: 700;
+        color: var(--text);
+      }
+
+      .printer-field input,
+      .printer-field select {
+        width: 100%;
+        min-height: 54px;
+        border: 1px solid rgba(86, 30, 30, 0.18);
+        border-radius: 16px;
+        background: #ffffff;
+        padding: 14px 16px;
+        font: inherit;
+        font-size: 1rem;
+        color: var(--text);
+        outline: none;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+      }
+
+      .printer-field input:focus,
+      .printer-field select:focus {
+        border-color: rgba(185, 28, 28, 0.68);
+        box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.12);
+      }
+
+      .printer-field small {
+        color: var(--muted);
+        line-height: 1.5;
+      }
+
+      .printer-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        padding-top: 4px;
+      }
+
+      .printer-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 54px;
+        padding: 0 22px;
+        border: none;
+        border-radius: 16px;
+        font: inherit;
+        font-size: 1rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+      }
+
+      .printer-button--primary {
+        color: #ffffff;
+        background: linear-gradient(135deg, var(--red-700), var(--red-500));
+        box-shadow: 0 18px 35px rgba(185, 28, 28, 0.24);
+      }
+
+      .printer-button--secondary {
+        background: rgba(255, 255, 255, 0.92);
+        color: var(--red-900);
+        border: 1px solid rgba(185, 28, 28, 0.18);
+      }
+
+      .printer-button:hover {
+        transform: translateY(-1px);
+        filter: brightness(1.03);
+      }
+
+      .printer-note {
+        margin: 0;
+        padding: 16px 18px;
+        border-radius: 18px;
+        background: rgba(255, 245, 244, 0.92);
+        border: 1px solid rgba(185, 28, 28, 0.12);
+        color: var(--muted);
+        line-height: 1.6;
+      }
+
+      .preview-panel {
+        padding: 22px;
+      }
+
+      .preview-meta {
+        display: flex;
+        justify-content: space-between;
+        gap: 14px;
+        align-items: center;
+        margin-bottom: 18px;
+        color: var(--muted);
+        font-size: 0.92rem;
+      }
+
+      .preview-meta strong {
+        color: var(--red-900);
+      }
+
+      .preview-stage {
+        display: grid;
+        place-items: center;
+        min-height: calc(100vh - 260px);
+        padding: 18px;
+        border-radius: 24px;
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.68), rgba(255, 244, 241, 0.76)),
+          repeating-linear-gradient(
+            135deg,
+            rgba(239, 68, 68, 0.03),
+            rgba(239, 68, 68, 0.03) 14px,
+            rgba(255, 255, 255, 0.2) 14px,
+            rgba(255, 255, 255, 0.2) 28px
+          );
+      }
+
+      .cheque-sheet {
+        position: relative;
+        width: min(100%, 848.13px);
+        aspect-ratio: 848.13 / 388.54;
+        border-radius: 0;
+        container-type: inline-size;
+        background-color: #e8f4f8;
+        background-image: linear-gradient(rgba(255, 255, 255, 0.5) 1px, transparent 1px);
+        background-size: 100% 5.147%;
+        border: 1px solid #ccc;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        color: #333;
+      }
+
+      .cheque-sheet__inner {
+        position: absolute;
+        inset: 0;
+        color: #333;
+        font-family: Arial, sans-serif;
+      }
+
+      .logo-area {
+        position: absolute;
+        top: 5.147%;
+        left: 3.537%;
+      }
+
+      .bank-name {
+        margin: 0;
+        color: #004a99;
+        font-size: 24px;
+        font-size: 2.83cqw;
+        font-weight: 700;
+        line-height: 1;
+      }
+
+      .bank-sub {
+        margin-top: 5px;
+        margin-top: 0.589cqw;
+        font-size: 10px;
+        font-size: 1.179cqw;
+        line-height: 1.2;
+      }
+
+      .cheque-number {
+        position: absolute;
+        top: 6.435%;
+        right: 4.716%;
+        font-size: 22px;
+        font-size: 2.594cqw;
+        letter-spacing: 2px;
+        letter-spacing: 0.236cqw;
+      }
+
+      .date-box {
+        position: absolute;
+        top: 16.729%;
+        right: 3.537%;
+        display: flex;
+        align-items: center;
+      }
+
+      .date-label {
+        margin-right: 10px;
+        margin-right: 1.179cqw;
+        font-size: 14px;
+        font-size: 1.651cqw;
+      }
+
+      .date-grid {
+        display: grid;
+        grid-template-columns: repeat(8, 18px);
+        grid-template-columns: repeat(8, 2.122cqw);
+        gap: 5px;
+        gap: 0.589cqw;
+        text-align: center;
+      }
+
+      .date-cell {
+        display: block;
+        height: 22px;
+        height: 2.594cqw;
+        border: 1px solid #999;
+        background: #ffffff;
+        font-family: "Azeret Mono", monospace;
+        font-size: 14px;
+        font-size: 1.651cqw;
+        font-weight: 500;
+        line-height: 22px;
+        line-height: 2.594cqw;
+      }
+
+      .pay-row {
+        position: absolute;
+        top: 37.319%;
+        left: 3.537%;
+        width: 90%;
+        display: flex;
+        align-items: flex-end;
+        border-bottom: 1px solid #999;
+        font-size: 14px;
+        font-size: 1.651cqw;
+      }
+
+      .pay-row > span:first-child {
+        margin-right: 10px;
+        margin-right: 1.179cqw;
+      }
+
+      .pay-row > span:last-child {
+        margin-left: auto;
+      }
+
+      .pay-row strong {
+        font-size: 14px;
+        font-size: 1.651cqw;
+        font-weight: 700;
+      }
+
+      .sum-row {
+        position: absolute;
+        top: 47.614%;
+        left: 3.537%;
+        width: 92%;
+        min-height: calc(var(--sum-line-height) * 2);
+        --sum-line-height: 4.9cqw;
+        --sum-label-width: 25.5%;
+        --sum-box-guard: 32%;
+        font-size: 14px;
+        font-size: 1.651cqw;
+      }
+
+      .sum-row::before,
+      .sum-row::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        width: 100%;
+        border-top: 1px solid #999;
+      }
+
+      .sum-row::before {
+        top: calc(var(--sum-line-height) - 0.55cqw);
+      }
+
+      .sum-row::after {
+        top: calc((var(--sum-line-height) * 2) - 0.55cqw);
+      }
+
+      .sum-label {
+        position: absolute;
+        top: 0.1cqw;
+        left: 0;
+        z-index: 2;
+      }
+
+      .amount-box {
+        position: absolute;
+        top: 45.04%;
+        right: 3.537%;
+        width: 29.481%;
+        height: 12.869%;
+        border: 1px solid #999;
+        background: #d1eef7;
+        display: flex;
+        align-items: center;
+        padding: 0 10px;
+        padding: 0 1.179cqw;
+        font-size: 18px;
+        font-size: 2.122cqw;
+        font-weight: 700;
+      }
+
+      .amount-box__value {
+        margin-left: 30px;
+        margin-left: 3.537cqw;
+      }
+
+      .account-info {
+        position: absolute;
+        bottom: 20.59%;
+        left: 5.306%;
+        font-size: 16px;
+        font-size: 1.887cqw;
+        font-weight: 700;
+        line-height: 1.4;
+      }
+
+      .signature-area {
+        position: absolute;
+        right: 5.306%;
+        bottom: 18.017%;
+        width: 29.481%;
+        padding-top: 5px;
+        padding-top: 0.589cqw;
+        border-top: 1px solid #999;
+        text-align: center;
+        font-size: 10px;
+        font-size: 1.179cqw;
+      }
+
+      .micr-line {
+        position: absolute;
+        bottom: 3.861%;
+        width: 100%;
+        text-align: center;
+        font-family: "Azeret Mono", monospace;
+        font-size: 18px;
+        font-size: 2.122cqw;
+        letter-spacing: 5px;
+        letter-spacing: 0.589cqw;
+      }
+
+      .account-payee-stamp {
+        position: absolute;
+        top: 23.0%;
+        left: 0.10%;
+        width: 30%;
+        height: 10.5%;
+        transform: rotate(-45deg);
+        transform-origin: left top;
+        pointer-events: none;
+      }
+
+      .account-payee-stamp::before,
+      .account-payee-stamp::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        width: 100%;
+        height: 0.020in;
+        background: rgba(31, 26, 23, 0.92);
+      }
+
+      .account-payee-stamp::before {
+        top: 0;
+      }
+
+      .account-payee-stamp::after {
+        bottom: 0;
+        left:-40px;
+      }
+
+      .account-payee-stamp span {
+        position: absolute;
+        top: 50%;
+        left: 1%;
+        transform: translateY(-50%);
+        color: rgba(31, 26, 23, 0.96);
+        font-family: "IBM Plex Sans", sans-serif;
+        font-size: 0.145in;
+        font-weight: 500;
+        line-height: 1;
+        letter-spacing: 0;
+        white-space: nowrap;
+      }
+
+      .payee-text,
+      .amount-box__value {
+        color: var(--print-ink);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .payee-text {
+        max-width: 83%;
+      }
+
+      .sum-words {
+        color: var(--print-ink);
+        position: absolute;
+        z-index: 2;
+        display: block;
+        max-width: none;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        line-height: var(--sum-line-height);
+      }
+
+      .sum-words--primary {
+        top: 0.1cqw;
+        left: var(--sum-label-width);
+        width: calc(100% - var(--sum-label-width) - var(--sum-box-guard));
+      }
+
+      .sum-words--secondary {
+        top: var(--sum-line-height);
+        left: 0;
+        width: calc(100% - var(--sum-box-guard));
+      }
+
+      .sum-words-measure {
+        position: absolute;
+        visibility: hidden;
+        pointer-events: none;
+        white-space: nowrap;
+        font-size: 14px;
+        font-size: 1.651cqw;
+        font-weight: 700;
+      }
+
+      .cheque-placeholder {
+        color: rgba(31, 26, 23, 0.32);
+      }
+
+      .print-only {
+        display: none;
+      }
+
+      @media (max-width: 1180px) {
+        .printer-layout {
+          grid-template-columns: 1fr;
+        }
+
+        .preview-stage {
+          min-height: auto;
+        }
+      }
+
+      @media (max-width: 720px) {
+        .printer-panel,
+        .preview-panel {
+          padding: 20px 16px;
+          border-radius: 24px;
+        }
+
+        .preview-stage {
+          padding: 8px;
+          overflow-x: auto;
+          justify-items: start;
+        }
+
+        .cheque-sheet {
+          width: 700px;
+          max-width: none;
+        }
+
+        .preview-meta {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+      }
+
+      @page {
+        size: 7.6in 3.5in;
+        margin: 0;
+      }
+
+      @media print {
+        html,
+        body {
+          width: 7.6in;
+          height: 3.5in;
+          margin: 0;
+          padding: 0;
+          background: #ffffff;
+          overflow: hidden;
+        }
+
+        .screen-only,
+        .topbar {
+          display: none !important;
+        }
+
+        .page-shell,
+        .printer-page,
+        .printer-layout,
+        .preview-panel,
+        .preview-stage {
+          width: 7.6in;
+          height: 3.5in;
+          margin: 0;
+          padding: 0;
+          border: none;
+          background: #ffffff;
+          box-shadow: none;
+        }
+
+        .printer-layout {
+          display: block;
+        }
+
+        .cheque-sheet {
+          width: 7.6in;
+          height: 3.5in;
+          aspect-ratio: auto;
+          border-radius: 0;
+          border: none;
+          background: #ffffff;
+          background-image: none;
+          box-shadow: none;
+          page-break-inside: avoid;
+        }
+
+        .logo-area,
+        .cheque-number,
+        .date-label,
+        .pay-row > span,
+        .sum-row > span,
+        .amount-box > span:first-child,
+        .account-info,
+        .signature-area,
+        .micr-line {
+          display: none !important;
+        }
+
+        .pay-row,
+        .amount-box {
+          border: none;
+          background: transparent;
+          padding: 0;
+        }
+
+        .sum-row::before,
+        .sum-row::after {
+          display: none;
+        }
+
+        .date-cell {
+          height: auto;
+          border: none;
+          background: transparent;
+          line-height: 1;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page-shell printer-page">
+      <header class="topbar screen-only">
+        <a class="brand" href="./necessary-tools.html">
+          <span class="brand-mark" aria-hidden="true">
+            <span class="brand-mark__inner">B</span>
+          </span>
+          <span class="brand-copy">
+            <span class="brand-copy__title">BANIK Books</span>
+            <span class="brand-copy__tag">Cheque printing workspace</span>
+          </span>
+        </a>
+      </header>
+
+      <main class="printer-layout">
+        <aside class="printer-panel screen-only">
+          <span class="eyebrow">Print Setup</span>
+          <h1>Cheque Printer</h1>
+          <p class="printer-panel__lead">
+            Enter the cheque details on the left. The white cheque canvas on the right
+            updates instantly and prints at the exact cheque size you gave: 7.6 inches by
+            3.5 inches.
+          </p>
+
+          <form class="printer-form" id="printerForm">
+            <div class="printer-field">
+              <label for="chequeDate">Date</label>
+              <input id="chequeDate" name="chequeDate" type="date" />
+              <small>The preview prints the date as DD MM YYYY.</small>
+            </div>
+
+            <div class="printer-field">
+              <label for="payeeName">Payee</label>
+              <input
+                id="payeeName"
+                name="payeeName"
+                type="text"
+                placeholder="Write the payee name"
+                autocomplete="off"
+              />
+              <small>For cash cheques, leave this blank and the preview will show `== CASH ==`.</small>
+            </div>
+
+            <div class="printer-field">
+              <label for="chequeAmount">Amount</label>
+              <input
+                id="chequeAmount"
+                name="chequeAmount"
+                type="text"
+                placeholder="50000"
+                inputmode="decimal"
+                autocomplete="off"
+              />
+              <small>The printed format follows the style `= 50,000.00`.</small>
+            </div>
+
+            <div class="printer-field">
+              <label for="chequeType">Cheque Type</label>
+              <select id="chequeType" name="chequeType">
+                <option value="cash">Cash</option>
+                <option value="account-payee">A/C Payee</option>
+              </select>
+              <small>`A/C Payee` shows the upper-left stamp. `Cash` leaves that corner blank.</small>
+            </div>
+
+            <div class="printer-actions">
+              <button class="printer-button printer-button--primary" id="printCheque" type="button">
+                Print Cheque
+              </button>
+              <a class="printer-button printer-button--secondary" href="./necessary-tools.html">
+                Back
+              </a>
+            </div>
+          </form>
+
+          <p class="printer-note">
+            Clicking <strong>Print Cheque</strong> opens your browser's print preview first,
+            then you can print onto cheque paper.
+          </p>
+        </aside>
+
+        <section class="preview-panel">
+          <div class="preview-meta screen-only">
+            <span><strong>Live preview</strong> for the printable cheque area</span>
+            <span>Print size: 7.6 in × 3.5 in (193.04 mm × 88.9 mm)</span>
+          </div>
+
+          <div class="preview-stage">
+            <article class="cheque-sheet" id="printArea" aria-label="Cheque print preview">
+              <div class="cheque-sheet__inner">
+                <div class="logo-area">
+                  <h1 class="bank-name">Standard Chartered</h1>
+                  <div class="bank-sub">
+                    Standard Chartered Bank<br />
+                    Bangladesh
+                  </div>
+                </div>
+
+                <div class="cheque-number">1799116</div>
+
+                <div class="date-box">
+                  <span class="date-label">Date</span>
+                  <div class="date-grid" id="dateDigits">
+                    <span class="date-cell">0</span><span class="date-cell">1</span>
+                    <span class="date-cell">0</span><span class="date-cell">5</span>
+                    <span class="date-cell">2</span><span class="date-cell">0</span>
+                    <span class="date-cell">2</span><span class="date-cell">6</span>
+                  </div>
+                </div>
+
+                <div class="pay-row">
+                  <span>Pay To</span>
+                  <strong class="payee-text" id="payeePreview">== CASH ==</strong>
+                  <span>Or Bearer</span>
+                </div>
+
+                <div class="sum-row">
+                  <span class="sum-label">The Sum of Taka</span>
+                  <strong class="sum-words sum-words--primary" id="amountWordsPreview">
+                    Fifty Thousand Only
+                  </strong>
+                  <strong class="sum-words sum-words--secondary" id="amountWordsOverflowPreview">
+                  </strong>
+                  <span class="sum-words-measure" id="amountWordsMeasure" aria-hidden="true"></span>
+                </div>
+
+                <div class="amount-box">
+                  <span>Tk</span>
+                  <span class="amount-box__value" id="amountPreview">= 50,000.00</span>
+                </div>
+
+                <div class="account-info">
+                  01-3366936-03<br />
+                  ZABAI BANGLADESH LIMITED
+                </div>
+
+                <div class="signature-area">Please Sign Above This Line</div>
+
+                <div class="micr-line">"1799116" 215261726: 0001336693603" 11</div>
+
+                <div class="account-payee-stamp" id="accountPayeeStamp" hidden aria-hidden="true">
+                  <span>A/C Payee Only</span>
+                </div>
+              </div>
+            </article>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script>
+      const chequeDateInput = document.getElementById("chequeDate");
+      const payeeNameInput = document.getElementById("payeeName");
+      const chequeAmountInput = document.getElementById("chequeAmount");
+      const chequeTypeInput = document.getElementById("chequeType");
+      const printChequeButton = document.getElementById("printCheque");
+      const dateDigitsContainer = document.getElementById("dateDigits");
+      const payeePreview = document.getElementById("payeePreview");
+      const amountPreview = document.getElementById("amountPreview");
+      const amountWordsPreview = document.getElementById("amountWordsPreview");
+      const amountWordsOverflowPreview = document.getElementById("amountWordsOverflowPreview");
+      const amountWordsMeasure = document.getElementById("amountWordsMeasure");
+      const accountPayeeStamp = document.getElementById("accountPayeeStamp");
+
+      const DATE_SLOT_COUNT = 8;
+
+      function padDateDigits(value) {
+        return String(value).padStart(2, "0");
+      }
+
+      function sanitizeAmount(rawValue) {
+        const cleaned = String(rawValue || "").replace(/[^0-9.]/g, "");
+        const firstDotIndex = cleaned.indexOf(".");
+
+        if (firstDotIndex === -1) {
+          return cleaned;
+        }
+
+        const integerPart = cleaned.slice(0, firstDotIndex + 1);
+        const decimalPart = cleaned.slice(firstDotIndex + 1).replace(/\./g, "");
+        return integerPart + decimalPart;
+      }
+
+      function formatAmount(rawValue) {
+        const sanitized = sanitizeAmount(rawValue);
+
+        if (!sanitized) {
+          return "";
+        }
+
+        const numericValue = Number.parseFloat(sanitized);
+
+        if (Number.isNaN(numericValue)) {
+          return "";
+        }
+
+        return new Intl.NumberFormat("en-IN", {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        }).format(numericValue);
+      }
+
+      function convertBelowHundred(number) {
+        const ones = [
+          "Zero",
+          "One",
+          "Two",
+          "Three",
+          "Four",
+          "Five",
+          "Six",
+          "Seven",
+          "Eight",
+          "Nine",
+          "Ten",
+          "Eleven",
+          "Twelve",
+          "Thirteen",
+          "Fourteen",
+          "Fifteen",
+          "Sixteen",
+          "Seventeen",
+          "Eighteen",
+          "Nineteen",
+        ];
+        const tens = [
+          "",
+          "",
+          "Twenty",
+          "Thirty",
+          "Forty",
+          "Fifty",
+          "Sixty",
+          "Seventy",
+          "Eighty",
+          "Ninety",
+        ];
+
+        if (number < 20) {
+          return ones[number];
+        }
+
+        const tenValue = Math.floor(number / 10);
+        const remainder = number % 10;
+        return remainder ? tens[tenValue] + " " + ones[remainder] : tens[tenValue];
+      }
+
+      function convertBelowThousand(number) {
+        if (number < 100) {
+          return convertBelowHundred(number);
+        }
+
+        const hundreds = Math.floor(number / 100);
+        const remainder = number % 100;
+        const hundredLabel = convertBelowHundred(hundreds) + " Hundred";
+        return remainder ? hundredLabel + " " + convertBelowHundred(remainder) : hundredLabel;
+      }
+
+      function numberToWords(number) {
+        if (number === 0) {
+          return "Zero";
+        }
+
+        const segments = [
+          { value: 10000000, label: "Crore" },
+          { value: 100000, label: "Lakh" },
+          { value: 1000, label: "Thousand" },
+        ];
+
+        let remaining = number;
+        const words = [];
+
+        segments.forEach((segment) => {
+          if (remaining >= segment.value) {
+            const segmentValue = Math.floor(remaining / segment.value);
+            words.push(convertBelowThousand(segmentValue) + " " + segment.label);
+            remaining %= segment.value;
+          }
+        });
+
+        if (remaining > 0) {
+          words.push(convertBelowThousand(remaining));
+        }
+
+        return words.join(" ");
+      }
+
+      function amountToWords(rawValue) {
+        const sanitized = sanitizeAmount(rawValue);
+
+        if (!sanitized) {
+          return "";
+        }
+
+        const numericValue = Number.parseFloat(sanitized);
+
+        if (Number.isNaN(numericValue)) {
+          return "";
+        }
+
+        const taka = Math.floor(numericValue);
+        const paisa = Math.round((numericValue - taka) * 100);
+        let words = numberToWords(taka);
+
+        if (paisa > 0) {
+          words += " and " + numberToWords(paisa) + " Paisa";
+        }
+
+        return words + " Only";
+      }
+
+      function renderDateDigits(value) {
+        const digits = Array.from(dateDigitsContainer.querySelectorAll("span"));
+        const fallback = ["0", "1", "0", "5", "2", "0", "2", "6"];
+        let sourceDigits = fallback;
+
+        if (value) {
+          const [year, month, day] = value.split("-");
+
+          if (year && month && day) {
+            sourceDigits = [
+              ...padDateDigits(day),
+              ...padDateDigits(month),
+              ...String(year).slice(-4),
+            ];
+          }
+        }
+
+        for (let index = 0; index < DATE_SLOT_COUNT; index += 1) {
+          digits[index].textContent = sourceDigits[index] || "0";
+        }
+      }
+
+      function renderPayee() {
+        const payeeText = payeeNameInput.value.trim();
+        const chequeType = chequeTypeInput.value;
+        const fallbackText = chequeType === "cash" ? "== CASH ==" : "";
+
+        if (payeeText) {
+          payeePreview.textContent = payeeText;
+          payeePreview.classList.remove("cheque-placeholder");
+          return;
+        }
+
+        if (fallbackText) {
+          payeePreview.textContent = fallbackText;
+          payeePreview.classList.remove("cheque-placeholder");
+        } else {
+          payeePreview.textContent = "____________________________";
+          payeePreview.classList.add("cheque-placeholder");
+        }
+      }
+
+      function renderAmount() {
+        const formattedAmount = formatAmount(chequeAmountInput.value);
+        const amountInWords = amountToWords(chequeAmountInput.value);
+
+        if (formattedAmount) {
+          amountPreview.textContent = "= " + formattedAmount;
+          amountPreview.classList.remove("cheque-placeholder");
+        } else {
+          amountPreview.textContent = "= __________";
+          amountPreview.classList.add("cheque-placeholder");
+        }
+
+        if (amountInWords) {
+          const [firstLineWords, secondLineWords] = splitAmountWords(amountInWords);
+          amountWordsPreview.textContent = firstLineWords;
+          amountWordsOverflowPreview.textContent = secondLineWords;
+          amountWordsPreview.classList.remove("cheque-placeholder");
+          amountWordsOverflowPreview.classList.remove("cheque-placeholder");
+          amountWordsOverflowPreview.hidden = !secondLineWords;
+        } else {
+          amountWordsPreview.textContent = "____________________________";
+          amountWordsPreview.classList.add("cheque-placeholder");
+          amountWordsOverflowPreview.textContent = "";
+          amountWordsOverflowPreview.hidden = true;
+        }
+      }
+
+      function splitAmountWords(text) {
+        const words = String(text || "")
+          .trim()
+          .split(/\s+/)
+          .filter(Boolean);
+
+        if (!words.length) {
+          return ["", ""];
+        }
+
+        const overflowWasHidden = amountWordsOverflowPreview.hidden;
+
+        if (overflowWasHidden) {
+          amountWordsOverflowPreview.hidden = false;
+        }
+
+        const firstLineWidth = amountWordsPreview.getBoundingClientRect().width;
+        const secondLineWidth = amountWordsOverflowPreview.getBoundingClientRect().width;
+
+        if (overflowWasHidden) {
+          amountWordsOverflowPreview.hidden = true;
+        }
+
+        if (!firstLineWidth || !secondLineWidth) {
+          return [text, ""];
+        }
+
+        let firstLine = "";
+        let splitIndex = 0;
+
+        for (let index = 0; index < words.length; index += 1) {
+          const candidate = firstLine ? firstLine + " " + words[index] : words[index];
+          amountWordsMeasure.textContent = candidate;
+
+          if (amountWordsMeasure.getBoundingClientRect().width <= firstLineWidth || !firstLine) {
+            firstLine = candidate;
+            splitIndex = index + 1;
+            continue;
+          }
+
+          break;
+        }
+
+        const secondLine = words.slice(splitIndex).join(" ");
+        return [firstLine, secondLine];
+      }
+
+      function renderChequeType() {
+        accountPayeeStamp.hidden = chequeTypeInput.value !== "account-payee";
+        renderPayee();
+      }
+
+      function renderAll() {
+        renderDateDigits(chequeDateInput.value);
+        renderChequeType();
+        renderAmount();
+      }
+
+      const today = new Date();
+      const localDate = new Date(today.getTime() - today.getTimezoneOffset() * 60000)
+        .toISOString()
+        .split("T")[0];
+
+      chequeDateInput.value = localDate;
+      chequeAmountInput.value = "50000";
+      chequeTypeInput.value = "account-payee";
+
+      chequeDateInput.addEventListener("input", renderAll);
+      payeeNameInput.addEventListener("input", renderPayee);
+      chequeAmountInput.addEventListener("input", renderAmount);
+      chequeTypeInput.addEventListener("change", renderChequeType);
+      window.addEventListener("resize", renderAmount);
+
+      printChequeButton.addEventListener("click", () => {
+        window.print();
+      });
+
+      renderAll();
+    </script>
+  </body>
+</html>
