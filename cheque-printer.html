@@ -548,39 +548,57 @@
           overflow: hidden;
         }
 
+        html[data-print-orientation="vertical-up"],
+        html[data-print-orientation="vertical-down"],
+        body[data-print-orientation="vertical-up"],
+        body[data-print-orientation="vertical-down"] {
+          width: 3.5in;
+          height: 7.6in;
+        }
+
+        body * {
+          visibility: hidden !important;
+        }
+
+        #printArea,
+        #printArea * {
+          visibility: visible !important;
+        }
+
         .screen-only,
         .topbar {
           display: none !important;
         }
 
-        .page-shell,
-        .printer-page,
-        .printer-layout,
-        .preview-panel,
-        .preview-stage {
-          width: 7.6in;
-          height: 3.5in;
-          margin: 0;
-          padding: 0;
-          border: none;
-          background: #ffffff;
-          box-shadow: none;
-        }
-
-        .printer-layout {
-          display: block;
-        }
-
         .cheque-sheet {
+          position: fixed;
+          top: 50%;
+          left: 50%;
           width: 7.6in;
           height: 3.5in;
           aspect-ratio: auto;
+          margin: 0;
+          padding: 0;
           border-radius: 0;
           border: none;
           background: #ffffff;
           background-image: none;
           box-shadow: none;
           page-break-inside: avoid;
+          transform: translate(-50%, -50%);
+          transform-origin: center;
+        }
+
+        .cheque-sheet__inner {
+          inset: 0;
+        }
+
+        body[data-print-orientation="vertical-up"] .cheque-sheet {
+          transform: translate(-50%, -50%) rotate(-90deg);
+        }
+
+        body[data-print-orientation="vertical-down"] .cheque-sheet {
+          transform: translate(-50%, -50%) rotate(90deg);
         }
 
         .logo-area,
@@ -681,6 +699,19 @@
               <small>`A/C Payee` shows the upper-left stamp. `Cash` leaves that corner blank.</small>
             </div>
 
+            <div class="printer-field">
+              <label for="printOrientation">Print View</label>
+              <select id="printOrientation" name="printOrientation">
+                <option value="horizontal">Horizontal View</option>
+                <option value="vertical-up">Vertical View (Amount Up Side)</option>
+                <option value="vertical-down">Vertical View (Amount Down Side)</option>
+              </select>
+              <small>
+                Choose the same direction you place the cheque leaf in the printer. Print preview
+                will open in that orientation.
+              </small>
+            </div>
+
             <div class="printer-actions">
               <button class="printer-button printer-button--primary" id="printCheque" type="button">
                 Print Cheque
@@ -771,6 +802,7 @@
       const payeeNameInput = document.getElementById("payeeName");
       const chequeAmountInput = document.getElementById("chequeAmount");
       const chequeTypeInput = document.getElementById("chequeType");
+      const printOrientationInput = document.getElementById("printOrientation");
       const printChequeButton = document.getElementById("printCheque");
       const dateDigitsContainer = document.getElementById("dateDigits");
       const payeePreview = document.getElementById("payeePreview");
@@ -781,6 +813,7 @@
       const accountPayeeStamp = document.getElementById("accountPayeeStamp");
 
       const DATE_SLOT_COUNT = 8;
+      const PRINT_PAGE_STYLE_ID = "printOrientationPageStyle";
 
       function padDateDigits(value) {
         return String(value).padStart(2, "0");
@@ -1048,6 +1081,25 @@
         renderPayee();
       }
 
+      function applyPrintOrientation() {
+        const orientation = printOrientationInput.value || "horizontal";
+        const pageSize =
+          orientation === "horizontal" ? "7.6in 3.5in" : "3.5in 7.6in";
+
+        document.documentElement.dataset.printOrientation = orientation;
+        document.body.dataset.printOrientation = orientation;
+
+        let printPageStyle = document.getElementById(PRINT_PAGE_STYLE_ID);
+
+        if (!printPageStyle) {
+          printPageStyle = document.createElement("style");
+          printPageStyle.id = PRINT_PAGE_STYLE_ID;
+          document.head.appendChild(printPageStyle);
+        }
+
+        printPageStyle.textContent = "@page { size: " + pageSize + "; margin: 0; }";
+      }
+
       function renderAll() {
         renderDateDigits(chequeDateInput.value);
         renderChequeType();
@@ -1062,17 +1114,21 @@
       chequeDateInput.value = localDate;
       chequeAmountInput.value = "50000";
       chequeTypeInput.value = "account-payee";
+      printOrientationInput.value = "horizontal";
 
       chequeDateInput.addEventListener("input", renderAll);
       payeeNameInput.addEventListener("input", renderPayee);
       chequeAmountInput.addEventListener("input", renderAmount);
       chequeTypeInput.addEventListener("change", renderChequeType);
+      printOrientationInput.addEventListener("change", applyPrintOrientation);
       window.addEventListener("resize", renderAmount);
 
       printChequeButton.addEventListener("click", () => {
+        applyPrintOrientation();
         window.print();
       });
 
+      applyPrintOrientation();
       renderAll();
     </script>
   </body>
