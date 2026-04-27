@@ -16,6 +16,8 @@
       :root {
         --cheque-width: 7.6in;
         --cheque-height: 3.5in;
+        --cheque-width-mm: 193.04mm;
+        --cheque-height-mm: 88.9mm;
         --print-ink: #1f1a17;
         --guide-line: rgba(31, 26, 23, 0.52);
         --panel-border: rgba(127, 16, 16, 0.12);
@@ -243,8 +245,8 @@
 
       .date-box {
         position: absolute;
-        top: 16.729%;
-        right: 3.537%;
+        top: 20.5%;
+        right: 4.5%;
         display: flex;
         align-items: center;
       }
@@ -261,7 +263,7 @@
         grid-template-columns: repeat(8, 18px);
         grid-template-columns: repeat(8, 2.122cqw);
         gap: 5px;
-        gap: 0.589cqw;
+        gap: 1.200cqw;
         text-align: center;
       }
 
@@ -273,7 +275,7 @@
         background: #ffffff;
         font-family: "Azeret Mono", monospace;
         font-size: 14px;
-        font-size: 1.651cqw;
+        font-size: 7.0cqw;
         font-weight: 500;
         line-height: 22px;
         line-height: 2.594cqw;
@@ -281,7 +283,7 @@
 
       .pay-row {
         position: absolute;
-        top: 37.319%;
+        top: 31%;
         left: 3.537%;
         width: 90%;
         display: flex;
@@ -302,8 +304,8 @@
 
       .pay-row strong {
         font-size: 14px;
-        font-size: 1.651cqw;
-        font-weight: 700;
+        font-size: 7.0cqw;
+        font-weight: 500;
       }
 
       .sum-row {
@@ -406,28 +408,36 @@
         left: 0.10%;
         width: 30%;
         height: 10.5%;
+        box-sizing: border-box;
+        border-top: 0.020in solid rgba(31, 26, 23, 0.92);
+        border-bottom: 0.020in solid rgba(31, 26, 23, 0.92);
         transform: rotate(-45deg);
         transform-origin: left top;
         pointer-events: none;
+        print-color-adjust: exact;
+        -webkit-print-color-adjust: exact;
       }
 
       .account-payee-stamp::before,
       .account-payee-stamp::after {
         content: "";
         position: absolute;
-        left: 0;
-        width: 100%;
-        height: 0.020in;
-        background: rgba(31, 26, 23, 0.92);
+        height: 0;
+        border-top: 0.020in solid rgba(31, 26, 23, 0.92);
+        print-color-adjust: exact;
+        -webkit-print-color-adjust: exact;
       }
 
       .account-payee-stamp::before {
-        top: 0;
+        top: -0.020in;
+        left: 0;
+        width: 100%;
       }
 
       .account-payee-stamp::after {
-        bottom: 0;
-        left:-40px;
+        bottom: -0.020in;
+        left: -40px;
+        width: calc(100% + 40px);
       }
 
       .account-payee-stamp span {
@@ -533,27 +543,29 @@
       }
 
       @page {
-        size: 7.6in 3.5in;
+        size: 193.04mm 88.9mm;
         margin: 0;
       }
 
       @media print {
         html,
         body {
-          width: 7.6in;
-          height: 3.5in;
+          width: var(--cheque-width-mm);
+          height: var(--cheque-height-mm);
           margin: 0;
           padding: 0;
           background: #ffffff;
           overflow: hidden;
+          print-color-adjust: exact;
+          -webkit-print-color-adjust: exact;
         }
 
         html[data-print-orientation="vertical-up"],
         html[data-print-orientation="vertical-down"],
         body[data-print-orientation="vertical-up"],
         body[data-print-orientation="vertical-down"] {
-          width: 3.5in;
-          height: 7.6in;
+          width: var(--cheque-height-mm);
+          height: var(--cheque-width-mm);
         }
 
         body * {
@@ -574,8 +586,8 @@
           position: fixed;
           top: 50%;
           left: 50%;
-          width: 7.6in;
-          height: 3.5in;
+          width: var(--cheque-width-mm);
+          height: var(--cheque-height-mm);
           aspect-ratio: auto;
           margin: 0;
           padding: 0;
@@ -587,6 +599,8 @@
           page-break-inside: avoid;
           transform: translate(-50%, -50%);
           transform-origin: center;
+          print-color-adjust: exact;
+          -webkit-print-color-adjust: exact;
         }
 
         .cheque-sheet__inner {
@@ -723,15 +737,17 @@
           </form>
 
           <p class="printer-note">
-            Clicking <strong>Print Cheque</strong> opens your browser's print preview first,
-            then you can print onto cheque paper.
+            Clicking <strong>Print Cheque</strong> now creates an exact cheque-size PDF,
+            opens it in a new tab, and then tries to open the print window from that PDF.
           </p>
         </aside>
 
         <section class="preview-panel">
           <div class="preview-meta screen-only">
             <span><strong>Live preview</strong> for the printable cheque area</span>
-            <span>Print size: 7.6 in × 3.5 in (193.04 mm × 88.9 mm)</span>
+            <span id="previewPrintViewLabel">
+              Print size: 7.6 in × 3.5 in (193.04 mm × 88.9 mm) · View: Horizontal
+            </span>
           </div>
 
           <div class="preview-stage">
@@ -804,6 +820,7 @@
       const chequeTypeInput = document.getElementById("chequeType");
       const printOrientationInput = document.getElementById("printOrientation");
       const printChequeButton = document.getElementById("printCheque");
+      const printArea = document.getElementById("printArea");
       const dateDigitsContainer = document.getElementById("dateDigits");
       const payeePreview = document.getElementById("payeePreview");
       const amountPreview = document.getElementById("amountPreview");
@@ -811,9 +828,16 @@
       const amountWordsOverflowPreview = document.getElementById("amountWordsOverflowPreview");
       const amountWordsMeasure = document.getElementById("amountWordsMeasure");
       const accountPayeeStamp = document.getElementById("accountPayeeStamp");
+      const previewPrintViewLabel = document.getElementById("previewPrintViewLabel");
 
       const DATE_SLOT_COUNT = 8;
       const PRINT_PAGE_STYLE_ID = "printOrientationPageStyle";
+      const PDF_DPI = 300;
+      const PDF_PAGE_WIDTH_PX = Math.round(7.6 * PDF_DPI);
+      const PDF_PAGE_HEIGHT_PX = Math.round(3.5 * PDF_DPI);
+      const PDF_PAGE_WIDTH_PT = (193.04 / 25.4) * 72;
+      const PDF_PAGE_HEIGHT_PT = (88.9 / 25.4) * 72;
+      const PDF_PRINT_ATTEMPT_DELAYS = [900, 1800, 3200];
 
       function padDateDigits(value) {
         return String(value).padStart(2, "0");
@@ -1076,15 +1100,438 @@
         return [firstLine, secondLine];
       }
 
+      function escapeXml(value) {
+        return String(value)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/\"/g, "&quot;")
+          .replace(/'/g, "&apos;");
+      }
+
+      function parseRotationDegrees(transformValue) {
+        if (!transformValue || transformValue === "none") {
+          return 0;
+        }
+
+        const match = transformValue.match(/matrix\(([^)]+)\)/);
+
+        if (!match) {
+          return 0;
+        }
+
+        const values = match[1].split(",").map((part) => Number.parseFloat(part.trim()));
+
+        if (values.length < 2 || values.some(Number.isNaN)) {
+          return 0;
+        }
+
+        return (Math.atan2(values[1], values[0]) * 180) / Math.PI;
+      }
+
+      function getRelativeRect(element, sheetRect, scaleX, scaleY) {
+        const rect = element.getBoundingClientRect();
+        return {
+          x: (rect.left - sheetRect.left) * scaleX,
+          y: (rect.top - sheetRect.top) * scaleY,
+          width: rect.width * scaleX,
+          height: rect.height * scaleY,
+        };
+      }
+
+      function createTextSvg(text, rect, style, options = {}) {
+        if (!text) {
+          return "";
+        }
+
+        const {
+          x = rect.x,
+          y = rect.y + rect.height / 2,
+          anchor = "start",
+          baseline = "middle",
+          family = style.fontFamily,
+          fontStyle = style.fontStyle || "normal",
+          weight = style.fontWeight,
+          clipId = "",
+        } = options;
+
+        const size = Math.max(1, Number.parseFloat(style.fontSize || "12"));
+        const letterSpacing = Number.parseFloat(style.letterSpacing || "0");
+        const fill = style.color || "#1f1a17";
+        const clipPathAttribute = clipId ? ` clip-path="url(#${clipId})"` : "";
+
+        return `
+          <text
+            x="${x.toFixed(2)}"
+            y="${y.toFixed(2)}"
+            text-anchor="${anchor}"
+            dominant-baseline="${baseline}"
+            font-family="${escapeXml(family)}"
+            font-size="${size.toFixed(2)}"
+            font-style="${escapeXml(fontStyle)}"
+            font-weight="${escapeXml(weight)}"
+            letter-spacing="${letterSpacing.toFixed(2)}"
+            fill="${escapeXml(fill)}"
+            ${clipPathAttribute}
+          >${escapeXml(text)}</text>
+        `;
+      }
+
+      function createClipPathSvg(id, rect) {
+        return `
+          <clipPath id="${escapeXml(id)}">
+            <rect
+              x="${rect.x.toFixed(2)}"
+              y="${rect.y.toFixed(2)}"
+              width="${Math.max(1, rect.width).toFixed(2)}"
+              height="${Math.max(1, rect.height).toFixed(2)}"
+            />
+          </clipPath>
+        `;
+      }
+
+      function buildPrintableSvgMarkup() {
+        const sheetRect = printArea.getBoundingClientRect();
+        const scaleX = PDF_PAGE_WIDTH_PX / sheetRect.width;
+        const scaleY = PDF_PAGE_HEIGHT_PX / sheetRect.height;
+        const svgDefs = [];
+        const svgContent = [];
+        let clipPathIndex = 0;
+
+        const registerClipPath = (rect) => {
+          const clipId = `clip-${clipPathIndex}`;
+          clipPathIndex += 1;
+          svgDefs.push(createClipPathSvg(clipId, rect));
+          return clipId;
+        };
+
+        const printableTextElements = [
+          payeePreview,
+          amountWordsPreview,
+          amountWordsOverflowPreview.hidden ? null : amountWordsOverflowPreview,
+          amountPreview,
+        ].filter(Boolean);
+
+        printableTextElements.forEach((element) => {
+          const rect = getRelativeRect(element, sheetRect, scaleX, scaleY);
+          const style = getComputedStyle(element);
+          const text = element.textContent.trim();
+          const clipId = registerClipPath(rect);
+          svgContent.push(createTextSvg(text, rect, style, { clipId }));
+        });
+
+        Array.from(dateDigitsContainer.querySelectorAll(".date-cell")).forEach((cell) => {
+          const rect = getRelativeRect(cell, sheetRect, scaleX, scaleY);
+          const style = getComputedStyle(cell);
+          svgContent.push(
+            createTextSvg(cell.textContent.trim(), rect, style, {
+              x: rect.x + rect.width / 2,
+              y: rect.y + rect.height / 2,
+              anchor: "middle",
+              baseline: "middle",
+              family: `"Courier New", Courier, monospace`,
+            })
+          );
+        });
+
+        if (!accountPayeeStamp.hidden) {
+          const stampStyle = getComputedStyle(accountPayeeStamp);
+          const stampText = accountPayeeStamp.querySelector("span");
+          const stampTextStyle = getComputedStyle(stampText);
+          const stampX = Number.parseFloat(stampStyle.left || "0") * scaleX;
+          const stampY = Number.parseFloat(stampStyle.top || "0") * scaleY;
+          const stampWidth = Number.parseFloat(stampStyle.width || "0") * scaleX;
+          const stampHeight = Number.parseFloat(stampStyle.height || "0") * scaleY;
+          const stampAngle = parseRotationDegrees(stampStyle.transform);
+          const lineThickness =
+            Math.max(1, Number.parseFloat(stampStyle.borderTopWidth || "1")) * scaleY;
+          const extraLineLeft = -40 * scaleX;
+          const stampTextLeft = (Number.parseFloat(stampTextStyle.left || "0") / 100) * stampWidth;
+          const stampFontSize =
+            Math.max(1, Number.parseFloat(stampTextStyle.fontSize || "12")) * scaleY;
+
+          svgContent.push(`
+            <g transform="translate(${stampX.toFixed(2)} ${stampY.toFixed(2)}) rotate(${stampAngle.toFixed(2)})">
+              <line x1="0" y1="0" x2="${stampWidth.toFixed(2)}" y2="0"
+                stroke="#1f1a17" stroke-width="${lineThickness.toFixed(2)}" stroke-linecap="square" />
+              <line
+                x1="${extraLineLeft.toFixed(2)}"
+                y1="${stampHeight.toFixed(2)}"
+                x2="${stampWidth.toFixed(2)}"
+                y2="${stampHeight.toFixed(2)}"
+                stroke="#1f1a17"
+                stroke-width="${lineThickness.toFixed(2)}"
+                stroke-linecap="square"
+              />
+              <text
+                x="${stampTextLeft.toFixed(2)}"
+                y="${(stampHeight / 2).toFixed(2)}"
+                dominant-baseline="middle"
+                font-family='"IBM Plex Sans", Arial, sans-serif'
+                font-size="${stampFontSize.toFixed(2)}"
+                font-weight="${escapeXml(stampTextStyle.fontWeight)}"
+                fill="#1f1a17"
+              >${escapeXml(stampText.textContent.trim())}</text>
+            </g>
+          `);
+        }
+
+        const svgParts = [
+          `<svg xmlns="http://www.w3.org/2000/svg" width="${PDF_PAGE_WIDTH_PX}" height="${PDF_PAGE_HEIGHT_PX}" viewBox="0 0 ${PDF_PAGE_WIDTH_PX} ${PDF_PAGE_HEIGHT_PX}">`,
+          `<rect width="100%" height="100%" fill="white" />`,
+        ];
+
+        if (svgDefs.length) {
+          svgParts.push(`<defs>${svgDefs.join("")}</defs>`);
+        }
+
+        svgParts.push(...svgContent);
+        svgParts.push("</svg>");
+        return svgParts.join("");
+      }
+
+      async function renderPrintableCanvas() {
+        const orientation = printOrientationInput.value || "horizontal";
+
+        if (document.fonts && document.fonts.ready) {
+          try {
+            await document.fonts.ready;
+          } catch (error) {
+            console.warn("Font readiness check failed.", error);
+          }
+        }
+
+        const svgMarkup = buildPrintableSvgMarkup();
+        const svgBlob = new Blob([svgMarkup], { type: "image/svg+xml;charset=utf-8" });
+        const svgUrl = URL.createObjectURL(svgBlob);
+        const svgImage = new Image();
+
+        svgImage.decoding = "sync";
+
+        const loadPromise = new Promise((resolve, reject) => {
+          svgImage.onload = resolve;
+          svgImage.onerror = reject;
+        });
+
+        svgImage.src = svgUrl;
+        await loadPromise;
+        URL.revokeObjectURL(svgUrl);
+
+        const baseCanvas = document.createElement("canvas");
+        baseCanvas.width = PDF_PAGE_WIDTH_PX;
+        baseCanvas.height = PDF_PAGE_HEIGHT_PX;
+
+        const baseContext = baseCanvas.getContext("2d");
+        baseContext.fillStyle = "#ffffff";
+        baseContext.fillRect(0, 0, baseCanvas.width, baseCanvas.height);
+        baseContext.drawImage(svgImage, 0, 0, baseCanvas.width, baseCanvas.height);
+
+        if (orientation === "horizontal") {
+          return baseCanvas;
+        }
+
+        const rotatedCanvas = document.createElement("canvas");
+        rotatedCanvas.width = PDF_PAGE_HEIGHT_PX;
+        rotatedCanvas.height = PDF_PAGE_WIDTH_PX;
+
+        const rotatedContext = rotatedCanvas.getContext("2d");
+        rotatedContext.fillStyle = "#ffffff";
+        rotatedContext.fillRect(0, 0, rotatedCanvas.width, rotatedCanvas.height);
+
+        if (orientation === "vertical-up") {
+          rotatedContext.translate(0, rotatedCanvas.height);
+          rotatedContext.rotate(-Math.PI / 2);
+        } else {
+          rotatedContext.translate(rotatedCanvas.width, 0);
+          rotatedContext.rotate(Math.PI / 2);
+        }
+
+        rotatedContext.drawImage(baseCanvas, 0, 0);
+        return rotatedCanvas;
+      }
+
+      function base64ToBytes(base64) {
+        const binary = atob(base64);
+        const bytes = new Uint8Array(binary.length);
+
+        for (let index = 0; index < binary.length; index += 1) {
+          bytes[index] = binary.charCodeAt(index);
+        }
+
+        return bytes;
+      }
+
+      function concatUint8Arrays(parts) {
+        const totalLength = parts.reduce((sum, part) => sum + part.length, 0);
+        const result = new Uint8Array(totalLength);
+        let offset = 0;
+
+        parts.forEach((part) => {
+          result.set(part, offset);
+          offset += part.length;
+        });
+
+        return result;
+      }
+
+      function buildPdfFromJpeg(jpegBytes, imageWidth, imageHeight, pageWidthPt, pageHeightPt) {
+        const encoder = new TextEncoder();
+        const objects = [];
+
+        const contentStream = encoder.encode(
+          `q\n${pageWidthPt.toFixed(2)} 0 0 ${pageHeightPt.toFixed(2)} 0 0 cm\n/Im0 Do\nQ\n`
+        );
+
+        objects.push(encoder.encode("<< /Type /Catalog /Pages 2 0 R >>"));
+        objects.push(encoder.encode("<< /Type /Pages /Count 1 /Kids [3 0 R] >>"));
+        objects.push(
+          encoder.encode(
+            `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${pageWidthPt.toFixed(2)} ${pageHeightPt.toFixed(2)}] /Resources << /XObject << /Im0 4 0 R >> >> /Contents 5 0 R >>`
+          )
+        );
+        objects.push(
+          concatUint8Arrays([
+            encoder.encode(
+              `<< /Type /XObject /Subtype /Image /Width ${imageWidth} /Height ${imageHeight} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${jpegBytes.length} >>\nstream\n`
+            ),
+            jpegBytes,
+            encoder.encode("\nendstream"),
+          ])
+        );
+        objects.push(
+          concatUint8Arrays([
+            encoder.encode(`<< /Length ${contentStream.length} >>\nstream\n`),
+            contentStream,
+            encoder.encode("endstream"),
+          ])
+        );
+
+        const pdfHeader = encoder.encode("%PDF-1.4\n%\xFF\xFF\xFF\xFF\n");
+        const pdfParts = [pdfHeader];
+        const offsets = [0];
+        let currentLength = pdfHeader.length;
+
+        objects.forEach((objectBytes, index) => {
+          offsets.push(currentLength);
+          const objectHeader = encoder.encode(`${index + 1} 0 obj\n`);
+          const objectFooter = encoder.encode("\nendobj\n");
+          pdfParts.push(objectHeader, objectBytes, objectFooter);
+          currentLength += objectHeader.length + objectBytes.length + objectFooter.length;
+        });
+
+        const xrefOffset = currentLength;
+        const xrefRows = ["0000000000 65535 f "];
+
+        for (let index = 1; index < offsets.length; index += 1) {
+          xrefRows.push(`${String(offsets[index]).padStart(10, "0")} 00000 n `);
+        }
+
+        const xref = encoder.encode(
+          `xref\n0 ${offsets.length}\n${xrefRows.join("\n")}\ntrailer\n<< /Size ${offsets.length} /Root 1 0 R >>\nstartxref\n${xrefOffset}\n%%EOF`
+        );
+
+        pdfParts.push(xref);
+        return concatUint8Arrays(pdfParts);
+      }
+
+      async function createChequePdfBlob() {
+        const orientation = printOrientationInput.value || "horizontal";
+        const canvas = await renderPrintableCanvas();
+        const jpegBase64 = canvas.toDataURL("image/jpeg", 1).split(",")[1];
+        const jpegBytes = base64ToBytes(jpegBase64);
+        const isHorizontal = orientation === "horizontal";
+        const pageWidthPt = isHorizontal ? PDF_PAGE_WIDTH_PT : PDF_PAGE_HEIGHT_PT;
+        const pageHeightPt = isHorizontal ? PDF_PAGE_HEIGHT_PT : PDF_PAGE_WIDTH_PT;
+        const pdfBytes = buildPdfFromJpeg(
+          jpegBytes,
+          canvas.width,
+          canvas.height,
+          pageWidthPt,
+          pageHeightPt
+        );
+
+        return new Blob([pdfBytes], { type: "application/pdf" });
+      }
+
+      async function printThroughPdf(pdfWindow) {
+        const pdfBlob = await createChequePdfBlob();
+        const pdfUrl = URL.createObjectURL(pdfBlob);
+        const pdfViewerUrl = `${pdfUrl}#page=1&zoom=96&toolbar=1&navpanes=0&scrollbar=0`;
+
+        if (pdfWindow) {
+          pdfWindow.location.replace(pdfViewerUrl);
+
+          PDF_PRINT_ATTEMPT_DELAYS.forEach((delay) => {
+            setTimeout(() => {
+              try {
+                if (!pdfWindow.closed) {
+                  pdfWindow.focus();
+                  pdfWindow.print();
+                }
+              } catch (error) {
+                console.error("Automatic PDF print trigger failed.", error);
+              }
+            }, delay);
+          });
+        } else {
+          window.open(pdfViewerUrl, "_blank");
+        }
+
+        setTimeout(() => {
+          URL.revokeObjectURL(pdfUrl);
+        }, 120000);
+      }
+
+      function showPdfStatusWindow(pdfWindow, title, message) {
+        if (!pdfWindow || pdfWindow.closed) {
+          return;
+        }
+
+        const popupDocument = pdfWindow.document;
+        popupDocument.open();
+        popupDocument.write("<!DOCTYPE html><meta charset='utf-8'>");
+        popupDocument.close();
+        popupDocument.title = title;
+
+        if (!popupDocument.body) {
+          return;
+        }
+
+        popupDocument.body.innerHTML = "";
+        popupDocument.body.style.margin = "0";
+        popupDocument.body.style.padding = "24px";
+        popupDocument.body.style.fontFamily = "Arial, sans-serif";
+        popupDocument.body.style.lineHeight = "1.5";
+        popupDocument.body.style.color = "#1f1a17";
+        popupDocument.body.textContent = message;
+      }
+
       function renderChequeType() {
         accountPayeeStamp.hidden = chequeTypeInput.value !== "account-payee";
         renderPayee();
       }
 
+      function renderPrintOrientationLabel() {
+        const orientation = printOrientationInput.value || "horizontal";
+        const viewLabelMap = {
+          horizontal: "Horizontal",
+          "vertical-up": "Vertical (Amount Up Side)",
+          "vertical-down": "Vertical (Amount Down Side)",
+        };
+
+        if (!previewPrintViewLabel) {
+          return;
+        }
+
+        previewPrintViewLabel.textContent =
+          "Print size: 7.6 in × 3.5 in (193.04 mm × 88.9 mm) · View: " +
+          (viewLabelMap[orientation] || "Horizontal");
+      }
+
       function applyPrintOrientation() {
         const orientation = printOrientationInput.value || "horizontal";
         const pageSize =
-          orientation === "horizontal" ? "7.6in 3.5in" : "3.5in 7.6in";
+          orientation === "horizontal" ? "193.04mm 88.9mm" : "88.9mm 193.04mm";
 
         document.documentElement.dataset.printOrientation = orientation;
         document.body.dataset.printOrientation = orientation;
@@ -1098,6 +1545,7 @@
         }
 
         printPageStyle.textContent = "@page { size: " + pageSize + "; margin: 0; }";
+        renderPrintOrientationLabel();
       }
 
       function renderAll() {
@@ -1123,9 +1571,22 @@
       printOrientationInput.addEventListener("change", applyPrintOrientation);
       window.addEventListener("resize", renderAmount);
 
-      printChequeButton.addEventListener("click", () => {
+      printChequeButton.addEventListener("click", async () => {
         applyPrintOrientation();
-        window.print();
+        const pdfWindow = window.open("", "_blank");
+
+        showPdfStatusWindow(pdfWindow, "Preparing PDF...", "Preparing exact cheque-size PDF...");
+
+        try {
+          await printThroughPdf(pdfWindow);
+        } catch (error) {
+          console.error("Cheque PDF generation failed.", error);
+          showPdfStatusWindow(
+            pdfWindow,
+            "PDF generation failed",
+            "Could not prepare the cheque PDF. Please close this tab and try again."
+          );
+        }
       });
 
       applyPrintOrientation();
