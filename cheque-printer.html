@@ -7,565 +7,550 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Azeret+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&family=Outfit:wght@300;400;500;600;700;800&family=Ubuntu:wght@500;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Ubuntu:wght@500;700&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="./styles.css" />
     <script src="./app-config.js" defer></script>
     <style>
       :root {
-        --cheque-width: 7.6in;
-        --cheque-height: 3.5in;
-        --cheque-width-mm: 193.04mm;
-        --cheque-height-mm: 88.9mm;
-        --print-ink: #1f1a17;
-        --guide-line: rgba(31, 26, 23, 0.52);
-        --panel-border: rgba(127, 16, 16, 0.12);
-        --panel-bg: rgba(255, 255, 255, 0.9);
+        --page-width: 210mm;
+        --page-height: 297mm;
+        --cheque-width: 193.04mm;
+        --cheque-height: 88.9mm;
+        --panel-border: rgba(112, 24, 24, 0.12);
+        --panel-shadow: 0 20px 50px rgba(82, 19, 19, 0.12);
+        --panel-bg: rgba(255, 255, 255, 0.94);
+        --ink: #1f1a17;
+        --muted: #6e5b57;
+
+        /* Overlay calibration values */
+        --date-left: 134.0mm;
+        --date-top: 14.6mm;
+        --date-cell-width: 5.9mm;
+        --date-cell-height: 7.6mm;
+        --date-gap: 0.70mm;
+        --date-font-size: 4.25mm;
+
+        --payee-left: 18.5mm;
+        --payee-top: 30.5mm;
+        --payee-width: 154mm;
+        --payee-font-size: 4.5mm;
+        --payee-font-weight: 500;
+
+        --amount-line-1-left: 31.5mm;
+        --amount-line-1-top: 40.0mm;
+        --amount-line-1-width: 93mm;
+        --amount-line-2-left: 4.6mm;
+        --amount-line-2-top: 49.0mm;
+        --amount-line-2-width: 120mm;
+        --amount-words-font-size: 4.3mm;
+        --amount-words-font-weight: 500;
+
+        --amount-box-left: 135.2mm;
+        --amount-box-top: 42.5mm;
+        --amount-box-width: 44.2mm;
+        --amount-box-font-size: 5.05mm;
+        --amount-box-font-weight: 600;
+
+        --stamp-left: -3mm;
+        --stamp-top: 20.0mm;
+        --stamp-width: 37mm;
+        --stamp-height: 9.5mm;
+        --stamp-font-size: 4.1mm;
+        --stamp-line-thickness: 0.28mm;
+        --stamp-upper-left-offset: -4mm;
+        --stamp-upper-width: 210mm;
+        --stamp-lower-left-offset: -24mm;
+        --stamp-lower-width: 228mm;
       }
 
-      .printer-page {
-        padding-bottom: 56px;
+      @page {
+        size: A4 portrait;
+        margin: 0;
       }
 
-      .printer-layout {
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        color: var(--text, #241717);
+        font-family: "Outfit", sans-serif;
+      }
+
+      body {
+        min-height: 100vh;
+      }
+
+      .cheque-page {
+        width: min(1380px, calc(100% - 40px));
+        padding-bottom: 40px;
+      }
+
+      .workspace {
         display: grid;
-        grid-template-columns: minmax(320px, 380px) minmax(0, 1fr);
-        gap: 28px;
-        padding: 38px 0 24px;
+        gap: 26px;
+        margin-top: 26px;
+      }
+
+      .cheque-page .topbar {
+        justify-content: space-between;
+        gap: 20px;
+      }
+
+      .workspace-intro {
+        position: relative;
+        display: grid;
+        gap: 16px;
+        padding: 28px 32px;
+        border-radius: 30px;
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(255, 247, 246, 0.9)),
+          radial-gradient(circle at top right, rgba(239, 68, 68, 0.12), transparent 32%);
+        border: 1px solid rgba(185, 28, 28, 0.12);
+        box-shadow: var(--shadow, 0 30px 60px rgba(127, 16, 16, 0.18));
+        overflow: hidden;
+      }
+
+      .workspace-intro::after {
+        content: "";
+        position: absolute;
+        right: -26px;
+        bottom: -46px;
+        width: 180px;
+        height: 180px;
+        border-radius: 999px;
+        background: radial-gradient(circle, rgba(239, 68, 68, 0.18), transparent 68%);
+        pointer-events: none;
+      }
+
+      .workspace-intro__copy {
+        display: grid;
+        gap: 0;
+        max-width: 760px;
+      }
+
+      .workspace-intro h1 {
+        margin: 0;
+        font-family: "Ubuntu", sans-serif;
+        font-size: clamp(2.1rem, 4vw, 3.4rem);
+        line-height: 1.02;
+        letter-spacing: -0.05em;
+      }
+
+      .layout {
+        display: grid;
+        grid-template-columns: minmax(300px, 360px) minmax(0, 1fr);
+        gap: 24px;
         align-items: start;
       }
 
-      .printer-panel,
-      .preview-panel {
-        border-radius: 30px;
+      .panel,
+      .preview {
         border: 1px solid var(--panel-border);
-        background: var(--panel-bg);
-        box-shadow: var(--shadow);
+        border-radius: 30px;
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(255, 247, 246, 0.9));
+        box-shadow: var(--shadow, 0 30px 60px rgba(127, 16, 16, 0.18));
+        backdrop-filter: blur(10px);
       }
 
-      .printer-panel {
-        padding: 28px;
+      .panel {
+        padding: 24px;
         display: grid;
-        gap: 18px;
+        gap: 16px;
+        position: sticky;
+        top: 26px;
       }
 
-      .printer-panel h1 {
-        margin: 10px 0 8px;
-        max-width: none;
-        font-size: clamp(2rem, 3vw, 2.75rem);
-      }
-
-      .printer-panel__lead {
+      .panel h2 {
         margin: 0;
-        color: var(--muted);
-        line-height: 1.65;
+        font-family: "Ubuntu", sans-serif;
+        font-size: 2rem;
+        line-height: 1.02;
+        letter-spacing: -0.04em;
       }
 
-      .printer-form {
+      .eyebrow {
+        width: fit-content;
+      }
+
+      .lead,
+      .note {
+        margin: 0;
+        color: var(--muted, #6e5b57);
+        line-height: 1.6;
+      }
+
+      .lead {
+        font-size: 1rem;
+      }
+
+      .form {
         display: grid;
         gap: 14px;
       }
 
-      .printer-field {
+      .field {
         display: grid;
         gap: 8px;
       }
 
-      .printer-field label {
-        font-size: 0.96rem;
+      .field label {
         font-weight: 700;
-        color: var(--text);
+        font-size: 0.95rem;
+        color: var(--text, #241717);
       }
 
-      .printer-field input,
-      .printer-field select {
+      .field input,
+      .field select {
         width: 100%;
-        min-height: 54px;
-        border: 1px solid rgba(86, 30, 30, 0.18);
+        min-height: 52px;
+        padding: 14px 16px;
+        border: 1px solid rgba(78, 26, 26, 0.16);
         border-radius: 16px;
         background: #ffffff;
-        padding: 14px 16px;
         font: inherit;
-        font-size: 1rem;
-        color: var(--text);
+        color: var(--text, #241717);
+        transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+      }
+
+      .field input:focus,
+      .field select:focus {
         outline: none;
-        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        border-color: rgba(150, 47, 47, 0.72);
+        box-shadow: 0 0 0 4px rgba(150, 47, 47, 0.12);
       }
 
-      .printer-field input:focus,
-      .printer-field select:focus {
-        border-color: rgba(185, 28, 28, 0.68);
-        box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.12);
-      }
-
-      .printer-field small {
+      .field small {
         color: var(--muted);
         line-height: 1.5;
       }
 
-      .printer-actions {
-        display: flex;
-        flex-wrap: wrap;
+      .actions {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 12px;
         padding-top: 4px;
+        align-items: stretch;
       }
 
-      .printer-button {
+      .button {
         display: inline-flex;
         align-items: center;
         justify-content: center;
+        height: 54px;
         min-height: 54px;
-        padding: 0 22px;
+        margin: 0;
+        padding: 0 20px;
+        border-radius: 14px;
         border: none;
-        border-radius: 16px;
+        appearance: none;
+        -webkit-appearance: none;
+        text-decoration: none;
         font: inherit;
-        font-size: 1rem;
+        line-height: 1;
         font-weight: 700;
         cursor: pointer;
         transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
       }
 
-      .printer-button--primary {
+      .actions .button {
+        width: 100%;
+      }
+
+      .button--primary {
+        background: linear-gradient(135deg, var(--red-700, #b91c1c), var(--red-900, #7f1010));
         color: #ffffff;
-        background: linear-gradient(135deg, var(--red-700), var(--red-500));
-        box-shadow: 0 18px 35px rgba(185, 28, 28, 0.24);
+        box-shadow: 0 18px 34px rgba(185, 28, 28, 0.22);
       }
 
-      .printer-button--secondary {
-        background: rgba(255, 255, 255, 0.92);
-        color: var(--red-900);
-        border: 1px solid rgba(185, 28, 28, 0.18);
+      .button--secondary {
+        background: #ffffff;
+        color: var(--red-900, #7f1010);
+        border: 1px solid rgba(127, 29, 29, 0.2);
       }
 
-      .printer-button:hover {
+      .button:hover {
         transform: translateY(-1px);
-        filter: brightness(1.03);
+        filter: brightness(1.02);
       }
 
-      .printer-note {
-        margin: 0;
-        padding: 16px 18px;
-        border-radius: 18px;
-        background: rgba(255, 245, 244, 0.92);
-        border: 1px solid rgba(185, 28, 28, 0.12);
-        color: var(--muted);
-        line-height: 1.6;
-      }
-
-      .preview-panel {
-        padding: 22px;
+      .preview {
+        padding: 24px;
       }
 
       .preview-meta {
         display: flex;
         justify-content: space-between;
-        gap: 14px;
+        gap: 12px;
         align-items: center;
         margin-bottom: 18px;
-        color: var(--muted);
-        font-size: 0.92rem;
+        color: var(--muted, #6e5b57);
+        font-size: 0.93rem;
       }
 
       .preview-meta strong {
-        color: var(--red-900);
+        color: var(--red-900, #7f1010);
       }
 
-      .preview-stage {
-        display: grid;
-        place-items: center;
-        min-height: calc(100vh - 260px);
-        padding: 18px;
+      .stage {
+        overflow: auto;
         border-radius: 24px;
         background:
-          linear-gradient(180deg, rgba(255, 255, 255, 0.68), rgba(255, 244, 241, 0.76)),
+          linear-gradient(180deg, rgba(255, 255, 255, 0.68), rgba(255, 246, 242, 0.86)),
           repeating-linear-gradient(
             135deg,
             rgba(239, 68, 68, 0.03),
             rgba(239, 68, 68, 0.03) 14px,
-            rgba(255, 255, 255, 0.2) 14px,
-            rgba(255, 255, 255, 0.2) 28px
+            rgba(255, 255, 255, 0.18) 14px,
+            rgba(255, 255, 255, 0.18) 28px
           );
+        padding: 22px;
+        border: 1px solid rgba(185, 28, 28, 0.08);
+      }
+
+      .a4-sheet {
+        position: relative;
+        width: var(--page-width);
+        height: var(--page-height);
+        background: #ffffff;
+        border-radius: 0;
+        border: 1px solid rgba(127, 16, 16, 0.08);
+        box-shadow: 0 18px 48px rgba(58, 35, 23, 0.14);
+        overflow: hidden;
+        margin: 0 auto;
+      }
+
+      .cheque-placement {
+        position: absolute;
+        top: 0;
+        left: 50%;
+        transform: translateX(-50%);
+      }
+
+      .a4-sheet[data-orientation="landscape"] .cheque-placement {
+        width: var(--cheque-width);
+        height: var(--cheque-height);
+      }
+
+      .a4-sheet[data-orientation="amount-up"] .cheque-placement,
+      .a4-sheet[data-orientation="amount-down"] .cheque-placement {
+        width: var(--cheque-height);
+        height: var(--cheque-width);
       }
 
       .cheque-sheet {
-        position: relative;
-        width: min(100%, 848.13px);
-        aspect-ratio: 848.13 / 388.54;
-        border-radius: 0;
-        container-type: inline-size;
-        background-color: #e8f4f8;
-        background-image: linear-gradient(rgba(255, 255, 255, 0.5) 1px, transparent 1px);
-        background-size: 100% 5.147%;
-        border: 1px solid #ccc;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: var(--cheque-width);
+        height: var(--cheque-height);
         overflow: hidden;
-        color: #333;
+        background: #ffffff;
+        transform-origin: top left;
+        user-select: none;
+        print-color-adjust: exact;
+        -webkit-print-color-adjust: exact;
       }
 
-      .cheque-sheet__inner {
+      .a4-sheet[data-orientation="landscape"] .cheque-sheet {
+        transform: none;
+      }
+
+      .a4-sheet[data-orientation="amount-up"] .cheque-sheet {
+        transform: translateY(var(--cheque-width)) rotate(-90deg);
+      }
+
+      .a4-sheet[data-orientation="amount-down"] .cheque-sheet {
+        transform: translateX(var(--cheque-height)) rotate(90deg);
+      }
+
+      .cheque-base {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: fill;
+      }
+
+      .overlay {
         position: absolute;
         inset: 0;
-        color: #333;
-        font-family: Arial, sans-serif;
-      }
-
-      .logo-area {
-        position: absolute;
-        top: 5.147%;
-        left: 3.537%;
-      }
-
-      .bank-name {
-        margin: 0;
-        color: #004a99;
-        font-size: 24px;
-        font-size: 2.83cqw;
-        font-weight: 700;
-        line-height: 1;
-      }
-
-      .bank-sub {
-        margin-top: 5px;
-        margin-top: 0.589cqw;
-        font-size: 10px;
-        font-size: 1.179cqw;
-        line-height: 1.2;
-      }
-
-      .cheque-number {
-        position: absolute;
-        top: 6.435%;
-        right: 4.716%;
-        font-size: 22px;
-        font-size: 2.594cqw;
-        letter-spacing: 2px;
-        letter-spacing: 0.236cqw;
-      }
-
-      .date-box {
-        position: absolute;
-        top: 20.5%;
-        right: 4.5%;
-        display: flex;
-        align-items: center;
-      }
-
-      .date-label {
-        margin-right: 10px;
-        margin-right: 1.179cqw;
-        font-size: 14px;
-        font-size: 1.651cqw;
+        color: var(--ink);
+        font-family: Arial, Helvetica, sans-serif;
       }
 
       .date-grid {
+        position: absolute;
+        left: var(--date-left);
+        top: var(--date-top);
         display: grid;
-        grid-template-columns: repeat(8, 18px);
-        grid-template-columns: repeat(8, 2.122cqw);
-        gap: 5px;
-        gap: 1.200cqw;
-        text-align: center;
+        grid-template-columns: repeat(8, var(--date-cell-width));
+        gap: var(--date-gap);
       }
 
       .date-cell {
-        display: block;
-        height: 22px;
-        height: 2.594cqw;
-        border: 1px solid #999;
-        background: #ffffff;
-        font-family: "Azeret Mono", monospace;
-        font-size: 14px;
-        font-size: 7.0cqw;
-        font-weight: 500;
-        line-height: 22px;
-        line-height: 2.594cqw;
-      }
-
-      .pay-row {
-        position: absolute;
-        top: 31%;
-        left: 3.537%;
-        width: 90%;
-        display: flex;
-        align-items: flex-end;
-        border-bottom: 1px solid #999;
-        font-size: 14px;
-        font-size: 1.651cqw;
-      }
-
-      .pay-row > span:first-child {
-        margin-right: 10px;
-        margin-right: 1.179cqw;
-      }
-
-      .pay-row > span:last-child {
-        margin-left: auto;
-      }
-
-      .pay-row strong {
-        font-size: 14px;
-        font-size: 7.0cqw;
+        width: var(--date-cell-width);
+        height: var(--date-cell-height);
+        display: grid;
+        place-items: center;
+        font-size: var(--date-font-size);
+        line-height: 1;
         font-weight: 500;
       }
 
-      .sum-row {
+      .payee-text,
+      .amount-words,
+      .amount-value,
+      .measure {
+        font-style: normal;
+        letter-spacing: 0;
+      }
+
+      .payee-text {
         position: absolute;
-        top: 47.614%;
-        left: 3.537%;
-        width: 92%;
-        min-height: calc(var(--sum-line-height) * 2);
-        --sum-line-height: 4.9cqw;
-        --sum-label-width: 25.5%;
-        --sum-box-guard: 32%;
-        font-size: 14px;
-        font-size: 1.651cqw;
+        left: var(--payee-left);
+        top: var(--payee-top);
+        width: var(--payee-width);
+        font-size: var(--payee-font-size);
+        font-weight: var(--payee-font-weight);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
 
-      .sum-row::before,
-      .sum-row::after {
-        content: "";
+      .amount-words {
         position: absolute;
-        left: 0;
-        width: 100%;
-        border-top: 1px solid #999;
+        font-size: var(--amount-words-font-size);
+        font-weight: var(--amount-words-font-weight);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
 
-      .sum-row::before {
-        top: calc(var(--sum-line-height) - 0.55cqw);
+      .amount-words--first {
+        left: var(--amount-line-1-left);
+        top: var(--amount-line-1-top);
+        width: var(--amount-line-1-width);
       }
 
-      .sum-row::after {
-        top: calc((var(--sum-line-height) * 2) - 0.55cqw);
+      .amount-words--second {
+        left: var(--amount-line-2-left);
+        top: var(--amount-line-2-top);
+        width: var(--amount-line-2-width);
       }
 
-      .sum-label {
+      .amount-value {
         position: absolute;
-        top: 0.1cqw;
-        left: 0;
-        z-index: 2;
+        left: var(--amount-box-left);
+        top: var(--amount-box-top);
+        width: var(--amount-box-width);
+        font-size: var(--amount-box-font-size);
+        font-weight: var(--amount-box-font-weight);
+        text-align: right;
+        white-space: nowrap;
+        overflow: hidden;
       }
 
-      .amount-box {
+      .measure {
         position: absolute;
-        top: 45.04%;
-        right: 3.537%;
-        width: 29.481%;
-        height: 12.869%;
-        border: 1px solid #999;
-        background: #d1eef7;
-        display: flex;
-        align-items: center;
-        padding: 0 10px;
-        padding: 0 1.179cqw;
-        font-size: 18px;
-        font-size: 2.122cqw;
-        font-weight: 700;
+        visibility: hidden;
+        pointer-events: none;
+        left: -9999px;
+        top: -9999px;
+        white-space: nowrap;
+        font-size: var(--amount-words-font-size);
+        font-weight: var(--amount-words-font-weight);
       }
 
-      .amount-box__value {
-        margin-left: 30px;
-        margin-left: 3.537cqw;
-      }
-
-      .account-info {
-        position: absolute;
-        bottom: 20.59%;
-        left: 5.306%;
-        font-size: 16px;
-        font-size: 1.887cqw;
-        font-weight: 700;
-        line-height: 1.4;
-      }
-
-      .signature-area {
-        position: absolute;
-        right: 5.306%;
-        bottom: 18.017%;
-        width: 29.481%;
-        padding-top: 5px;
-        padding-top: 0.589cqw;
-        border-top: 1px solid #999;
-        text-align: center;
-        font-size: 10px;
-        font-size: 1.179cqw;
-      }
-
-      .micr-line {
-        position: absolute;
-        bottom: 3.861%;
-        width: 100%;
-        text-align: center;
-        font-family: "Azeret Mono", monospace;
-        font-size: 18px;
-        font-size: 2.122cqw;
-        letter-spacing: 5px;
-        letter-spacing: 0.589cqw;
+      .placeholder {
+        color: rgba(31, 26, 23, 0.34);
       }
 
       .account-payee-stamp {
         position: absolute;
-        top: 23.0%;
-        left: 0.10%;
-        width: 30%;
-        height: 10.5%;
-        box-sizing: border-box;
-        border-top: 0.020in solid rgba(31, 26, 23, 0.92);
-        border-bottom: 0.020in solid rgba(31, 26, 23, 0.92);
+        left: var(--stamp-left);
+        top: var(--stamp-top);
+        width: var(--stamp-width);
+        height: var(--stamp-height);
         transform: rotate(-45deg);
         transform-origin: left top;
         pointer-events: none;
-        print-color-adjust: exact;
-        -webkit-print-color-adjust: exact;
       }
 
       .account-payee-stamp::before,
       .account-payee-stamp::after {
         content: "";
         position: absolute;
-        height: 0;
-        border-top: 0.020in solid rgba(31, 26, 23, 0.92);
-        print-color-adjust: exact;
-        -webkit-print-color-adjust: exact;
+        border-top: var(--stamp-line-thickness) solid rgba(31, 26, 23, 0.92);
       }
 
       .account-payee-stamp::before {
-        top: -0.020in;
-        left: 0;
-        width: 100%;
+        left: var(--stamp-upper-left-offset);
+        top: 0;
+        width: var(--stamp-upper-width);
       }
 
       .account-payee-stamp::after {
-        bottom: -0.020in;
-        left: -40px;
-        width: calc(100% + 40px);
+        left: var(--stamp-lower-left-offset);
+        bottom: 0;
+        width: var(--stamp-lower-width);
       }
 
       .account-payee-stamp span {
         position: absolute;
+        left: 1.6mm;
         top: 50%;
-        left: 1%;
         transform: translateY(-50%);
-        color: rgba(31, 26, 23, 0.96);
-        font-family: "IBM Plex Sans", sans-serif;
-        font-size: 0.145in;
+        font-size: var(--stamp-font-size);
         font-weight: 500;
-        line-height: 1;
-        letter-spacing: 0;
         white-space: nowrap;
-      }
-
-      .payee-text,
-      .amount-box__value {
-        color: var(--print-ink);
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
-
-      .payee-text {
-        max-width: 83%;
-      }
-
-      .sum-words {
-        color: var(--print-ink);
-        position: absolute;
-        z-index: 2;
-        display: block;
-        max-width: none;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        line-height: var(--sum-line-height);
-      }
-
-      .sum-words--primary {
-        top: 0.1cqw;
-        left: var(--sum-label-width);
-        width: calc(100% - var(--sum-label-width) - var(--sum-box-guard));
-      }
-
-      .sum-words--secondary {
-        top: var(--sum-line-height);
-        left: 0;
-        width: calc(100% - var(--sum-box-guard));
-      }
-
-      .sum-words-measure {
-        position: absolute;
-        visibility: hidden;
-        pointer-events: none;
-        white-space: nowrap;
-        font-size: 14px;
-        font-size: 1.651cqw;
-        font-weight: 700;
-      }
-
-      .cheque-placeholder {
-        color: rgba(31, 26, 23, 0.32);
-      }
-
-      .print-only {
-        display: none;
       }
 
       @media (max-width: 1180px) {
-        .printer-layout {
-          grid-template-columns: 1fr;
+        .panel {
+          position: static;
         }
 
-        .preview-stage {
-          min-height: auto;
+        .layout {
+          grid-template-columns: 1fr;
         }
       }
 
-      @media (max-width: 720px) {
-        .printer-panel,
-        .preview-panel {
-          padding: 20px 16px;
-          border-radius: 24px;
+      @media (max-width: 820px) {
+        .cheque-page {
+          width: min(100%, calc(100% - 24px));
         }
 
-        .preview-stage {
-          padding: 8px;
-          overflow-x: auto;
-          justify-items: start;
-        }
-
-        .cheque-sheet {
-          width: 700px;
-          max-width: none;
-        }
-
-        .preview-meta {
+        .cheque-page .topbar {
           flex-direction: column;
           align-items: flex-start;
         }
-      }
 
-      @page {
-        size: 193.04mm 88.9mm;
-        margin: 0;
+        .workspace-intro {
+          padding: 22px 18px;
+        }
+
+        .panel,
+        .preview {
+          padding: 18px;
+          border-radius: 22px;
+        }
       }
 
       @media print {
         html,
         body {
-          width: var(--cheque-width-mm);
-          height: var(--cheque-height-mm);
+          width: var(--page-width);
+          height: var(--page-height);
           margin: 0;
           padding: 0;
           background: #ffffff;
           overflow: hidden;
-          print-color-adjust: exact;
-          -webkit-print-color-adjust: exact;
-        }
-
-        html[data-print-orientation="vertical-up"],
-        html[data-print-orientation="vertical-down"],
-        body[data-print-orientation="vertical-up"],
-        body[data-print-orientation="vertical-down"] {
-          width: var(--cheque-height-mm);
-          height: var(--cheque-width-mm);
         }
 
         body * {
@@ -577,109 +562,100 @@
           visibility: visible !important;
         }
 
-        .screen-only,
-        .topbar {
-          display: none !important;
-        }
-
-        .cheque-sheet {
+        #printArea {
           position: fixed;
-          top: 50%;
-          left: 50%;
-          width: var(--cheque-width-mm);
-          height: var(--cheque-height-mm);
-          aspect-ratio: auto;
+          top: 0;
+          left: 0;
+          width: var(--page-width);
+          height: var(--page-height);
           margin: 0;
-          padding: 0;
-          border-radius: 0;
-          border: none;
-          background: #ffffff;
-          background-image: none;
           box-shadow: none;
-          page-break-inside: avoid;
-          transform: translate(-50%, -50%);
-          transform-origin: center;
-          print-color-adjust: exact;
-          -webkit-print-color-adjust: exact;
+          overflow: hidden;
+          break-after: avoid-page;
+          page-break-after: avoid;
         }
 
-        .cheque-sheet__inner {
-          inset: 0;
-        }
-
-        body[data-print-orientation="vertical-up"] .cheque-sheet {
-          transform: translate(-50%, -50%) rotate(-90deg);
-        }
-
-        body[data-print-orientation="vertical-down"] .cheque-sheet {
-          transform: translate(-50%, -50%) rotate(90deg);
-        }
-
-        .logo-area,
-        .cheque-number,
-        .date-label,
-        .pay-row > span,
-        .sum-row > span,
-        .amount-box > span:first-child,
-        .account-info,
-        .signature-area,
-        .micr-line {
+        .screen-only {
           display: none !important;
         }
 
-        .pay-row,
-        .amount-box {
-          border: none;
-          background: transparent;
-          padding: 0;
+        .cheque-page,
+        .workspace,
+        .layout,
+        .preview,
+        .stage {
+          width: var(--page-width) !important;
+          max-width: none !important;
+          margin: 0 !important;
+          padding: 0 !important;
+          border: none !important;
+          box-shadow: none !important;
+          background: transparent !important;
         }
 
-        .sum-row::before,
-        .sum-row::after {
-          display: none;
+        .layout,
+        .workspace {
+          display: block !important;
         }
 
-        .date-cell {
-          height: auto;
-          border: none;
-          background: transparent;
-          line-height: 1;
+        .a4-sheet,
+        .cheque-sheet,
+        .overlay {
+          background: transparent !important;
+          box-shadow: none !important;
+          border: none !important;
+        }
+
+        .cheque-base {
+          display: none !important;
         }
       }
     </style>
   </head>
   <body>
-    <div class="page-shell printer-page">
+    <div class="page-shell cheque-page">
       <header class="topbar screen-only">
-        <a class="brand" href="./necessary-tools.html">
+        <a class="brand" href="./workspace.html">
           <span class="brand-mark" aria-hidden="true">
             <span class="brand-mark__inner">B</span>
           </span>
           <span class="brand-copy">
             <span class="brand-copy__title">BANIK Books</span>
-            <span class="brand-copy__tag">Cheque printing workspace</span>
+            <span class="brand-copy__tag">Everyday business essentials</span>
           </span>
         </a>
       </header>
 
-      <main class="printer-layout">
-        <aside class="printer-panel screen-only">
-          <span class="eyebrow">Print Setup</span>
-          <h1>Cheque Printer</h1>
-          <p class="printer-panel__lead">
-            Enter the cheque details on the left. The white cheque canvas on the right
-            updates instantly and prints at the exact cheque size you gave: 7.6 inches by
-            3.5 inches.
-          </p>
+      <main class="workspace">
+        <section class="workspace-intro screen-only">
+          <div class="workspace-intro__copy">
+            <h1>Cheque Printer</h1>
+          </div>
+        </section>
 
-          <form class="printer-form" id="printerForm">
-            <div class="printer-field">
-              <label for="chequeDate">Date</label>
-              <input id="chequeDate" name="chequeDate" type="date" />
-              <small>The preview prints the date as DD MM YYYY.</small>
+        <div class="layout">
+          <aside class="panel screen-only">
+          <span class="eyebrow">Cheque Setup</span>
+          <h2>Cheque Overlay</h2>
+
+          <form class="form" id="chequeForm">
+            <div class="field">
+              <label for="printOrientation">Print Orientation</label>
+              <select id="printOrientation" name="printOrientation">
+                <option value="">Select print orientation</option>
+                <option value="landscape">Landscape</option>
+                <option value="amount-up">Amount Upside</option>
+                <option value="amount-down">Amount Downside</option>
+              </select>
+              <small id="orientationHelp"></small>
             </div>
 
-            <div class="printer-field">
+            <div class="field">
+              <label for="chequeDate">Date</label>
+              <input id="chequeDate" name="chequeDate" type="date" />
+            </div>
+
+            <div class="field">
               <label for="payeeName">Payee</label>
               <input
                 id="payeeName"
@@ -688,156 +664,101 @@
                 placeholder="Write the payee name"
                 autocomplete="off"
               />
-              <small>For cash cheques, leave this blank and the preview will show `== CASH ==`.</small>
             </div>
 
-            <div class="printer-field">
+            <div class="field">
               <label for="chequeAmount">Amount</label>
               <input
                 id="chequeAmount"
                 name="chequeAmount"
                 type="text"
-                placeholder="50000"
+                placeholder="Example: 50,000.00"
                 inputmode="decimal"
                 autocomplete="off"
               />
-              <small>The printed format follows the style `= 50,000.00`.</small>
             </div>
 
-            <div class="printer-field">
+            <div class="field">
               <label for="chequeType">Cheque Type</label>
               <select id="chequeType" name="chequeType">
+                <option value="">Select cheque type</option>
                 <option value="cash">Cash</option>
                 <option value="account-payee">A/C Payee</option>
               </select>
-              <small>`A/C Payee` shows the upper-left stamp. `Cash` leaves that corner blank.</small>
             </div>
 
-            <div class="printer-field">
-              <label for="printOrientation">Print View</label>
-              <select id="printOrientation" name="printOrientation">
-                <option value="horizontal">Horizontal View</option>
-                <option value="vertical-up">Vertical View (Amount Up Side)</option>
-                <option value="vertical-down">Vertical View (Amount Down Side)</option>
-              </select>
-              <small>
-                Choose the same direction you place the cheque leaf in the printer. Print preview
-                will open in that orientation.
-              </small>
-            </div>
-
-            <div class="printer-actions">
-              <button class="printer-button printer-button--primary" id="printCheque" type="button">
+            <div class="actions">
+              <button class="button button--primary" id="printCheque" type="button">
                 Print Cheque
               </button>
-              <a class="printer-button printer-button--secondary" href="./necessary-tools.html">
-                Back
-              </a>
+              <a class="button button--secondary" href="./necessary-tools.html">Back</a>
             </div>
           </form>
-
-          <p class="printer-note">
-            Clicking <strong>Print Cheque</strong> now creates an exact cheque-size PDF,
-            opens it in a new tab, and then tries to open the print window from that PDF.
-          </p>
         </aside>
 
-        <section class="preview-panel">
+        <section class="preview">
           <div class="preview-meta screen-only">
-            <span><strong>Live preview</strong> for the printable cheque area</span>
-            <span id="previewPrintViewLabel">
-              Print size: 7.6 in × 3.5 in (193.04 mm × 88.9 mm) · View: Horizontal
-            </span>
+            <span><strong>Live preview</strong> on an A4 printable sheet</span>
+            <span id="previewOrientationLabel">Orientation: Landscape</span>
           </div>
 
-          <div class="preview-stage">
-            <article class="cheque-sheet" id="printArea" aria-label="Cheque print preview">
-              <div class="cheque-sheet__inner">
-                <div class="logo-area">
-                  <h1 class="bank-name">Standard Chartered</h1>
-                  <div class="bank-sub">
-                    Standard Chartered Bank<br />
-                    Bangladesh
+          <div class="stage">
+            <div class="a4-sheet" id="printArea" data-orientation="landscape" aria-label="A4 cheque preview">
+              <div class="cheque-placement">
+                <article class="cheque-sheet" aria-label="Imon cheque">
+                  <img class="cheque-base" src="./Sample Cheque.jpg" alt="Bank Asia cheque" />
+
+                  <div class="overlay">
+                    <div class="date-grid" id="dateDigits">
+                      <span class="date-cell">0</span>
+                      <span class="date-cell">1</span>
+                      <span class="date-cell">0</span>
+                      <span class="date-cell">5</span>
+                      <span class="date-cell">2</span>
+                      <span class="date-cell">0</span>
+                      <span class="date-cell">2</span>
+                      <span class="date-cell">6</span>
+                    </div>
+
+                    <div class="payee-text" id="payeePreview"></div>
+
+                    <div class="amount-words amount-words--first" id="amountWordsLine1">
+                    </div>
+                    <div class="amount-words amount-words--second" id="amountWordsLine2"></div>
+                    <span class="measure" id="amountMeasure" aria-hidden="true"></span>
+
+                    <div class="amount-value" id="amountPreview"></div>
+
+                    <div class="account-payee-stamp" id="accountPayeeStamp" hidden aria-hidden="true">
+                      <span>A/C Payee Only</span>
+                    </div>
                   </div>
-                </div>
-
-                <div class="cheque-number">1799116</div>
-
-                <div class="date-box">
-                  <span class="date-label">Date</span>
-                  <div class="date-grid" id="dateDigits">
-                    <span class="date-cell">0</span><span class="date-cell">1</span>
-                    <span class="date-cell">0</span><span class="date-cell">5</span>
-                    <span class="date-cell">2</span><span class="date-cell">0</span>
-                    <span class="date-cell">2</span><span class="date-cell">6</span>
-                  </div>
-                </div>
-
-                <div class="pay-row">
-                  <span>Pay To</span>
-                  <strong class="payee-text" id="payeePreview">== CASH ==</strong>
-                  <span>Or Bearer</span>
-                </div>
-
-                <div class="sum-row">
-                  <span class="sum-label">The Sum of Taka</span>
-                  <strong class="sum-words sum-words--primary" id="amountWordsPreview">
-                    Fifty Thousand Only
-                  </strong>
-                  <strong class="sum-words sum-words--secondary" id="amountWordsOverflowPreview">
-                  </strong>
-                  <span class="sum-words-measure" id="amountWordsMeasure" aria-hidden="true"></span>
-                </div>
-
-                <div class="amount-box">
-                  <span>Tk</span>
-                  <span class="amount-box__value" id="amountPreview">= 50,000.00</span>
-                </div>
-
-                <div class="account-info">
-                  01-3366936-03<br />
-                  ZABAI BANGLADESH LIMITED
-                </div>
-
-                <div class="signature-area">Please Sign Above This Line</div>
-
-                <div class="micr-line">"1799116" 215261726: 0001336693603" 11</div>
-
-                <div class="account-payee-stamp" id="accountPayeeStamp" hidden aria-hidden="true">
-                  <span>A/C Payee Only</span>
-                </div>
+                </article>
               </div>
-            </article>
+            </div>
           </div>
         </section>
+        </div>
       </main>
     </div>
 
     <script>
+      const printOrientationInput = document.getElementById("printOrientation");
       const chequeDateInput = document.getElementById("chequeDate");
       const payeeNameInput = document.getElementById("payeeName");
       const chequeAmountInput = document.getElementById("chequeAmount");
       const chequeTypeInput = document.getElementById("chequeType");
-      const printOrientationInput = document.getElementById("printOrientation");
       const printChequeButton = document.getElementById("printCheque");
       const printArea = document.getElementById("printArea");
+      const previewOrientationLabel = document.getElementById("previewOrientationLabel");
+      const orientationHelp = document.getElementById("orientationHelp");
       const dateDigitsContainer = document.getElementById("dateDigits");
       const payeePreview = document.getElementById("payeePreview");
       const amountPreview = document.getElementById("amountPreview");
-      const amountWordsPreview = document.getElementById("amountWordsPreview");
-      const amountWordsOverflowPreview = document.getElementById("amountWordsOverflowPreview");
-      const amountWordsMeasure = document.getElementById("amountWordsMeasure");
+      const amountWordsLine1 = document.getElementById("amountWordsLine1");
+      const amountWordsLine2 = document.getElementById("amountWordsLine2");
+      const amountMeasure = document.getElementById("amountMeasure");
       const accountPayeeStamp = document.getElementById("accountPayeeStamp");
-      const previewPrintViewLabel = document.getElementById("previewPrintViewLabel");
-
-      const DATE_SLOT_COUNT = 8;
-      const PRINT_PAGE_STYLE_ID = "printOrientationPageStyle";
-      const PDF_DPI = 300;
-      const PDF_PAGE_WIDTH_PX = Math.round(7.6 * PDF_DPI);
-      const PDF_PAGE_HEIGHT_PX = Math.round(3.5 * PDF_DPI);
-      const PDF_PAGE_WIDTH_PT = (193.04 / 25.4) * 72;
-      const PDF_PAGE_HEIGHT_PT = (88.9 / 25.4) * 72;
-      const PDF_PRINT_ATTEMPT_DELAYS = [900, 1800, 3200];
 
       function padDateDigits(value) {
         return String(value).padStart(2, "0");
@@ -873,6 +794,51 @@
           minimumFractionDigits: 2,
           maximumFractionDigits: 2,
         }).format(numericValue);
+      }
+
+      function getCaretPositionFromDigitCount(formattedValue, digitCount) {
+        if (!formattedValue || digitCount <= 0) {
+          return 0;
+        }
+
+        let seenDigits = 0;
+
+        for (let index = 0; index < formattedValue.length; index += 1) {
+          if (/\d/.test(formattedValue[index])) {
+            seenDigits += 1;
+
+            if (seenDigits >= digitCount) {
+              return index + 1;
+            }
+          }
+        }
+
+        const decimalIndex = formattedValue.indexOf(".");
+        return decimalIndex === -1 ? formattedValue.length : decimalIndex;
+      }
+
+      function handleAmountInput() {
+        const rawValue = chequeAmountInput.value;
+        const selectionStart = chequeAmountInput.selectionStart ?? rawValue.length;
+        const digitsBeforeCaret = rawValue.slice(0, selectionStart).replace(/\D/g, "").length;
+        const formattedAmount = formatAmount(rawValue);
+
+        chequeAmountInput.value = formattedAmount;
+
+        if (document.activeElement === chequeAmountInput) {
+          const caretPosition = getCaretPositionFromDigitCount(
+            formattedAmount,
+            digitsBeforeCaret
+          );
+          chequeAmountInput.setSelectionRange(caretPosition, caretPosition);
+        }
+
+        renderAmount();
+      }
+
+      function normalizeAmountInputField() {
+        chequeAmountInput.value = formatAmount(chequeAmountInput.value);
+        renderAmount();
       }
 
       function convertBelowHundred(number) {
@@ -917,7 +883,7 @@
 
         const tenValue = Math.floor(number / 10);
         const remainder = number % 10;
-        return remainder ? tens[tenValue] + " " + ones[remainder] : tens[tenValue];
+        return remainder ? `${tens[tenValue]} ${ones[remainder]}` : tens[tenValue];
       }
 
       function convertBelowThousand(number) {
@@ -927,8 +893,8 @@
 
         const hundreds = Math.floor(number / 100);
         const remainder = number % 100;
-        const hundredLabel = convertBelowHundred(hundreds) + " Hundred";
-        return remainder ? hundredLabel + " " + convertBelowHundred(remainder) : hundredLabel;
+        const hundredLabel = `${convertBelowHundred(hundreds)} Hundred`;
+        return remainder ? `${hundredLabel} ${convertBelowHundred(remainder)}` : hundredLabel;
       }
 
       function numberToWords(number) {
@@ -948,7 +914,7 @@
         segments.forEach((segment) => {
           if (remaining >= segment.value) {
             const segmentValue = Math.floor(remaining / segment.value);
-            words.push(convertBelowThousand(segmentValue) + " " + segment.label);
+            words.push(`${convertBelowThousand(segmentValue)} ${segment.label}`);
             remaining %= segment.value;
           }
         });
@@ -978,16 +944,36 @@
         let words = numberToWords(taka);
 
         if (paisa > 0) {
-          words += " and " + numberToWords(paisa) + " Paisa";
+          words += ` and ${numberToWords(paisa)} Paisa`;
         }
 
-        return words + " Only";
+        return `${words} Only`;
+      }
+
+      function renderOrientation() {
+        const selectedOrientation = printOrientationInput.value;
+        const orientation = selectedOrientation || "landscape";
+        const orientationLabels = {
+          landscape: "Landscape",
+          "amount-up": "Amount Upside",
+          "amount-down": "Amount Downside",
+        };
+        const orientationHelpText = {
+          landscape: "It keeps the cheque normal.",
+          "amount-up": "It rotates the amount-box side to the top.",
+          "amount-down": "It rotates the amount-box side to the bottom.",
+        };
+
+        printArea.dataset.orientation = orientation;
+        previewOrientationLabel.textContent = `Orientation: ${
+          orientationLabels[orientation] || "Landscape"
+        }`;
+        orientationHelp.textContent = orientationHelpText[selectedOrientation] || "";
       }
 
       function renderDateDigits(value) {
-        const digits = Array.from(dateDigitsContainer.querySelectorAll("span"));
-        const fallback = ["0", "1", "0", "5", "2", "0", "2", "6"];
-        let sourceDigits = fallback;
+        const digits = Array.from(dateDigitsContainer.querySelectorAll(".date-cell"));
+        let sourceDigits = ["", "", "", "", "", "", "", ""];
 
         if (value) {
           const [year, month, day] = value.split("-");
@@ -1001,56 +987,22 @@
           }
         }
 
-        for (let index = 0; index < DATE_SLOT_COUNT; index += 1) {
-          digits[index].textContent = sourceDigits[index] || "0";
-        }
+        digits.forEach((digit, index) => {
+          digit.textContent = sourceDigits[index] || "";
+        });
       }
 
       function renderPayee() {
         const payeeText = payeeNameInput.value.trim();
-        const chequeType = chequeTypeInput.value;
-        const fallbackText = chequeType === "cash" ? "== CASH ==" : "";
 
         if (payeeText) {
           payeePreview.textContent = payeeText;
-          payeePreview.classList.remove("cheque-placeholder");
+          payeePreview.classList.remove("placeholder");
           return;
         }
 
-        if (fallbackText) {
-          payeePreview.textContent = fallbackText;
-          payeePreview.classList.remove("cheque-placeholder");
-        } else {
-          payeePreview.textContent = "____________________________";
-          payeePreview.classList.add("cheque-placeholder");
-        }
-      }
-
-      function renderAmount() {
-        const formattedAmount = formatAmount(chequeAmountInput.value);
-        const amountInWords = amountToWords(chequeAmountInput.value);
-
-        if (formattedAmount) {
-          amountPreview.textContent = "= " + formattedAmount;
-          amountPreview.classList.remove("cheque-placeholder");
-        } else {
-          amountPreview.textContent = "= __________";
-          amountPreview.classList.add("cheque-placeholder");
-        }
-
-        if (amountInWords) {
-          const [firstLineWords, secondLineWords] = splitAmountWords(amountInWords);
-          amountWordsPreview.textContent = firstLineWords;
-          amountWordsOverflowPreview.textContent = secondLineWords;
-          amountWordsPreview.classList.remove("cheque-placeholder");
-          amountWordsOverflowPreview.classList.remove("cheque-placeholder");
-          amountWordsOverflowPreview.hidden = !secondLineWords;
-        } else {
-          amountWordsPreview.textContent = "____________________________";
-          amountWordsPreview.classList.add("cheque-placeholder");
-          amountWordsOverflowPreview.textContent = "";
-          amountWordsOverflowPreview.hidden = true;
-        }
+        payeePreview.textContent = "";
+        payeePreview.classList.remove("placeholder");
       }
 
       function splitAmountWords(text) {
@@ -1063,18 +1015,8 @@
           return ["", ""];
         }
 
-        const overflowWasHidden = amountWordsOverflowPreview.hidden;
-
-        if (overflowWasHidden) {
-          amountWordsOverflowPreview.hidden = false;
-        }
-
-        const firstLineWidth = amountWordsPreview.getBoundingClientRect().width;
-        const secondLineWidth = amountWordsOverflowPreview.getBoundingClientRect().width;
-
-        if (overflowWasHidden) {
-          amountWordsOverflowPreview.hidden = true;
-        }
+        const firstLineWidth = amountWordsLine1.getBoundingClientRect().width;
+        const secondLineWidth = amountWordsLine2.getBoundingClientRect().width;
 
         if (!firstLineWidth || !secondLineWidth) {
           return [text, ""];
@@ -1084,10 +1026,10 @@
         let splitIndex = 0;
 
         for (let index = 0; index < words.length; index += 1) {
-          const candidate = firstLine ? firstLine + " " + words[index] : words[index];
-          amountWordsMeasure.textContent = candidate;
+          const candidate = firstLine ? `${firstLine} ${words[index]}` : words[index];
+          amountMeasure.textContent = candidate;
 
-          if (amountWordsMeasure.getBoundingClientRect().width <= firstLineWidth || !firstLine) {
+          if (amountMeasure.getBoundingClientRect().width <= firstLineWidth || !firstLine) {
             firstLine = candidate;
             splitIndex = index + 1;
             continue;
@@ -1100,410 +1042,30 @@
         return [firstLine, secondLine];
       }
 
-      function escapeXml(value) {
-        return String(value)
-          .replace(/&/g, "&amp;")
-          .replace(/</g, "&lt;")
-          .replace(/>/g, "&gt;")
-          .replace(/\"/g, "&quot;")
-          .replace(/'/g, "&apos;");
-      }
+      function renderAmount() {
+        const formattedAmount = formatAmount(chequeAmountInput.value);
+        const amountInWords = amountToWords(chequeAmountInput.value);
 
-      function parseRotationDegrees(transformValue) {
-        if (!transformValue || transformValue === "none") {
-          return 0;
-        }
-
-        const match = transformValue.match(/matrix\(([^)]+)\)/);
-
-        if (!match) {
-          return 0;
-        }
-
-        const values = match[1].split(",").map((part) => Number.parseFloat(part.trim()));
-
-        if (values.length < 2 || values.some(Number.isNaN)) {
-          return 0;
-        }
-
-        return (Math.atan2(values[1], values[0]) * 180) / Math.PI;
-      }
-
-      function getRelativeRect(element, sheetRect, scaleX, scaleY) {
-        const rect = element.getBoundingClientRect();
-        return {
-          x: (rect.left - sheetRect.left) * scaleX,
-          y: (rect.top - sheetRect.top) * scaleY,
-          width: rect.width * scaleX,
-          height: rect.height * scaleY,
-        };
-      }
-
-      function createTextSvg(text, rect, style, options = {}) {
-        if (!text) {
-          return "";
-        }
-
-        const {
-          x = rect.x,
-          y = rect.y + rect.height / 2,
-          anchor = "start",
-          baseline = "middle",
-          family = style.fontFamily,
-          fontStyle = style.fontStyle || "normal",
-          weight = style.fontWeight,
-          clipId = "",
-        } = options;
-
-        const size = Math.max(1, Number.parseFloat(style.fontSize || "12"));
-        const letterSpacing = Number.parseFloat(style.letterSpacing || "0");
-        const fill = style.color || "#1f1a17";
-        const clipPathAttribute = clipId ? ` clip-path="url(#${clipId})"` : "";
-
-        return `
-          <text
-            x="${x.toFixed(2)}"
-            y="${y.toFixed(2)}"
-            text-anchor="${anchor}"
-            dominant-baseline="${baseline}"
-            font-family="${escapeXml(family)}"
-            font-size="${size.toFixed(2)}"
-            font-style="${escapeXml(fontStyle)}"
-            font-weight="${escapeXml(weight)}"
-            letter-spacing="${letterSpacing.toFixed(2)}"
-            fill="${escapeXml(fill)}"
-            ${clipPathAttribute}
-          >${escapeXml(text)}</text>
-        `;
-      }
-
-      function createClipPathSvg(id, rect) {
-        return `
-          <clipPath id="${escapeXml(id)}">
-            <rect
-              x="${rect.x.toFixed(2)}"
-              y="${rect.y.toFixed(2)}"
-              width="${Math.max(1, rect.width).toFixed(2)}"
-              height="${Math.max(1, rect.height).toFixed(2)}"
-            />
-          </clipPath>
-        `;
-      }
-
-      function buildPrintableSvgMarkup() {
-        const sheetRect = printArea.getBoundingClientRect();
-        const scaleX = PDF_PAGE_WIDTH_PX / sheetRect.width;
-        const scaleY = PDF_PAGE_HEIGHT_PX / sheetRect.height;
-        const svgDefs = [];
-        const svgContent = [];
-        let clipPathIndex = 0;
-
-        const registerClipPath = (rect) => {
-          const clipId = `clip-${clipPathIndex}`;
-          clipPathIndex += 1;
-          svgDefs.push(createClipPathSvg(clipId, rect));
-          return clipId;
-        };
-
-        const printableTextElements = [
-          payeePreview,
-          amountWordsPreview,
-          amountWordsOverflowPreview.hidden ? null : amountWordsOverflowPreview,
-          amountPreview,
-        ].filter(Boolean);
-
-        printableTextElements.forEach((element) => {
-          const rect = getRelativeRect(element, sheetRect, scaleX, scaleY);
-          const style = getComputedStyle(element);
-          const text = element.textContent.trim();
-          const clipId = registerClipPath(rect);
-          svgContent.push(createTextSvg(text, rect, style, { clipId }));
-        });
-
-        Array.from(dateDigitsContainer.querySelectorAll(".date-cell")).forEach((cell) => {
-          const rect = getRelativeRect(cell, sheetRect, scaleX, scaleY);
-          const style = getComputedStyle(cell);
-          svgContent.push(
-            createTextSvg(cell.textContent.trim(), rect, style, {
-              x: rect.x + rect.width / 2,
-              y: rect.y + rect.height / 2,
-              anchor: "middle",
-              baseline: "middle",
-              family: `"Courier New", Courier, monospace`,
-            })
-          );
-        });
-
-        if (!accountPayeeStamp.hidden) {
-          const stampStyle = getComputedStyle(accountPayeeStamp);
-          const stampText = accountPayeeStamp.querySelector("span");
-          const stampTextStyle = getComputedStyle(stampText);
-          const stampX = Number.parseFloat(stampStyle.left || "0") * scaleX;
-          const stampY = Number.parseFloat(stampStyle.top || "0") * scaleY;
-          const stampWidth = Number.parseFloat(stampStyle.width || "0") * scaleX;
-          const stampHeight = Number.parseFloat(stampStyle.height || "0") * scaleY;
-          const stampAngle = parseRotationDegrees(stampStyle.transform);
-          const lineThickness =
-            Math.max(1, Number.parseFloat(stampStyle.borderTopWidth || "1")) * scaleY;
-          const extraLineLeft = -40 * scaleX;
-          const stampTextLeft = (Number.parseFloat(stampTextStyle.left || "0") / 100) * stampWidth;
-          const stampFontSize =
-            Math.max(1, Number.parseFloat(stampTextStyle.fontSize || "12")) * scaleY;
-
-          svgContent.push(`
-            <g transform="translate(${stampX.toFixed(2)} ${stampY.toFixed(2)}) rotate(${stampAngle.toFixed(2)})">
-              <line x1="0" y1="0" x2="${stampWidth.toFixed(2)}" y2="0"
-                stroke="#1f1a17" stroke-width="${lineThickness.toFixed(2)}" stroke-linecap="square" />
-              <line
-                x1="${extraLineLeft.toFixed(2)}"
-                y1="${stampHeight.toFixed(2)}"
-                x2="${stampWidth.toFixed(2)}"
-                y2="${stampHeight.toFixed(2)}"
-                stroke="#1f1a17"
-                stroke-width="${lineThickness.toFixed(2)}"
-                stroke-linecap="square"
-              />
-              <text
-                x="${stampTextLeft.toFixed(2)}"
-                y="${(stampHeight / 2).toFixed(2)}"
-                dominant-baseline="middle"
-                font-family='"IBM Plex Sans", Arial, sans-serif'
-                font-size="${stampFontSize.toFixed(2)}"
-                font-weight="${escapeXml(stampTextStyle.fontWeight)}"
-                fill="#1f1a17"
-              >${escapeXml(stampText.textContent.trim())}</text>
-            </g>
-          `);
-        }
-
-        const svgParts = [
-          `<svg xmlns="http://www.w3.org/2000/svg" width="${PDF_PAGE_WIDTH_PX}" height="${PDF_PAGE_HEIGHT_PX}" viewBox="0 0 ${PDF_PAGE_WIDTH_PX} ${PDF_PAGE_HEIGHT_PX}">`,
-          `<rect width="100%" height="100%" fill="white" />`,
-        ];
-
-        if (svgDefs.length) {
-          svgParts.push(`<defs>${svgDefs.join("")}</defs>`);
-        }
-
-        svgParts.push(...svgContent);
-        svgParts.push("</svg>");
-        return svgParts.join("");
-      }
-
-      async function renderPrintableCanvas() {
-        const orientation = printOrientationInput.value || "horizontal";
-
-        if (document.fonts && document.fonts.ready) {
-          try {
-            await document.fonts.ready;
-          } catch (error) {
-            console.warn("Font readiness check failed.", error);
-          }
-        }
-
-        const svgMarkup = buildPrintableSvgMarkup();
-        const svgBlob = new Blob([svgMarkup], { type: "image/svg+xml;charset=utf-8" });
-        const svgUrl = URL.createObjectURL(svgBlob);
-        const svgImage = new Image();
-
-        svgImage.decoding = "sync";
-
-        const loadPromise = new Promise((resolve, reject) => {
-          svgImage.onload = resolve;
-          svgImage.onerror = reject;
-        });
-
-        svgImage.src = svgUrl;
-        await loadPromise;
-        URL.revokeObjectURL(svgUrl);
-
-        const baseCanvas = document.createElement("canvas");
-        baseCanvas.width = PDF_PAGE_WIDTH_PX;
-        baseCanvas.height = PDF_PAGE_HEIGHT_PX;
-
-        const baseContext = baseCanvas.getContext("2d");
-        baseContext.fillStyle = "#ffffff";
-        baseContext.fillRect(0, 0, baseCanvas.width, baseCanvas.height);
-        baseContext.drawImage(svgImage, 0, 0, baseCanvas.width, baseCanvas.height);
-
-        if (orientation === "horizontal") {
-          return baseCanvas;
-        }
-
-        const rotatedCanvas = document.createElement("canvas");
-        rotatedCanvas.width = PDF_PAGE_HEIGHT_PX;
-        rotatedCanvas.height = PDF_PAGE_WIDTH_PX;
-
-        const rotatedContext = rotatedCanvas.getContext("2d");
-        rotatedContext.fillStyle = "#ffffff";
-        rotatedContext.fillRect(0, 0, rotatedCanvas.width, rotatedCanvas.height);
-
-        if (orientation === "vertical-up") {
-          rotatedContext.translate(0, rotatedCanvas.height);
-          rotatedContext.rotate(-Math.PI / 2);
+        if (formattedAmount) {
+          amountPreview.textContent = formattedAmount;
+          amountPreview.classList.remove("placeholder");
         } else {
-          rotatedContext.translate(rotatedCanvas.width, 0);
-          rotatedContext.rotate(Math.PI / 2);
+          amountPreview.textContent = "";
+          amountPreview.classList.remove("placeholder");
         }
 
-        rotatedContext.drawImage(baseCanvas, 0, 0);
-        return rotatedCanvas;
-      }
-
-      function base64ToBytes(base64) {
-        const binary = atob(base64);
-        const bytes = new Uint8Array(binary.length);
-
-        for (let index = 0; index < binary.length; index += 1) {
-          bytes[index] = binary.charCodeAt(index);
-        }
-
-        return bytes;
-      }
-
-      function concatUint8Arrays(parts) {
-        const totalLength = parts.reduce((sum, part) => sum + part.length, 0);
-        const result = new Uint8Array(totalLength);
-        let offset = 0;
-
-        parts.forEach((part) => {
-          result.set(part, offset);
-          offset += part.length;
-        });
-
-        return result;
-      }
-
-      function buildPdfFromJpeg(jpegBytes, imageWidth, imageHeight, pageWidthPt, pageHeightPt) {
-        const encoder = new TextEncoder();
-        const objects = [];
-
-        const contentStream = encoder.encode(
-          `q\n${pageWidthPt.toFixed(2)} 0 0 ${pageHeightPt.toFixed(2)} 0 0 cm\n/Im0 Do\nQ\n`
-        );
-
-        objects.push(encoder.encode("<< /Type /Catalog /Pages 2 0 R >>"));
-        objects.push(encoder.encode("<< /Type /Pages /Count 1 /Kids [3 0 R] >>"));
-        objects.push(
-          encoder.encode(
-            `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${pageWidthPt.toFixed(2)} ${pageHeightPt.toFixed(2)}] /Resources << /XObject << /Im0 4 0 R >> >> /Contents 5 0 R >>`
-          )
-        );
-        objects.push(
-          concatUint8Arrays([
-            encoder.encode(
-              `<< /Type /XObject /Subtype /Image /Width ${imageWidth} /Height ${imageHeight} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${jpegBytes.length} >>\nstream\n`
-            ),
-            jpegBytes,
-            encoder.encode("\nendstream"),
-          ])
-        );
-        objects.push(
-          concatUint8Arrays([
-            encoder.encode(`<< /Length ${contentStream.length} >>\nstream\n`),
-            contentStream,
-            encoder.encode("endstream"),
-          ])
-        );
-
-        const pdfHeader = encoder.encode("%PDF-1.4\n%\xFF\xFF\xFF\xFF\n");
-        const pdfParts = [pdfHeader];
-        const offsets = [0];
-        let currentLength = pdfHeader.length;
-
-        objects.forEach((objectBytes, index) => {
-          offsets.push(currentLength);
-          const objectHeader = encoder.encode(`${index + 1} 0 obj\n`);
-          const objectFooter = encoder.encode("\nendobj\n");
-          pdfParts.push(objectHeader, objectBytes, objectFooter);
-          currentLength += objectHeader.length + objectBytes.length + objectFooter.length;
-        });
-
-        const xrefOffset = currentLength;
-        const xrefRows = ["0000000000 65535 f "];
-
-        for (let index = 1; index < offsets.length; index += 1) {
-          xrefRows.push(`${String(offsets[index]).padStart(10, "0")} 00000 n `);
-        }
-
-        const xref = encoder.encode(
-          `xref\n0 ${offsets.length}\n${xrefRows.join("\n")}\ntrailer\n<< /Size ${offsets.length} /Root 1 0 R >>\nstartxref\n${xrefOffset}\n%%EOF`
-        );
-
-        pdfParts.push(xref);
-        return concatUint8Arrays(pdfParts);
-      }
-
-      async function createChequePdfBlob() {
-        const orientation = printOrientationInput.value || "horizontal";
-        const canvas = await renderPrintableCanvas();
-        const jpegBase64 = canvas.toDataURL("image/jpeg", 1).split(",")[1];
-        const jpegBytes = base64ToBytes(jpegBase64);
-        const isHorizontal = orientation === "horizontal";
-        const pageWidthPt = isHorizontal ? PDF_PAGE_WIDTH_PT : PDF_PAGE_HEIGHT_PT;
-        const pageHeightPt = isHorizontal ? PDF_PAGE_HEIGHT_PT : PDF_PAGE_WIDTH_PT;
-        const pdfBytes = buildPdfFromJpeg(
-          jpegBytes,
-          canvas.width,
-          canvas.height,
-          pageWidthPt,
-          pageHeightPt
-        );
-
-        return new Blob([pdfBytes], { type: "application/pdf" });
-      }
-
-      async function printThroughPdf(pdfWindow) {
-        const pdfBlob = await createChequePdfBlob();
-        const pdfUrl = URL.createObjectURL(pdfBlob);
-        const pdfViewerUrl = `${pdfUrl}#page=1&zoom=96&toolbar=1&navpanes=0&scrollbar=0`;
-
-        if (pdfWindow) {
-          pdfWindow.location.replace(pdfViewerUrl);
-
-          PDF_PRINT_ATTEMPT_DELAYS.forEach((delay) => {
-            setTimeout(() => {
-              try {
-                if (!pdfWindow.closed) {
-                  pdfWindow.focus();
-                  pdfWindow.print();
-                }
-              } catch (error) {
-                console.error("Automatic PDF print trigger failed.", error);
-              }
-            }, delay);
-          });
+        if (amountInWords) {
+          const [firstLine, secondLine] = splitAmountWords(amountInWords);
+          amountWordsLine1.textContent = firstLine;
+          amountWordsLine2.textContent = secondLine;
+          amountWordsLine1.classList.remove("placeholder");
+          amountWordsLine2.classList.remove("placeholder");
         } else {
-          window.open(pdfViewerUrl, "_blank");
+          amountWordsLine1.textContent = "";
+          amountWordsLine2.textContent = "";
+          amountWordsLine2.classList.remove("placeholder");
+          amountWordsLine1.classList.remove("placeholder");
         }
-
-        setTimeout(() => {
-          URL.revokeObjectURL(pdfUrl);
-        }, 120000);
-      }
-
-      function showPdfStatusWindow(pdfWindow, title, message) {
-        if (!pdfWindow || pdfWindow.closed) {
-          return;
-        }
-
-        const popupDocument = pdfWindow.document;
-        popupDocument.open();
-        popupDocument.write("<!DOCTYPE html><meta charset='utf-8'>");
-        popupDocument.close();
-        popupDocument.title = title;
-
-        if (!popupDocument.body) {
-          return;
-        }
-
-        popupDocument.body.innerHTML = "";
-        popupDocument.body.style.margin = "0";
-        popupDocument.body.style.padding = "24px";
-        popupDocument.body.style.fontFamily = "Arial, sans-serif";
-        popupDocument.body.style.lineHeight = "1.5";
-        popupDocument.body.style.color = "#1f1a17";
-        popupDocument.body.textContent = message;
       }
 
       function renderChequeType() {
@@ -1511,86 +1073,33 @@
         renderPayee();
       }
 
-      function renderPrintOrientationLabel() {
-        const orientation = printOrientationInput.value || "horizontal";
-        const viewLabelMap = {
-          horizontal: "Horizontal",
-          "vertical-up": "Vertical (Amount Up Side)",
-          "vertical-down": "Vertical (Amount Down Side)",
-        };
-
-        if (!previewPrintViewLabel) {
-          return;
-        }
-
-        previewPrintViewLabel.textContent =
-          "Print size: 7.6 in × 3.5 in (193.04 mm × 88.9 mm) · View: " +
-          (viewLabelMap[orientation] || "Horizontal");
-      }
-
-      function applyPrintOrientation() {
-        const orientation = printOrientationInput.value || "horizontal";
-        const pageSize =
-          orientation === "horizontal" ? "193.04mm 88.9mm" : "88.9mm 193.04mm";
-
-        document.documentElement.dataset.printOrientation = orientation;
-        document.body.dataset.printOrientation = orientation;
-
-        let printPageStyle = document.getElementById(PRINT_PAGE_STYLE_ID);
-
-        if (!printPageStyle) {
-          printPageStyle = document.createElement("style");
-          printPageStyle.id = PRINT_PAGE_STYLE_ID;
-          document.head.appendChild(printPageStyle);
-        }
-
-        printPageStyle.textContent = "@page { size: " + pageSize + "; margin: 0; }";
-        renderPrintOrientationLabel();
-      }
-
       function renderAll() {
+        renderOrientation();
         renderDateDigits(chequeDateInput.value);
         renderChequeType();
         renderAmount();
       }
 
-      const today = new Date();
-      const localDate = new Date(today.getTime() - today.getTimezoneOffset() * 60000)
-        .toISOString()
-        .split("T")[0];
+      printOrientationInput.value = "";
+      chequeDateInput.value = "";
+      chequeTypeInput.value = "";
 
-      chequeDateInput.value = localDate;
-      chequeAmountInput.value = "50000";
-      chequeTypeInput.value = "account-payee";
-      printOrientationInput.value = "horizontal";
-
+      printOrientationInput.addEventListener("change", renderOrientation);
       chequeDateInput.addEventListener("input", renderAll);
       payeeNameInput.addEventListener("input", renderPayee);
-      chequeAmountInput.addEventListener("input", renderAmount);
+      chequeAmountInput.addEventListener("input", handleAmountInput);
+      chequeAmountInput.addEventListener("change", normalizeAmountInputField);
+      chequeAmountInput.addEventListener("blur", normalizeAmountInputField);
       chequeTypeInput.addEventListener("change", renderChequeType);
-      printOrientationInput.addEventListener("change", applyPrintOrientation);
       window.addEventListener("resize", renderAmount);
 
-      printChequeButton.addEventListener("click", async () => {
-        applyPrintOrientation();
-        const pdfWindow = window.open("", "_blank");
-
-        showPdfStatusWindow(pdfWindow, "Preparing PDF...", "Preparing exact cheque-size PDF...");
-
-        try {
-          await printThroughPdf(pdfWindow);
-        } catch (error) {
-          console.error("Cheque PDF generation failed.", error);
-          showPdfStatusWindow(
-            pdfWindow,
-            "PDF generation failed",
-            "Could not prepare the cheque PDF. Please close this tab and try again."
-          );
-        }
+      printChequeButton.addEventListener("click", () => {
+        renderAll();
+        window.print();
       });
 
-      applyPrintOrientation();
       renderAll();
+      normalizeAmountInputField();
     </script>
   </body>
 </html>
