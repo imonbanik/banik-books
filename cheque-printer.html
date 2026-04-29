@@ -1,0 +1,1105 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cheque Printer | BANIK Books</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Ubuntu:wght@500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+    <script src="./app-config.js" defer></script>
+    <style>
+      :root {
+        --page-width: 210mm;
+        --page-height: 297mm;
+        --cheque-width: 193.04mm;
+        --cheque-height: 88.9mm;
+        --panel-border: rgba(112, 24, 24, 0.12);
+        --panel-shadow: 0 20px 50px rgba(82, 19, 19, 0.12);
+        --panel-bg: rgba(255, 255, 255, 0.94);
+        --ink: #1f1a17;
+        --muted: #6e5b57;
+
+        /* Overlay calibration values */
+        --date-left: 134.0mm;
+        --date-top: 14.6mm;
+        --date-cell-width: 5.9mm;
+        --date-cell-height: 7.6mm;
+        --date-gap: 0.70mm;
+        --date-font-size: 4.25mm;
+
+        --payee-left: 18.5mm;
+        --payee-top: 30.5mm;
+        --payee-width: 154mm;
+        --payee-font-size: 4.5mm;
+        --payee-font-weight: 500;
+
+        --amount-line-1-left: 31.5mm;
+        --amount-line-1-top: 40.0mm;
+        --amount-line-1-width: 93mm;
+        --amount-line-2-left: 4.6mm;
+        --amount-line-2-top: 49.0mm;
+        --amount-line-2-width: 120mm;
+        --amount-words-font-size: 4.3mm;
+        --amount-words-font-weight: 500;
+
+        --amount-box-left: 135.2mm;
+        --amount-box-top: 42.5mm;
+        --amount-box-width: 44.2mm;
+        --amount-box-font-size: 5.05mm;
+        --amount-box-font-weight: 600;
+
+        --stamp-left: -3mm;
+        --stamp-top: 20.0mm;
+        --stamp-width: 37mm;
+        --stamp-height: 9.5mm;
+        --stamp-font-size: 4.1mm;
+        --stamp-line-thickness: 0.28mm;
+        --stamp-upper-left-offset: -4mm;
+        --stamp-upper-width: 210mm;
+        --stamp-lower-left-offset: -24mm;
+        --stamp-lower-width: 228mm;
+      }
+
+      @page {
+        size: A4 portrait;
+        margin: 0;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        color: var(--text, #241717);
+        font-family: "Outfit", sans-serif;
+      }
+
+      body {
+        min-height: 100vh;
+      }
+
+      .cheque-page {
+        width: min(1380px, calc(100% - 40px));
+        padding-bottom: 40px;
+      }
+
+      .workspace {
+        display: grid;
+        gap: 26px;
+        margin-top: 26px;
+      }
+
+      .cheque-page .topbar {
+        justify-content: space-between;
+        gap: 20px;
+      }
+
+      .workspace-intro {
+        position: relative;
+        display: grid;
+        gap: 16px;
+        padding: 28px 32px;
+        border-radius: 30px;
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(255, 247, 246, 0.9)),
+          radial-gradient(circle at top right, rgba(239, 68, 68, 0.12), transparent 32%);
+        border: 1px solid rgba(185, 28, 28, 0.12);
+        box-shadow: var(--shadow, 0 30px 60px rgba(127, 16, 16, 0.18));
+        overflow: hidden;
+      }
+
+      .workspace-intro::after {
+        content: "";
+        position: absolute;
+        right: -26px;
+        bottom: -46px;
+        width: 180px;
+        height: 180px;
+        border-radius: 999px;
+        background: radial-gradient(circle, rgba(239, 68, 68, 0.18), transparent 68%);
+        pointer-events: none;
+      }
+
+      .workspace-intro__copy {
+        display: grid;
+        gap: 0;
+        max-width: 760px;
+      }
+
+      .workspace-intro h1 {
+        margin: 0;
+        font-family: "Ubuntu", sans-serif;
+        font-size: clamp(2.1rem, 4vw, 3.4rem);
+        line-height: 1.02;
+        letter-spacing: -0.05em;
+      }
+
+      .layout {
+        display: grid;
+        grid-template-columns: minmax(300px, 360px) minmax(0, 1fr);
+        gap: 24px;
+        align-items: start;
+      }
+
+      .panel,
+      .preview {
+        border: 1px solid var(--panel-border);
+        border-radius: 30px;
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(255, 247, 246, 0.9));
+        box-shadow: var(--shadow, 0 30px 60px rgba(127, 16, 16, 0.18));
+        backdrop-filter: blur(10px);
+      }
+
+      .panel {
+        padding: 24px;
+        display: grid;
+        gap: 16px;
+        position: sticky;
+        top: 26px;
+      }
+
+      .panel h2 {
+        margin: 0;
+        font-family: "Ubuntu", sans-serif;
+        font-size: 2rem;
+        line-height: 1.02;
+        letter-spacing: -0.04em;
+      }
+
+      .eyebrow {
+        width: fit-content;
+      }
+
+      .lead,
+      .note {
+        margin: 0;
+        color: var(--muted, #6e5b57);
+        line-height: 1.6;
+      }
+
+      .lead {
+        font-size: 1rem;
+      }
+
+      .form {
+        display: grid;
+        gap: 14px;
+      }
+
+      .field {
+        display: grid;
+        gap: 8px;
+      }
+
+      .field label {
+        font-weight: 700;
+        font-size: 0.95rem;
+        color: var(--text, #241717);
+      }
+
+      .field input,
+      .field select {
+        width: 100%;
+        min-height: 52px;
+        padding: 14px 16px;
+        border: 1px solid rgba(78, 26, 26, 0.16);
+        border-radius: 16px;
+        background: #ffffff;
+        font: inherit;
+        color: var(--text, #241717);
+        transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+      }
+
+      .field input:focus,
+      .field select:focus {
+        outline: none;
+        border-color: rgba(150, 47, 47, 0.72);
+        box-shadow: 0 0 0 4px rgba(150, 47, 47, 0.12);
+      }
+
+      .field small {
+        color: var(--muted);
+        line-height: 1.5;
+      }
+
+      .actions {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+        padding-top: 4px;
+        align-items: stretch;
+      }
+
+      .button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        height: 54px;
+        min-height: 54px;
+        margin: 0;
+        padding: 0 20px;
+        border-radius: 14px;
+        border: none;
+        appearance: none;
+        -webkit-appearance: none;
+        text-decoration: none;
+        font: inherit;
+        line-height: 1;
+        font-weight: 700;
+        cursor: pointer;
+        transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+      }
+
+      .actions .button {
+        width: 100%;
+      }
+
+      .button--primary {
+        background: linear-gradient(135deg, var(--red-700, #b91c1c), var(--red-900, #7f1010));
+        color: #ffffff;
+        box-shadow: 0 18px 34px rgba(185, 28, 28, 0.22);
+      }
+
+      .button--secondary {
+        background: #ffffff;
+        color: var(--red-900, #7f1010);
+        border: 1px solid rgba(127, 29, 29, 0.2);
+      }
+
+      .button:hover {
+        transform: translateY(-1px);
+        filter: brightness(1.02);
+      }
+
+      .preview {
+        padding: 24px;
+      }
+
+      .preview-meta {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        align-items: center;
+        margin-bottom: 18px;
+        color: var(--muted, #6e5b57);
+        font-size: 0.93rem;
+      }
+
+      .preview-meta strong {
+        color: var(--red-900, #7f1010);
+      }
+
+      .stage {
+        overflow: auto;
+        border-radius: 24px;
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.68), rgba(255, 246, 242, 0.86)),
+          repeating-linear-gradient(
+            135deg,
+            rgba(239, 68, 68, 0.03),
+            rgba(239, 68, 68, 0.03) 14px,
+            rgba(255, 255, 255, 0.18) 14px,
+            rgba(255, 255, 255, 0.18) 28px
+          );
+        padding: 22px;
+        border: 1px solid rgba(185, 28, 28, 0.08);
+      }
+
+      .a4-sheet {
+        position: relative;
+        width: var(--page-width);
+        height: var(--page-height);
+        background: #ffffff;
+        border-radius: 0;
+        border: 1px solid rgba(127, 16, 16, 0.08);
+        box-shadow: 0 18px 48px rgba(58, 35, 23, 0.14);
+        overflow: hidden;
+        margin: 0 auto;
+      }
+
+      .cheque-placement {
+        position: absolute;
+        top: 0;
+        left: 50%;
+        transform: translateX(-50%);
+      }
+
+      .a4-sheet[data-orientation="landscape"] .cheque-placement {
+        width: var(--cheque-width);
+        height: var(--cheque-height);
+      }
+
+      .a4-sheet[data-orientation="amount-up"] .cheque-placement,
+      .a4-sheet[data-orientation="amount-down"] .cheque-placement {
+        width: var(--cheque-height);
+        height: var(--cheque-width);
+      }
+
+      .cheque-sheet {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: var(--cheque-width);
+        height: var(--cheque-height);
+        overflow: hidden;
+        background: #ffffff;
+        transform-origin: top left;
+        user-select: none;
+        print-color-adjust: exact;
+        -webkit-print-color-adjust: exact;
+      }
+
+      .a4-sheet[data-orientation="landscape"] .cheque-sheet {
+        transform: none;
+      }
+
+      .a4-sheet[data-orientation="amount-up"] .cheque-sheet {
+        transform: translateY(var(--cheque-width)) rotate(-90deg);
+      }
+
+      .a4-sheet[data-orientation="amount-down"] .cheque-sheet {
+        transform: translateX(var(--cheque-height)) rotate(90deg);
+      }
+
+      .cheque-base {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: fill;
+      }
+
+      .overlay {
+        position: absolute;
+        inset: 0;
+        color: var(--ink);
+        font-family: Arial, Helvetica, sans-serif;
+      }
+
+      .date-grid {
+        position: absolute;
+        left: var(--date-left);
+        top: var(--date-top);
+        display: grid;
+        grid-template-columns: repeat(8, var(--date-cell-width));
+        gap: var(--date-gap);
+      }
+
+      .date-cell {
+        width: var(--date-cell-width);
+        height: var(--date-cell-height);
+        display: grid;
+        place-items: center;
+        font-size: var(--date-font-size);
+        line-height: 1;
+        font-weight: 500;
+      }
+
+      .payee-text,
+      .amount-words,
+      .amount-value,
+      .measure {
+        font-style: normal;
+        letter-spacing: 0;
+      }
+
+      .payee-text {
+        position: absolute;
+        left: var(--payee-left);
+        top: var(--payee-top);
+        width: var(--payee-width);
+        font-size: var(--payee-font-size);
+        font-weight: var(--payee-font-weight);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .amount-words {
+        position: absolute;
+        font-size: var(--amount-words-font-size);
+        font-weight: var(--amount-words-font-weight);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .amount-words--first {
+        left: var(--amount-line-1-left);
+        top: var(--amount-line-1-top);
+        width: var(--amount-line-1-width);
+      }
+
+      .amount-words--second {
+        left: var(--amount-line-2-left);
+        top: var(--amount-line-2-top);
+        width: var(--amount-line-2-width);
+      }
+
+      .amount-value {
+        position: absolute;
+        left: var(--amount-box-left);
+        top: var(--amount-box-top);
+        width: var(--amount-box-width);
+        font-size: var(--amount-box-font-size);
+        font-weight: var(--amount-box-font-weight);
+        text-align: right;
+        white-space: nowrap;
+        overflow: hidden;
+      }
+
+      .measure {
+        position: absolute;
+        visibility: hidden;
+        pointer-events: none;
+        left: -9999px;
+        top: -9999px;
+        white-space: nowrap;
+        font-size: var(--amount-words-font-size);
+        font-weight: var(--amount-words-font-weight);
+      }
+
+      .placeholder {
+        color: rgba(31, 26, 23, 0.34);
+      }
+
+      .account-payee-stamp {
+        position: absolute;
+        left: var(--stamp-left);
+        top: var(--stamp-top);
+        width: var(--stamp-width);
+        height: var(--stamp-height);
+        transform: rotate(-45deg);
+        transform-origin: left top;
+        pointer-events: none;
+      }
+
+      .account-payee-stamp::before,
+      .account-payee-stamp::after {
+        content: "";
+        position: absolute;
+        border-top: var(--stamp-line-thickness) solid rgba(31, 26, 23, 0.92);
+      }
+
+      .account-payee-stamp::before {
+        left: var(--stamp-upper-left-offset);
+        top: 0;
+        width: var(--stamp-upper-width);
+      }
+
+      .account-payee-stamp::after {
+        left: var(--stamp-lower-left-offset);
+        bottom: 0;
+        width: var(--stamp-lower-width);
+      }
+
+      .account-payee-stamp span {
+        position: absolute;
+        left: 1.6mm;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: var(--stamp-font-size);
+        font-weight: 500;
+        white-space: nowrap;
+      }
+
+      @media (max-width: 1180px) {
+        .panel {
+          position: static;
+        }
+
+        .layout {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (max-width: 820px) {
+        .cheque-page {
+          width: min(100%, calc(100% - 24px));
+        }
+
+        .cheque-page .topbar {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+
+        .workspace-intro {
+          padding: 22px 18px;
+        }
+
+        .panel,
+        .preview {
+          padding: 18px;
+          border-radius: 22px;
+        }
+      }
+
+      @media print {
+        html,
+        body {
+          width: var(--page-width);
+          height: var(--page-height);
+          margin: 0;
+          padding: 0;
+          background: #ffffff;
+          overflow: hidden;
+        }
+
+        body * {
+          visibility: hidden !important;
+        }
+
+        #printArea,
+        #printArea * {
+          visibility: visible !important;
+        }
+
+        #printArea {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: var(--page-width);
+          height: var(--page-height);
+          margin: 0;
+          box-shadow: none;
+          overflow: hidden;
+          break-after: avoid-page;
+          page-break-after: avoid;
+        }
+
+        .screen-only {
+          display: none !important;
+        }
+
+        .cheque-page,
+        .workspace,
+        .layout,
+        .preview,
+        .stage {
+          width: var(--page-width) !important;
+          max-width: none !important;
+          margin: 0 !important;
+          padding: 0 !important;
+          border: none !important;
+          box-shadow: none !important;
+          background: transparent !important;
+        }
+
+        .layout,
+        .workspace {
+          display: block !important;
+        }
+
+        .a4-sheet,
+        .cheque-sheet,
+        .overlay {
+          background: transparent !important;
+          box-shadow: none !important;
+          border: none !important;
+        }
+
+        .cheque-base {
+          display: none !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page-shell cheque-page">
+      <header class="topbar screen-only">
+        <a class="brand" href="./workspace.html">
+          <span class="brand-mark" aria-hidden="true">
+            <span class="brand-mark__inner">B</span>
+          </span>
+          <span class="brand-copy">
+            <span class="brand-copy__title">BANIK Books</span>
+            <span class="brand-copy__tag">Everyday business essentials</span>
+          </span>
+        </a>
+      </header>
+
+      <main class="workspace">
+        <section class="workspace-intro screen-only">
+          <div class="workspace-intro__copy">
+            <h1>Cheque Printer</h1>
+          </div>
+        </section>
+
+        <div class="layout">
+          <aside class="panel screen-only">
+          <span class="eyebrow">Cheque Setup</span>
+          <h2>Cheque Overlay</h2>
+
+          <form class="form" id="chequeForm">
+            <div class="field">
+              <label for="printOrientation">Print Orientation</label>
+              <select id="printOrientation" name="printOrientation">
+                <option value="">Select print orientation</option>
+                <option value="landscape">Landscape</option>
+                <option value="amount-up">Amount Upside</option>
+                <option value="amount-down">Amount Downside</option>
+              </select>
+              <small id="orientationHelp"></small>
+            </div>
+
+            <div class="field">
+              <label for="chequeDate">Date</label>
+              <input id="chequeDate" name="chequeDate" type="date" />
+            </div>
+
+            <div class="field">
+              <label for="payeeName">Payee</label>
+              <input
+                id="payeeName"
+                name="payeeName"
+                type="text"
+                placeholder="Write the payee name"
+                autocomplete="off"
+              />
+            </div>
+
+            <div class="field">
+              <label for="chequeAmount">Amount</label>
+              <input
+                id="chequeAmount"
+                name="chequeAmount"
+                type="text"
+                placeholder="Example: 50,000.00"
+                inputmode="decimal"
+                autocomplete="off"
+              />
+            </div>
+
+            <div class="field">
+              <label for="chequeType">Cheque Type</label>
+              <select id="chequeType" name="chequeType">
+                <option value="">Select cheque type</option>
+                <option value="cash">Cash</option>
+                <option value="account-payee">A/C Payee</option>
+              </select>
+            </div>
+
+            <div class="actions">
+              <button class="button button--primary" id="printCheque" type="button">
+                Print Cheque
+              </button>
+              <a class="button button--secondary" href="./necessary-tools.html">Back</a>
+            </div>
+          </form>
+        </aside>
+
+        <section class="preview">
+          <div class="preview-meta screen-only">
+            <span><strong>Live preview</strong> on an A4 printable sheet</span>
+            <span id="previewOrientationLabel">Orientation: Landscape</span>
+          </div>
+
+          <div class="stage">
+            <div class="a4-sheet" id="printArea" data-orientation="landscape" aria-label="A4 cheque preview">
+              <div class="cheque-placement">
+                <article class="cheque-sheet" aria-label="Imon cheque">
+                  <img class="cheque-base" src="./Sample Cheque.jpg" alt="Bank Asia cheque" />
+
+                  <div class="overlay">
+                    <div class="date-grid" id="dateDigits">
+                      <span class="date-cell">0</span>
+                      <span class="date-cell">1</span>
+                      <span class="date-cell">0</span>
+                      <span class="date-cell">5</span>
+                      <span class="date-cell">2</span>
+                      <span class="date-cell">0</span>
+                      <span class="date-cell">2</span>
+                      <span class="date-cell">6</span>
+                    </div>
+
+                    <div class="payee-text" id="payeePreview"></div>
+
+                    <div class="amount-words amount-words--first" id="amountWordsLine1">
+                    </div>
+                    <div class="amount-words amount-words--second" id="amountWordsLine2"></div>
+                    <span class="measure" id="amountMeasure" aria-hidden="true"></span>
+
+                    <div class="amount-value" id="amountPreview"></div>
+
+                    <div class="account-payee-stamp" id="accountPayeeStamp" hidden aria-hidden="true">
+                      <span>A/C Payee Only</span>
+                    </div>
+                  </div>
+                </article>
+              </div>
+            </div>
+          </div>
+        </section>
+        </div>
+      </main>
+    </div>
+
+    <script>
+      const printOrientationInput = document.getElementById("printOrientation");
+      const chequeDateInput = document.getElementById("chequeDate");
+      const payeeNameInput = document.getElementById("payeeName");
+      const chequeAmountInput = document.getElementById("chequeAmount");
+      const chequeTypeInput = document.getElementById("chequeType");
+      const printChequeButton = document.getElementById("printCheque");
+      const printArea = document.getElementById("printArea");
+      const previewOrientationLabel = document.getElementById("previewOrientationLabel");
+      const orientationHelp = document.getElementById("orientationHelp");
+      const dateDigitsContainer = document.getElementById("dateDigits");
+      const payeePreview = document.getElementById("payeePreview");
+      const amountPreview = document.getElementById("amountPreview");
+      const amountWordsLine1 = document.getElementById("amountWordsLine1");
+      const amountWordsLine2 = document.getElementById("amountWordsLine2");
+      const amountMeasure = document.getElementById("amountMeasure");
+      const accountPayeeStamp = document.getElementById("accountPayeeStamp");
+
+      function padDateDigits(value) {
+        return String(value).padStart(2, "0");
+      }
+
+      function sanitizeAmount(rawValue) {
+        const cleaned = String(rawValue || "").replace(/[^0-9.]/g, "");
+        const firstDotIndex = cleaned.indexOf(".");
+
+        if (firstDotIndex === -1) {
+          return cleaned;
+        }
+
+        const integerPart = cleaned.slice(0, firstDotIndex + 1);
+        const decimalPart = cleaned.slice(firstDotIndex + 1).replace(/\./g, "");
+        return integerPart + decimalPart;
+      }
+
+      function formatAmount(rawValue) {
+        const sanitized = sanitizeAmount(rawValue);
+
+        if (!sanitized) {
+          return "";
+        }
+
+        const numericValue = Number.parseFloat(sanitized);
+
+        if (Number.isNaN(numericValue)) {
+          return "";
+        }
+
+        return new Intl.NumberFormat("en-IN", {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        }).format(numericValue);
+      }
+
+      function getCaretPositionFromDigitCount(formattedValue, digitCount) {
+        if (!formattedValue || digitCount <= 0) {
+          return 0;
+        }
+
+        let seenDigits = 0;
+
+        for (let index = 0; index < formattedValue.length; index += 1) {
+          if (/\d/.test(formattedValue[index])) {
+            seenDigits += 1;
+
+            if (seenDigits >= digitCount) {
+              return index + 1;
+            }
+          }
+        }
+
+        const decimalIndex = formattedValue.indexOf(".");
+        return decimalIndex === -1 ? formattedValue.length : decimalIndex;
+      }
+
+      function handleAmountInput() {
+        const rawValue = chequeAmountInput.value;
+        const selectionStart = chequeAmountInput.selectionStart ?? rawValue.length;
+        const digitsBeforeCaret = rawValue.slice(0, selectionStart).replace(/\D/g, "").length;
+        const formattedAmount = formatAmount(rawValue);
+
+        chequeAmountInput.value = formattedAmount;
+
+        if (document.activeElement === chequeAmountInput) {
+          const caretPosition = getCaretPositionFromDigitCount(
+            formattedAmount,
+            digitsBeforeCaret
+          );
+          chequeAmountInput.setSelectionRange(caretPosition, caretPosition);
+        }
+
+        renderAmount();
+      }
+
+      function normalizeAmountInputField() {
+        chequeAmountInput.value = formatAmount(chequeAmountInput.value);
+        renderAmount();
+      }
+
+      function convertBelowHundred(number) {
+        const ones = [
+          "Zero",
+          "One",
+          "Two",
+          "Three",
+          "Four",
+          "Five",
+          "Six",
+          "Seven",
+          "Eight",
+          "Nine",
+          "Ten",
+          "Eleven",
+          "Twelve",
+          "Thirteen",
+          "Fourteen",
+          "Fifteen",
+          "Sixteen",
+          "Seventeen",
+          "Eighteen",
+          "Nineteen",
+        ];
+        const tens = [
+          "",
+          "",
+          "Twenty",
+          "Thirty",
+          "Forty",
+          "Fifty",
+          "Sixty",
+          "Seventy",
+          "Eighty",
+          "Ninety",
+        ];
+
+        if (number < 20) {
+          return ones[number];
+        }
+
+        const tenValue = Math.floor(number / 10);
+        const remainder = number % 10;
+        return remainder ? `${tens[tenValue]} ${ones[remainder]}` : tens[tenValue];
+      }
+
+      function convertBelowThousand(number) {
+        if (number < 100) {
+          return convertBelowHundred(number);
+        }
+
+        const hundreds = Math.floor(number / 100);
+        const remainder = number % 100;
+        const hundredLabel = `${convertBelowHundred(hundreds)} Hundred`;
+        return remainder ? `${hundredLabel} ${convertBelowHundred(remainder)}` : hundredLabel;
+      }
+
+      function numberToWords(number) {
+        if (number === 0) {
+          return "Zero";
+        }
+
+        const segments = [
+          { value: 10000000, label: "Crore" },
+          { value: 100000, label: "Lakh" },
+          { value: 1000, label: "Thousand" },
+        ];
+
+        let remaining = number;
+        const words = [];
+
+        segments.forEach((segment) => {
+          if (remaining >= segment.value) {
+            const segmentValue = Math.floor(remaining / segment.value);
+            words.push(`${convertBelowThousand(segmentValue)} ${segment.label}`);
+            remaining %= segment.value;
+          }
+        });
+
+        if (remaining > 0) {
+          words.push(convertBelowThousand(remaining));
+        }
+
+        return words.join(" ");
+      }
+
+      function amountToWords(rawValue) {
+        const sanitized = sanitizeAmount(rawValue);
+
+        if (!sanitized) {
+          return "";
+        }
+
+        const numericValue = Number.parseFloat(sanitized);
+
+        if (Number.isNaN(numericValue)) {
+          return "";
+        }
+
+        const taka = Math.floor(numericValue);
+        const paisa = Math.round((numericValue - taka) * 100);
+        let words = numberToWords(taka);
+
+        if (paisa > 0) {
+          words += ` and ${numberToWords(paisa)} Paisa`;
+        }
+
+        return `${words} Only`;
+      }
+
+      function renderOrientation() {
+        const selectedOrientation = printOrientationInput.value;
+        const orientation = selectedOrientation || "landscape";
+        const orientationLabels = {
+          landscape: "Landscape",
+          "amount-up": "Amount Upside",
+          "amount-down": "Amount Downside",
+        };
+        const orientationHelpText = {
+          landscape: "It keeps the cheque normal.",
+          "amount-up": "It rotates the amount-box side to the top.",
+          "amount-down": "It rotates the amount-box side to the bottom.",
+        };
+
+        printArea.dataset.orientation = orientation;
+        previewOrientationLabel.textContent = `Orientation: ${
+          orientationLabels[orientation] || "Landscape"
+        }`;
+        orientationHelp.textContent = orientationHelpText[selectedOrientation] || "";
+      }
+
+      function renderDateDigits(value) {
+        const digits = Array.from(dateDigitsContainer.querySelectorAll(".date-cell"));
+        let sourceDigits = ["", "", "", "", "", "", "", ""];
+
+        if (value) {
+          const [year, month, day] = value.split("-");
+
+          if (year && month && day) {
+            sourceDigits = [
+              ...padDateDigits(day),
+              ...padDateDigits(month),
+              ...String(year).slice(-4),
+            ];
+          }
+        }
+
+        digits.forEach((digit, index) => {
+          digit.textContent = sourceDigits[index] || "";
+        });
+      }
+
+      function renderPayee() {
+        const payeeText = payeeNameInput.value.trim();
+
+        if (payeeText) {
+          payeePreview.textContent = payeeText;
+          payeePreview.classList.remove("placeholder");
+          return;
+        }
+
+        payeePreview.textContent = "";
+        payeePreview.classList.remove("placeholder");
+      }
+
+      function splitAmountWords(text) {
+        const words = String(text || "")
+          .trim()
+          .split(/\s+/)
+          .filter(Boolean);
+
+        if (!words.length) {
+          return ["", ""];
+        }
+
+        const firstLineWidth = amountWordsLine1.getBoundingClientRect().width;
+        const secondLineWidth = amountWordsLine2.getBoundingClientRect().width;
+
+        if (!firstLineWidth || !secondLineWidth) {
+          return [text, ""];
+        }
+
+        let firstLine = "";
+        let splitIndex = 0;
+
+        for (let index = 0; index < words.length; index += 1) {
+          const candidate = firstLine ? `${firstLine} ${words[index]}` : words[index];
+          amountMeasure.textContent = candidate;
+
+          if (amountMeasure.getBoundingClientRect().width <= firstLineWidth || !firstLine) {
+            firstLine = candidate;
+            splitIndex = index + 1;
+            continue;
+          }
+
+          break;
+        }
+
+        const secondLine = words.slice(splitIndex).join(" ");
+        return [firstLine, secondLine];
+      }
+
+      function renderAmount() {
+        const formattedAmount = formatAmount(chequeAmountInput.value);
+        const amountInWords = amountToWords(chequeAmountInput.value);
+
+        if (formattedAmount) {
+          amountPreview.textContent = formattedAmount;
+          amountPreview.classList.remove("placeholder");
+        } else {
+          amountPreview.textContent = "";
+          amountPreview.classList.remove("placeholder");
+        }
+
+        if (amountInWords) {
+          const [firstLine, secondLine] = splitAmountWords(amountInWords);
+          amountWordsLine1.textContent = firstLine;
+          amountWordsLine2.textContent = secondLine;
+          amountWordsLine1.classList.remove("placeholder");
+          amountWordsLine2.classList.remove("placeholder");
+        } else {
+          amountWordsLine1.textContent = "";
+          amountWordsLine2.textContent = "";
+          amountWordsLine2.classList.remove("placeholder");
+          amountWordsLine1.classList.remove("placeholder");
+        }
+      }
+
+      function renderChequeType() {
+        accountPayeeStamp.hidden = chequeTypeInput.value !== "account-payee";
+        renderPayee();
+      }
+
+      function renderAll() {
+        renderOrientation();
+        renderDateDigits(chequeDateInput.value);
+        renderChequeType();
+        renderAmount();
+      }
+
+      printOrientationInput.value = "";
+      chequeDateInput.value = "";
+      chequeTypeInput.value = "";
+
+      printOrientationInput.addEventListener("change", renderOrientation);
+      chequeDateInput.addEventListener("input", renderAll);
+      payeeNameInput.addEventListener("input", renderPayee);
+      chequeAmountInput.addEventListener("input", handleAmountInput);
+      chequeAmountInput.addEventListener("change", normalizeAmountInputField);
+      chequeAmountInput.addEventListener("blur", normalizeAmountInputField);
+      chequeTypeInput.addEventListener("change", renderChequeType);
+      window.addEventListener("resize", renderAmount);
+
+      printChequeButton.addEventListener("click", () => {
+        renderAll();
+        window.print();
+      });
+
+      renderAll();
+      normalizeAmountInputField();
+    </script>
+  </body>
+</html>

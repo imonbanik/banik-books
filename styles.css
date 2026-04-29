@@ -607,6 +607,33 @@ button:active {
   max-width: 16ch;
 }
 
+.necessary-tools-minimal {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 180px;
+}
+
+.small-tool-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  padding: 0 16px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--red-700), var(--red-500));
+  color: #ffffff;
+  font-size: 0.95rem;
+  font-weight: 700;
+  box-shadow: 0 12px 24px rgba(185, 28, 28, 0.18);
+  transition: transform 0.2s ease, filter 0.2s ease;
+}
+
+.small-tool-button:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.03);
+}
+
 .journal-page {
   padding-bottom: 56px;
 }
