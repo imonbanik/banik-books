@@ -458,6 +458,7 @@
 
       .measure {
         position: absolute;
+        display: inline-block;
         visibility: hidden;
         pointer-events: none;
         left: -9999px;
@@ -969,6 +970,7 @@
           orientationLabels[orientation] || "Landscape"
         }`;
         orientationHelp.textContent = orientationHelpText[selectedOrientation] || "";
+        window.requestAnimationFrame(renderAmount);
       }
 
       function renderDateDigits(value) {
@@ -1015,8 +1017,8 @@
           return ["", ""];
         }
 
-        const firstLineWidth = amountWordsLine1.getBoundingClientRect().width;
-        const secondLineWidth = amountWordsLine2.getBoundingClientRect().width;
+        const firstLineWidth = amountWordsLine1.offsetWidth;
+        const secondLineWidth = amountWordsLine2.offsetWidth;
 
         if (!firstLineWidth || !secondLineWidth) {
           return [text, ""];

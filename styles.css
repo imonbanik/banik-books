@@ -31,6 +31,14 @@ body {
     linear-gradient(145deg, #fffaf8 0%, #fff0ed 48%, #ffe3dd 100%);
 }
 
+body.modal-open {
+  overflow: hidden;
+}
+
+[hidden] {
+  display: none !important;
+}
+
 a {
   color: inherit;
   text-decoration: none;
@@ -611,6 +619,8 @@ button:active {
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-wrap: wrap;
+  gap: 16px;
   min-height: 180px;
 }
 
@@ -618,11 +628,15 @@ button:active {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  margin-top: 0;
   min-height: 42px;
   padding: 0 16px;
+  border: none;
   border-radius: 12px;
   background: linear-gradient(135deg, var(--red-700), var(--red-500));
   color: #ffffff;
+  cursor: pointer;
+  font: inherit;
   font-size: 0.95rem;
   font-weight: 700;
   box-shadow: 0 12px 24px rgba(185, 28, 28, 0.18);
@@ -632,6 +646,736 @@ button:active {
 .small-tool-button:hover {
   transform: translateY(-1px);
   filter: brightness(1.03);
+}
+
+.challan-register-card {
+  max-width: 820px;
+}
+
+.challan-register-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.challan-register-lead {
+  max-width: 100%;
+  margin-bottom: 24px;
+}
+
+.challan-quick-panel {
+  padding: 22px;
+  border-radius: 26px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(255, 249, 248, 0.94)),
+    radial-gradient(circle at top right, rgba(239, 68, 68, 0.08), transparent 34%);
+  border: 1px solid rgba(185, 28, 28, 0.12);
+  box-shadow: 0 20px 44px rgba(127, 16, 16, 0.1);
+}
+
+.challan-register-form {
+  display: grid;
+  gap: 10px;
+}
+
+.challan-register-input-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+}
+
+.challan-register-input-row input {
+  min-width: 0;
+}
+
+.challan-download-button {
+  margin-top: 0;
+  min-width: 58px;
+  min-height: 58px;
+  padding: 0 18px;
+  border-radius: 16px;
+  font-size: 1.35rem;
+  line-height: 1;
+}
+
+.challan-register-hint {
+  margin: -2px 0 0;
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+.challan-register-error {
+  margin: 0;
+  color: var(--red-700);
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+.challan-register-summary {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.challan-register-empty {
+  margin: 12px 0 0;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: rgba(248, 248, 248, 0.96);
+  border: 1px solid rgba(20, 20, 20, 0.12);
+  color: var(--muted);
+  font-size: 0.95rem;
+  line-height: 1.55;
+}
+
+.challan-register-table-wrap {
+  overflow-x: auto;
+  margin-top: 12px;
+  border-radius: 18px;
+  background: #ffffff;
+}
+
+.challan-register-table {
+  width: 100%;
+  min-width: 1080px;
+  border-collapse: collapse;
+  border: 1px solid #1f1f1f;
+}
+
+.challan-register-table th,
+.challan-register-table td {
+  padding: 10px 12px;
+  border: 1px solid #1f1f1f;
+  text-align: left;
+  vertical-align: top;
+  font-size: 0.92rem;
+}
+
+.challan-register-table th {
+  background: #fafafa;
+  font-weight: 600;
+}
+
+.register-sort-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: #222222;
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 600;
+  box-shadow: none;
+  cursor: pointer;
+}
+
+.register-sort-button::after {
+  content: "\2195";
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.register-sort-button[data-direction="asc"]::after {
+  content: "\2191";
+  color: #111111;
+}
+
+.register-sort-button[data-direction="desc"]::after {
+  content: "\2193";
+  color: #111111;
+}
+
+.register-sort-button:hover,
+.register-sort-button:active {
+  transform: none;
+  filter: none;
+}
+
+.register-sort-button.is-active {
+  color: #111111;
+}
+
+.challan-table-cell-action {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  justify-content: space-between;
+}
+
+.register-download-button {
+  margin: 0;
+  min-height: 32px;
+  padding: 0 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(17, 17, 17, 0.14);
+  background: rgba(245, 245, 245, 0.96);
+  color: #111111;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  box-shadow: none;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.register-download-button:hover {
+  transform: none;
+  filter: none;
+  background: rgba(236, 236, 236, 0.96);
+}
+
+.register-download-button:active {
+  transform: none;
+}
+
+.challan-table-action-cell {
+  text-align: center;
+}
+
+.register-delete-button {
+  margin: 0;
+  min-width: 34px;
+  min-height: 34px;
+  padding: 0;
+  border-radius: 10px;
+  border: 1px solid rgba(185, 28, 28, 0.24);
+  background: rgba(255, 241, 241, 0.96);
+  color: var(--red-700);
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 700;
+  box-shadow: none;
+  cursor: pointer;
+}
+
+.register-delete-button:hover,
+.register-delete-button:active {
+  transform: none;
+  filter: none;
+  background: rgba(255, 232, 232, 0.98);
+}
+
+.challan-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(17, 17, 17, 0.34);
+  backdrop-filter: blur(10px);
+}
+
+.challan-modal__dialog {
+  width: min(860px, 100%);
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
+  padding: 24px;
+  border-radius: 30px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.99), rgba(252, 252, 252, 0.97)),
+    radial-gradient(circle at top right, rgba(239, 68, 68, 0.05), transparent 26%);
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  box-shadow: 0 38px 80px rgba(17, 17, 17, 0.18);
+}
+
+.challan-modal__dialog--entry {
+  width: min(760px, 100%);
+}
+
+.challan-modal__dialog--register {
+  width: min(1120px, 100%);
+}
+
+.challan-modal__close {
+  margin: 0;
+  min-width: 42px;
+  min-height: 42px;
+  padding: 0;
+  border-radius: 12px;
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  background: rgba(248, 248, 248, 0.96);
+  color: #111111;
+  font-size: 1.45rem;
+  line-height: 1;
+  box-shadow: none;
+}
+
+.challan-modal__close:hover,
+.challan-modal__close:active {
+  transform: none;
+  filter: none;
+}
+
+.challan-entry-form {
+  display: grid;
+  gap: 18px;
+}
+
+.challan-entry-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.challan-entry-field {
+  display: grid;
+  gap: 8px;
+}
+
+.challan-entry-field--full {
+  grid-column: 1 / -1;
+}
+
+.challan-entry-field__label {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: #161616;
+}
+
+.challan-entry-field__control {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  min-height: 54px;
+  padding: 0 14px 0 16px;
+  border-radius: 18px;
+  border: 1px solid rgba(17, 17, 17, 0.1);
+  background: #ffffff;
+  box-shadow: 0 10px 24px rgba(17, 17, 17, 0.05);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.challan-entry-field__control:focus-within {
+  border-color: rgba(239, 68, 68, 0.5);
+  box-shadow: 0 14px 28px rgba(239, 68, 68, 0.09);
+  transform: translateY(-1px);
+}
+
+.challan-entry-field__control input,
+.challan-entry-field__control select {
+  width: 100%;
+  min-height: 52px;
+  border: none;
+  background: transparent;
+  padding: 0;
+  font: inherit;
+  font-size: 1rem;
+  color: #181818;
+  outline: none;
+}
+
+.challan-entry-field__control input::placeholder {
+  color: #a7a7a7;
+}
+
+.challan-entry-field__badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  padding: 8px 10px;
+  border-radius: 999px;
+  background: rgba(255, 245, 244, 0.98);
+  color: var(--red-700);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.challan-field-preview {
+  font-size: 0.84rem;
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.challan-entry-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.challan-save-button {
+  margin-top: 0;
+  min-width: 170px;
+  background: linear-gradient(135deg, #12824b, #1dbd67);
+  box-shadow: 0 18px 34px rgba(18, 130, 75, 0.22);
+}
+
+.secondary-button {
+  margin-top: 0;
+}
+
+.challan-register-modal-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.challan-register-footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16px;
+}
+
+.challan-toast {
+  position: fixed;
+  top: 24px;
+  right: 24px;
+  z-index: 60;
+  max-width: min(360px, calc(100% - 32px));
+  padding: 14px 16px;
+  border-radius: 16px;
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  background: rgba(255, 255, 255, 0.98);
+  color: #111111;
+  font-size: 0.92rem;
+  font-weight: 600;
+  box-shadow: 0 22px 44px rgba(17, 17, 17, 0.16);
+}
+
+.challan-toast[data-variant="success"] {
+  border-color: rgba(18, 130, 75, 0.26);
+  background: rgba(241, 255, 248, 0.98);
+  color: #0f6b3d;
+}
+
+.challan-toast[data-variant="error"] {
+  border-color: rgba(185, 28, 28, 0.2);
+  background: rgba(255, 244, 244, 0.98);
+  color: #a01818;
+}
+
+.challan-management-page {
+  width: min(1380px, calc(100% - 40px));
+  padding-bottom: 44px;
+}
+
+.challan-management-topbar {
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.challan-back-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 124px;
+  min-height: 54px;
+  padding: 0 26px;
+  border-radius: 20px;
+  border: 1px solid rgba(127, 29, 29, 0.2);
+  background: rgba(255, 255, 255, 0.88);
+  color: var(--red-900);
+  font-weight: 700;
+  box-shadow: 0 18px 36px rgba(127, 16, 16, 0.08);
+}
+
+.challan-management-workspace {
+  display: grid;
+  gap: 26px;
+  margin-top: 26px;
+}
+
+.challan-page-hero {
+  position: relative;
+  display: grid;
+  gap: 16px;
+  padding: 28px 32px;
+  border-radius: 30px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(255, 247, 246, 0.9)),
+    radial-gradient(circle at top right, rgba(239, 68, 68, 0.12), transparent 32%);
+  border: 1px solid rgba(185, 28, 28, 0.12);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.challan-page-hero h1 {
+  margin: 0;
+  font-family: "Ubuntu", sans-serif;
+  font-size: 3.4rem;
+  line-height: 1.02;
+  letter-spacing: 0;
+}
+
+.challan-tool-section {
+  display: grid;
+  gap: 22px;
+  padding: 24px;
+  border-radius: 30px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(255, 247, 246, 0.9));
+  border: 1px solid rgba(185, 28, 28, 0.12);
+  box-shadow: var(--shadow);
+}
+
+.challan-tool-actions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.challan-tool-button {
+  min-height: 58px;
+  margin: 0;
+  padding: 0 18px;
+  border-radius: 16px;
+  font-size: 1rem;
+}
+
+.challan-verification-panel {
+  width: min(760px, 100%);
+  padding: 20px;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(185, 28, 28, 0.14);
+}
+
+.challan-verification-field {
+  display: grid;
+  gap: 12px;
+}
+
+.challan-verification-field > span {
+  color: var(--text);
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.challan-verification-row {
+  display: grid;
+  grid-template-columns: minmax(260px, 420px) 74px;
+  gap: 14px;
+  align-items: center;
+}
+
+.challan-verification-row input {
+  width: 100%;
+  min-height: 58px;
+  border: 1px solid rgba(86, 30, 30, 0.18);
+  border-radius: 18px;
+  background: #ffffff;
+  padding: 0 18px;
+  font: inherit;
+  font-size: 1.05rem;
+  color: var(--text);
+  outline: none;
+}
+
+.challan-verification-row input:focus {
+  border-color: rgba(185, 28, 28, 0.62);
+  box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.1);
+}
+
+.challan-download-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 74px;
+  height: 58px;
+  min-width: 74px;
+  min-height: 58px;
+  padding: 0;
+  border-radius: 18px;
+}
+
+.challan-download-button svg,
+.icon-action-button svg {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.challan-modal__dialog--record {
+  width: min(560px, 100%);
+  border-radius: 26px;
+}
+
+.record-modal-header,
+.register-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 18px;
+}
+
+.record-modal-header h2,
+.register-modal-header h2 {
+  margin: 0;
+  font-family: "Ubuntu", sans-serif;
+  font-size: 2rem;
+  letter-spacing: 0;
+}
+
+.record-challan-form {
+  display: grid;
+  gap: 16px;
+}
+
+.record-form-stack {
+  display: grid;
+  gap: 12px;
+  width: min(430px, 100%);
+  margin: 0 auto;
+}
+
+.record-field {
+  display: grid;
+  gap: 6px;
+}
+
+.record-field span {
+  color: #342020;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.record-field input,
+.record-field select {
+  width: 100%;
+  min-height: 50px;
+  border: 1px solid rgba(86, 30, 30, 0.16);
+  border-radius: 16px;
+  background: #ffffff;
+  padding: 0 15px;
+  font: inherit;
+  font-size: 0.98rem;
+  color: var(--text);
+  outline: none;
+}
+
+.record-field input:focus,
+.record-field select:focus {
+  border-color: rgba(185, 28, 28, 0.62);
+  box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.1);
+}
+
+.record-field input[readonly] {
+  background: rgba(248, 248, 248, 0.95);
+  color: var(--muted);
+}
+
+.record-form-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 138px));
+  justify-content: center;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.record-form-actions button {
+  min-height: 48px;
+  margin: 0;
+  padding: 0 16px;
+  border-radius: 14px;
+  font-size: 0.98rem;
+  font-weight: 700;
+}
+
+.record-cancel-button {
+  border: 1px solid rgba(127, 29, 29, 0.2);
+  background: #ffffff;
+  color: var(--red-900);
+  box-shadow: none;
+}
+
+.record-save-button {
+  border: none;
+  background: linear-gradient(135deg, #12824b, #1dbd67);
+  color: #ffffff;
+  box-shadow: 0 16px 30px rgba(18, 130, 75, 0.2);
+}
+
+.challan-modal__dialog--register {
+  width: min(1500px, calc(100vw - 32px));
+  max-height: calc(100vh - 32px);
+}
+
+.register-modal-header {
+  align-items: center;
+}
+
+.challan-register-filters {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) minmax(150px, 190px) minmax(150px, 190px);
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.challan-register-filters input,
+.challan-register-filters select {
+  min-height: 42px;
+  border: 1px solid rgba(20, 20, 20, 0.16);
+  border-radius: 12px;
+  background: #ffffff;
+  padding: 0 12px;
+  font: inherit;
+  font-size: 0.92rem;
+  outline: none;
+}
+
+.challan-register-table-wrap {
+  max-height: calc(100vh - 230px);
+  overflow: auto;
+}
+
+.challan-register-table {
+  min-width: 1320px;
+}
+
+.challan-number-action {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 34px;
+  gap: 8px;
+  align-items: center;
+}
+
+.icon-action-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  min-width: 34px;
+  min-height: 34px;
+  margin: 0;
+  padding: 0;
+  border-radius: 10px;
+  border: 1px solid rgba(17, 17, 17, 0.14);
+  background: #ffffff;
+  color: #111111;
+  box-shadow: none;
+}
+
+.icon-action-button:hover,
+.icon-action-button:active {
+  transform: none;
+  filter: none;
+  background: rgba(245, 245, 245, 0.98);
+}
+
+.icon-action-button--danger {
+  color: var(--red-700);
+  border-color: rgba(185, 28, 28, 0.26);
+  background: rgba(255, 246, 246, 0.98);
+}
+
+.icon-action-button--danger:hover {
+  background: rgba(255, 235, 235, 0.98);
 }
 
 .journal-page {
@@ -1190,6 +1934,120 @@ button:active {
   .detail-card {
     padding: 22px 16px;
     border-radius: 24px;
+  }
+
+  .challan-register-input-row {
+    grid-template-columns: 1fr;
+  }
+
+  .challan-register-actions {
+    width: 100%;
+  }
+
+  .challan-register-actions .small-tool-button {
+    flex: 1 1 100%;
+  }
+
+  .challan-management-page {
+    width: min(100% - 24px, 1380px);
+  }
+
+  .challan-management-topbar {
+    align-items: flex-start;
+  }
+
+  .challan-back-button {
+    min-width: 92px;
+    min-height: 46px;
+    padding: 0 18px;
+    border-radius: 16px;
+  }
+
+  .challan-page-hero {
+    padding: 22px 20px;
+    border-radius: 24px;
+  }
+
+  .challan-page-hero h1 {
+    font-size: 2.35rem;
+  }
+
+  .challan-tool-section {
+    padding: 18px;
+    border-radius: 24px;
+  }
+
+  .challan-tool-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .challan-verification-panel {
+    padding: 16px;
+  }
+
+  .challan-verification-row {
+    grid-template-columns: 1fr;
+  }
+
+  .challan-table-cell-action {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .challan-entry-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .challan-entry-field--full {
+    grid-column: auto;
+  }
+
+  .challan-entry-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .record-form-stack {
+    width: 100%;
+  }
+
+  .record-form-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .challan-register-filters {
+    grid-template-columns: 1fr;
+  }
+
+  .challan-save-button,
+  .secondary-button {
+    width: 100%;
+  }
+
+  .challan-register-modal-head {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .challan-toast {
+    top: 16px;
+    right: 16px;
+    left: 16px;
+    max-width: none;
+  }
+
+  .challan-modal {
+    padding: 14px;
+  }
+
+  .challan-modal__dialog {
+    max-height: calc(100vh - 28px);
+    padding: 22px 16px;
+    border-radius: 24px;
+  }
+
+  .challan-download-button {
+    width: 100%;
   }
 
   .journal-card {

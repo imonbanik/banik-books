@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Challan Management | BANIK Books</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Ubuntu:wght@500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+    <script src="./app-config.js" defer></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const CHALLAN_STORAGE_KEY = "banikBooksChallanRegisterEntries";
+        const challanPattern = /^(\d{4})-(\d{11})$/;
+
+        const verificationButton = document.getElementById("showChallanVerification");
+        const verificationPanel = document.getElementById("challanVerificationPanel");
+        const quickForm = document.getElementById("challanRegisterForm");
+        const quickInput = document.getElementById("challanNumber");
+        const quickError = document.getElementById("challanNumberError");
+
+        const entryButton = document.getElementById("openEntryChallanModal");
+        const registerButton = document.getElementById("showChallanRegister");
+        const toast = document.getElementById("challanToast");
+
+        const entryModal = document.getElementById("entryChallanModal");
+        const registerModal = document.getElementById("registerChallanModal");
+        const entryForm = document.getElementById("entryChallanForm");
+        const entryError = document.getElementById("entryChallanError");
+        const entryChallanInput = document.getElementById("entryChallanNumber");
+        const entryMonthInput = document.getElementById("entryMonth");
+        const entryMonthLabelInput = document.getElementById("entryMonthLabel");
+        const entryDateInput = document.getElementById("entryChallanDate");
+        const amountInputs = Array.from(document.querySelectorAll("[data-amount-input]"));
+
+        const registerSummary = document.getElementById("challanRegisterSummary");
+        const registerEmpty = document.getElementById("challanRegisterEmpty");
+        const registerTableWrap = document.getElementById("challanRegisterTableWrap");
+        const registerTableBody = document.getElementById("challanRegisterTableBody");
+        const registerSearch = document.getElementById("registerSearch");
+        const registerCategoryFilter = document.getElementById("registerCategoryFilter");
+        const registerNatureFilter = document.getElementById("registerNatureFilter");
+        const sortButtons = Array.from(document.querySelectorAll(".register-sort-button"));
+
+        let entries = loadEntries();
+        let currentSort = {
+          key: "challanDate",
+          direction: "desc",
+        };
+        let toastTimer = null;
+
+        function loadEntries() {
+          try {
+            const parsedEntries = JSON.parse(localStorage.getItem(CHALLAN_STORAGE_KEY) || "[]");
+            if (!Array.isArray(parsedEntries)) {
+              return [];
+            }
+
+            return parsedEntries.map((entry) => ({
+              ...entry,
+              id: entry.id || String(Date.now()) + Math.random().toString(36).slice(2),
+            }));
+          } catch {
+            return [];
+          }
+        }
+
+        function persistEntries() {
+          localStorage.setItem(CHALLAN_STORAGE_KEY, JSON.stringify(entries));
+        }
+
+        function updateBodyModalState() {
+          const hasVisibleModal = !entryModal.hidden || !registerModal.hidden;
+          document.body.classList.toggle("modal-open", hasVisibleModal);
+        }
+
+        function showToast(message, variant) {
+          if (toastTimer) {
+            window.clearTimeout(toastTimer);
+          }
+
+          toast.textContent = message;
+          toast.dataset.variant = variant || "info";
+          toast.hidden = false;
+
+          toastTimer = window.setTimeout(() => {
+            toast.hidden = true;
+          }, 3200);
+        }
+
+        function formatChallanValue(rawValue) {
+          const digitsOnly = rawValue.replace(/\D/g, "").slice(0, 15);
+          const yearPart = digitsOnly.slice(0, 4);
+          const serialPart = digitsOnly.slice(4, 15);
+
+          return digitsOnly.length <= 4 ? yearPart : yearPart + "-" + serialPart;
+        }
+
+        function formatMonthLabel(monthValue) {
+          if (!monthValue) {
+            return "";
+          }
+
+          const [year, month] = monthValue.split("-");
+          const monthDate = new Date(Number(year), Number(month) - 1, 1);
+          const monthLabel = monthDate.toLocaleString("en-US", { month: "short" });
+          return monthLabel + "-" + year.slice(-2);
+        }
+
+        function formatDateDisplay(dateValue) {
+          if (!dateValue) {
+            return "";
+          }
+
+          const [year, month, day] = dateValue.split("-");
+          return day + "/" + month + "/" + year;
+        }
+
+        function parseDisplayDate(displayValue) {
+          if (!displayValue) {
+            return 0;
+          }
+
+          const parts = displayValue.split(/[/-]/).map(Number);
+          if (String(displayValue).slice(0, 4).match(/^\d{4}$/)) {
+            return new Date(parts[0], parts[1] - 1, parts[2]).getTime();
+          }
+
+          return new Date(parts[2], parts[1] - 1, parts[0]).getTime();
+        }
+
+        function normalizeAmount(value) {
+          const cleanValue = String(value).replace(/[^\d.]/g, "");
+          const parsedValue = Number(cleanValue);
+          return Number.isFinite(parsedValue) ? parsedValue : null;
+        }
+
+        function formatAmount(value) {
+          const numericValue = Number(value);
+          if (!Number.isFinite(numericValue)) {
+            return "";
+          }
+
+          return (
+            "Tk. " +
+            new Intl.NumberFormat("en-IN", {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            }).format(numericValue)
+          );
+        }
+
+        function unformatAmount(value) {
+          return String(value).replace(/[^\d.]/g, "");
+        }
+
+        function escapeHtml(value) {
+          return String(value)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#39;");
+        }
+
+        function downloadIcon() {
+          return `
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 3v12m0 0 5-5m-5 5-5-5M5 21h14" />
+            </svg>
+          `;
+        }
+
+        function trashIcon() {
+          return `
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M3 6h18M8 6V4h8v2m-1 4v8M9 10v8M6 6l1 15h10l1-15" />
+            </svg>
+          `;
+        }
+
+        function buildOfficialChallanUrl(challanNumber) {
+          return (
+            "https://www.achallan.gov.bd/acs/General/PrintChallanSlipDetailsHTML?challanNo=" +
+            encodeURIComponent(challanNumber)
+          );
+        }
+
+        function openChallanDownload(challanNumber) {
+          window.open(buildOfficialChallanUrl(challanNumber), "_blank", "noopener");
+        }
+
+        function setQuickError(message) {
+          quickError.textContent = message;
+          quickError.hidden = !message;
+          quickInput.setAttribute("aria-invalid", message ? "true" : "false");
+        }
+
+        function setEntryError(message) {
+          entryError.textContent = message;
+          entryError.hidden = !message;
+        }
+
+        function updateMonthLabel() {
+          entryMonthLabelInput.value = formatMonthLabel(entryMonthInput.value);
+        }
+
+        function compareValues(leftValue, rightValue) {
+          if (leftValue < rightValue) {
+            return -1;
+          }
+
+          if (leftValue > rightValue) {
+            return 1;
+          }
+
+          return 0;
+        }
+
+        function getSortableValue(entry, key) {
+          switch (key) {
+            case "withheldFy":
+              return entry.withheldFy || "";
+            case "month":
+              return entry.monthRaw || "";
+            case "taxCategory":
+              return entry.taxCategory || "";
+            case "taxNature":
+              return entry.taxNature || "";
+            case "challanNumber":
+              return entry.challanNumber || "";
+            case "challanDate":
+              return parseDisplayDate(entry.challanDate);
+            case "organizationName":
+              return (entry.organizationName || "").toLowerCase();
+            case "individualAmount":
+              return Number(entry.individualAmount) || 0;
+            case "totalAmount":
+              return Number(entry.totalAmount) || 0;
+            default:
+              return "";
+          }
+        }
+
+        function getFilteredEntries(sourceEntries) {
+          const searchText = registerSearch.value.trim().toLowerCase();
+          const category = registerCategoryFilter.value;
+          const nature = registerNatureFilter.value;
+
+          return sourceEntries.filter((entry) => {
+            const searchBlob = [
+              entry.withheldFy,
+              entry.monthLabel,
+              entry.taxCategory,
+              entry.taxNature,
+              entry.challanNumber,
+              entry.challanDate,
+              entry.organizationName,
+              formatAmount(entry.individualAmount),
+              formatAmount(entry.totalAmount),
+            ]
+              .join(" ")
+              .toLowerCase();
+
+            return (
+              (!searchText || searchBlob.includes(searchText)) &&
+              (!category || entry.taxCategory === category) &&
+              (!nature || entry.taxNature === nature)
+            );
+          });
+        }
+
+        function getSortedEntries() {
+          const sortedEntries = getFilteredEntries([...entries]);
+
+          sortedEntries.sort((leftEntry, rightEntry) => {
+            const leftValue = getSortableValue(leftEntry, currentSort.key);
+            const rightValue = getSortableValue(rightEntry, currentSort.key);
+            const comparison = compareValues(leftValue, rightValue);
+
+            return currentSort.direction === "asc" ? comparison : comparison * -1;
+          });
+
+          return sortedEntries;
+        }
+
+        function updateSortButtons() {
+          sortButtons.forEach((button) => {
+            const isActive = button.dataset.sort === currentSort.key;
+            button.classList.toggle("is-active", isActive);
+            button.dataset.direction = isActive ? currentSort.direction : "";
+          });
+        }
+
+        function renderRegister() {
+          const entryCount = entries.length;
+          const sortedEntries = getSortedEntries();
+          registerSummary.textContent =
+            entryCount === 0
+              ? "No entries saved yet"
+              : sortedEntries.length + " showing / " + entryCount + " saved";
+
+          if (entryCount === 0 || sortedEntries.length === 0) {
+            registerEmpty.hidden = false;
+            registerEmpty.textContent =
+              entryCount === 0
+                ? "No saved challan entries yet."
+                : "No challan entries match the selected filters.";
+            registerTableWrap.hidden = true;
+            registerTableBody.innerHTML = "";
+            updateSortButtons();
+            return;
+          }
+
+          registerEmpty.hidden = true;
+          registerTableWrap.hidden = false;
+          registerTableBody.innerHTML = sortedEntries
+            .map(
+              (entry) => `
+                <tr>
+                  <td>${escapeHtml(entry.withheldFy)}</td>
+                  <td>${escapeHtml(entry.monthLabel || formatMonthLabel(entry.monthRaw))}</td>
+                  <td>${escapeHtml(entry.taxCategory)}</td>
+                  <td>${escapeHtml(entry.taxNature)}</td>
+                  <td>
+                    <div class="challan-number-action">
+                      <span>${escapeHtml(entry.challanNumber)}</span>
+                      <button
+                        class="icon-action-button"
+                        type="button"
+                        data-download-challan="${escapeHtml(entry.challanNumber)}"
+                        title="Download challan"
+                        aria-label="Download challan"
+                      >
+                        ${downloadIcon()}
+                      </button>
+                    </div>
+                  </td>
+                  <td>${escapeHtml(entry.challanDate)}</td>
+                  <td>${escapeHtml(entry.organizationName)}</td>
+                  <td>${escapeHtml(formatAmount(entry.individualAmount))}</td>
+                  <td>${escapeHtml(formatAmount(entry.totalAmount))}</td>
+                  <td class="challan-table-action-cell">
+                    <button
+                      class="icon-action-button icon-action-button--danger"
+                      type="button"
+                      data-delete-entry="${escapeHtml(entry.id)}"
+                      title="Delete entry"
+                      aria-label="Delete entry"
+                    >
+                      ${trashIcon()}
+                    </button>
+                  </td>
+                </tr>
+              `
+            )
+            .join("");
+          updateSortButtons();
+        }
+
+        function openEntryModal() {
+          entryModal.hidden = false;
+          setEntryError("");
+          updateMonthLabel();
+          updateBodyModalState();
+          window.setTimeout(() => {
+            document.getElementById("entryWithheldFy").focus();
+          }, 0);
+        }
+
+        function closeEntryModal() {
+          entryModal.hidden = true;
+          setEntryError("");
+          updateBodyModalState();
+        }
+
+        function openRegisterModal() {
+          renderRegister();
+          registerModal.hidden = false;
+          updateBodyModalState();
+        }
+
+        function closeRegisterModal() {
+          registerModal.hidden = true;
+          updateBodyModalState();
+        }
+
+        function resetEntryForm() {
+          entryForm.reset();
+          entryChallanInput.value = "";
+          entryMonthLabelInput.value = "";
+          amountInputs.forEach((input) => {
+            input.value = "";
+          });
+          setEntryError("");
+        }
+
+        verificationButton.addEventListener("click", () => {
+          verificationPanel.hidden = !verificationPanel.hidden;
+          if (!verificationPanel.hidden) {
+            quickInput.focus();
+          }
+        });
+
+        quickInput.addEventListener("input", () => {
+          quickInput.value = formatChallanValue(quickInput.value);
+          setQuickError("");
+        });
+
+        quickForm.addEventListener("submit", (event) => {
+          event.preventDefault();
+
+          const formattedValue = formatChallanValue(quickInput.value.trim());
+          quickInput.value = formattedValue;
+
+          if (!challanPattern.test(formattedValue)) {
+            setQuickError("Enter a valid A-Challan number.");
+            quickInput.focus();
+            return;
+          }
+
+          setQuickError("");
+          openChallanDownload(formattedValue);
+        });
+
+        entryButton.addEventListener("click", openEntryModal);
+        registerButton.addEventListener("click", openRegisterModal);
+
+        document.addEventListener("click", (event) => {
+          if (event.target.closest("[data-close-entry-modal]")) {
+            closeEntryModal();
+            return;
+          }
+
+          if (event.target.closest("[data-close-register-modal]")) {
+            closeRegisterModal();
+          }
+        });
+
+        entryModal.addEventListener("click", (event) => {
+          if (!event.target.closest(".challan-modal__dialog")) {
+            closeEntryModal();
+          }
+        });
+
+        registerModal.addEventListener("click", (event) => {
+          if (!event.target.closest(".challan-modal__dialog")) {
+            closeRegisterModal();
+          }
+        });
+
+        document.addEventListener("keydown", (event) => {
+          if (event.key !== "Escape") {
+            return;
+          }
+
+          if (!entryModal.hidden) {
+            closeEntryModal();
+          }
+
+          if (!registerModal.hidden) {
+            closeRegisterModal();
+          }
+        });
+
+        entryChallanInput.addEventListener("input", () => {
+          entryChallanInput.value = formatChallanValue(entryChallanInput.value);
+          setEntryError("");
+        });
+
+        entryMonthInput.addEventListener("input", updateMonthLabel);
+
+        amountInputs.forEach((input) => {
+          input.addEventListener("focus", () => {
+            input.value = unformatAmount(input.value);
+          });
+
+          input.addEventListener("blur", () => {
+            const amount = normalizeAmount(input.value);
+            input.value = amount === null ? "" : formatAmount(amount);
+          });
+        });
+
+        entryForm.addEventListener("submit", (event) => {
+          event.preventDefault();
+
+          const withheldFy = document.getElementById("entryWithheldFy").value;
+          const monthRaw = entryMonthInput.value;
+          const monthLabel = formatMonthLabel(monthRaw);
+          const taxCategory = document.getElementById("entryTaxCategory").value;
+          const taxNature = document.getElementById("entryTaxNature").value;
+          const challanNumber = formatChallanValue(entryChallanInput.value.trim());
+          const challanDate = formatDateDisplay(entryDateInput.value);
+          const organizationName = document.getElementById("entryOrganizationName").value.trim();
+          const individualAmount = normalizeAmount(
+            document.getElementById("entryIndividualAmount").value
+          );
+          const totalAmount = normalizeAmount(document.getElementById("entryTotalAmount").value);
+
+          entryChallanInput.value = challanNumber;
+          entryMonthLabelInput.value = monthLabel;
+
+          if (!withheldFy) {
+            setEntryError("Select a fiscal year.");
+            return;
+          }
+
+          if (!monthRaw) {
+            setEntryError("Select a month.");
+            return;
+          }
+
+          if (!taxCategory) {
+            setEntryError("Select a tax category.");
+            return;
+          }
+
+          if (!taxNature) {
+            setEntryError("Select a tax nature.");
+            return;
+          }
+
+          if (!challanPattern.test(challanNumber)) {
+            setEntryError("Enter a valid A-Challan number.");
+            entryChallanInput.focus();
+            return;
+          }
+
+          if (entries.some((entry) => entry.challanNumber === challanNumber)) {
+            setEntryError("This A-Challan number already exists in the register.");
+            showToast("Duplicate A-Challan number. Entry was not saved.", "error");
+            entryChallanInput.focus();
+            return;
+          }
+
+          if (!challanDate) {
+            setEntryError("Select an A-Challan date.");
+            return;
+          }
+
+          if (!organizationName) {
+            setEntryError("Enter the name of the withheld organization or individual.");
+            return;
+          }
+
+          if (individualAmount === null) {
+            setEntryError("Enter a valid individual amount of challan.");
+            return;
+          }
+
+          if (totalAmount === null) {
+            setEntryError("Enter a valid total amount of challan.");
+            return;
+          }
+
+          entries.unshift({
+            id:
+              typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+                ? crypto.randomUUID()
+                : String(Date.now()) + Math.random().toString(36).slice(2),
+            withheldFy,
+            monthRaw,
+            monthLabel,
+            taxCategory,
+            taxNature,
+            challanNumber,
+            challanDate,
+            organizationName,
+            individualAmount,
+            totalAmount,
+          });
+
+          persistEntries();
+          renderRegister();
+          resetEntryForm();
+          closeEntryModal();
+          showToast("Challan entry saved successfully.", "success");
+        });
+
+        sortButtons.forEach((button) => {
+          button.addEventListener("click", () => {
+            const requestedSortKey = button.dataset.sort;
+
+            if (currentSort.key === requestedSortKey) {
+              currentSort.direction = currentSort.direction === "asc" ? "desc" : "asc";
+            } else {
+              currentSort.key = requestedSortKey;
+              currentSort.direction = "asc";
+            }
+
+            renderRegister();
+          });
+        });
+
+        [registerSearch, registerCategoryFilter, registerNatureFilter].forEach((control) => {
+          control.addEventListener("input", renderRegister);
+          control.addEventListener("change", renderRegister);
+        });
+
+        registerTableBody.addEventListener("click", (event) => {
+          const downloadButton = event.target.closest("[data-download-challan]");
+          if (downloadButton) {
+            openChallanDownload(downloadButton.dataset.downloadChallan);
+            return;
+          }
+
+          const deleteButton = event.target.closest("[data-delete-entry]");
+          if (!deleteButton) {
+            return;
+          }
+
+          const entryId = deleteButton.dataset.deleteEntry;
+          const entryToDelete = entries.find((entry) => entry.id === entryId);
+          if (!entryToDelete) {
+            return;
+          }
+
+          if (!window.confirm("Delete this challan entry?")) {
+            return;
+          }
+
+          entries = entries.filter((entry) => entry.id !== entryId);
+          persistEntries();
+          renderRegister();
+          showToast("Challan entry deleted.", "success");
+        });
+
+        updateMonthLabel();
+        renderRegister();
+      });
+    </script>
+  </head>
+  <body>
+    <div class="page-shell challan-management-page">
+      <header class="topbar challan-management-topbar">
+        <a class="brand" href="./workspace.html">
+          <span class="brand-mark" aria-hidden="true"><span class="brand-mark__inner">B</span></span>
+          <span class="brand-copy">
+            <span class="brand-copy__title">BANIK Books</span>
+            <span class="brand-copy__tag">Everyday business essentials</span>
+          </span>
+        </a>
+        <a class="challan-back-button" href="./necessary-tools.html">Back</a>
+      </header>
+
+      <main class="challan-management-workspace">
+        <section class="challan-page-hero">
+          <h1>Challan Management</h1>
+        </section>
+
+        <section class="challan-tool-section">
+          <div class="challan-tool-actions" aria-label="Challan management tools">
+            <button id="showChallanVerification" class="challan-tool-button" type="button">
+              A-Challan Verification
+            </button>
+            <button id="openEntryChallanModal" class="challan-tool-button" type="button">
+              Record Challan
+            </button>
+            <button id="showChallanRegister" class="challan-tool-button" type="button">
+              Challan Register
+            </button>
+          </div>
+
+          <div id="challanVerificationPanel" class="challan-verification-panel" hidden>
+            <form id="challanRegisterForm" class="challan-register-form" novalidate>
+              <label class="challan-verification-field" for="challanNumber">
+                <span>Enter A-Challan Number</span>
+                <div class="challan-verification-row">
+                  <input
+                    id="challanNumber"
+                    name="challanNumber"
+                    type="text"
+                    inputmode="numeric"
+                    autocomplete="off"
+                    maxlength="16"
+                    placeholder="2324-00253078071"
+                    aria-describedby="challanNumberError"
+                  />
+                  <button
+                    class="challan-download-button"
+                    type="submit"
+                    aria-label="Open downloadable challan page"
+                    title="Open downloadable challan page"
+                  >
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M12 3v12m0 0 5-5m-5 5-5-5M5 21h14" />
+                    </svg>
+                  </button>
+                </div>
+              </label>
+              <p id="challanNumberError" class="challan-register-error" hidden></p>
+            </form>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <div id="challanToast" class="challan-toast" hidden></div>
+
+    <div id="entryChallanModal" class="challan-modal" hidden>
+      <div
+        class="challan-modal__dialog challan-modal__dialog--record"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="entryChallanTitle"
+      >
+        <div class="record-modal-header">
+          <h2 id="entryChallanTitle">Record Challan</h2>
+          <button
+            class="challan-modal__close"
+            type="button"
+            data-close-entry-modal
+            aria-label="Close"
+          >
+            &times;
+          </button>
+        </div>
+
+        <form id="entryChallanForm" class="record-challan-form" novalidate>
+          <div class="record-form-stack">
+            <label class="record-field" for="entryWithheldFy">
+              <span>Fiscal Year</span>
+              <select id="entryWithheldFy" name="entryWithheldFy" required>
+                <option value="">Select fiscal year</option>
+                <option value="FY 24-25">FY 24-25</option>
+                <option value="FY 25-26">FY 25-26</option>
+              </select>
+            </label>
+
+            <label class="record-field" for="entryMonth">
+              <span>Month</span>
+              <input id="entryMonth" name="entryMonth" type="month" required />
+            </label>
+
+            <label class="record-field" for="entryMonthLabel">
+              <span>MMM-YY</span>
+              <input id="entryMonthLabel" name="entryMonthLabel" type="text" readonly />
+            </label>
+
+            <label class="record-field" for="entryTaxCategory">
+              <span>Tax Category</span>
+              <select id="entryTaxCategory" name="entryTaxCategory" required>
+                <option value="">Select tax category</option>
+                <option value="Tax">Tax</option>
+                <option value="VAT">VAT</option>
+              </select>
+            </label>
+
+            <label class="record-field" for="entryTaxNature">
+              <span>Tax Nature</span>
+              <select id="entryTaxNature" name="entryTaxNature" required>
+                <option value="">Select tax nature</option>
+                <option value="Salary">Salary</option>
+                <option value="House Rent">House Rent</option>
+                <option value="Internet">Internet</option>
+              </select>
+            </label>
+
+            <label class="record-field" for="entryChallanNumber">
+              <span>A-Challan Number</span>
+              <input
+                id="entryChallanNumber"
+                name="entryChallanNumber"
+                type="text"
+                inputmode="numeric"
+                autocomplete="off"
+                maxlength="16"
+                placeholder="2526-00427568731"
+                required
+              />
+            </label>
+
+            <label class="record-field" for="entryChallanDate">
+              <span>A-Challan Date (dd/mm/yyyy)</span>
+              <input id="entryChallanDate" name="entryChallanDate" type="date" required />
+            </label>
+
+            <label class="record-field" for="entryOrganizationName">
+              <span>Name of Withheld Organization or Individual</span>
+              <input
+                id="entryOrganizationName"
+                name="entryOrganizationName"
+                type="text"
+                autocomplete="off"
+                required
+              />
+            </label>
+
+            <label class="record-field" for="entryIndividualAmount">
+              <span>Individual Amount of Challan</span>
+              <input
+                id="entryIndividualAmount"
+                name="entryIndividualAmount"
+                type="text"
+                inputmode="decimal"
+                data-amount-input
+                placeholder="Tk. 1,000.00"
+                required
+              />
+            </label>
+
+            <label class="record-field" for="entryTotalAmount">
+              <span>Total Amount of Challan</span>
+              <input
+                id="entryTotalAmount"
+                name="entryTotalAmount"
+                type="text"
+                inputmode="decimal"
+                data-amount-input
+                placeholder="Tk. 1,000.00"
+                required
+              />
+            </label>
+          </div>
+
+          <p id="entryChallanError" class="challan-register-error" hidden></p>
+
+          <div class="record-form-actions">
+            <button class="record-cancel-button" type="button" data-close-entry-modal>Cancel</button>
+            <button class="record-save-button" type="submit">Save</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div id="registerChallanModal" class="challan-modal" hidden>
+      <div
+        class="challan-modal__dialog challan-modal__dialog--register"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="registerChallanTitle"
+      >
+        <div class="register-modal-header">
+          <div>
+            <h2 id="registerChallanTitle">Challan Register</h2>
+            <p id="challanRegisterSummary" class="challan-register-summary"></p>
+          </div>
+          <button
+            class="challan-modal__close"
+            type="button"
+            data-close-register-modal
+            aria-label="Close"
+          >
+            &times;
+          </button>
+        </div>
+
+        <div class="challan-register-filters">
+          <input id="registerSearch" type="search" placeholder="Filter register" />
+          <select id="registerCategoryFilter">
+            <option value="">All Categories</option>
+            <option value="Tax">Tax</option>
+            <option value="VAT">VAT</option>
+          </select>
+          <select id="registerNatureFilter">
+            <option value="">All Nature</option>
+            <option value="Salary">Salary</option>
+            <option value="House Rent">House Rent</option>
+            <option value="Internet">Internet</option>
+          </select>
+        </div>
+
+        <p id="challanRegisterEmpty" class="challan-register-empty">
+          No saved challan entries yet.
+        </p>
+
+        <div id="challanRegisterTableWrap" class="challan-register-table-wrap" hidden>
+          <table class="challan-register-table">
+            <thead>
+              <tr>
+                <th scope="col">
+                  <button class="register-sort-button" type="button" data-sort="withheldFy">
+                    Fiscal Year
+                  </button>
+                </th>
+                <th scope="col">
+                  <button class="register-sort-button" type="button" data-sort="month">Month</button>
+                </th>
+                <th scope="col">
+                  <button class="register-sort-button" type="button" data-sort="taxCategory">
+                    Tax Category
+                  </button>
+                </th>
+                <th scope="col">
+                  <button class="register-sort-button" type="button" data-sort="taxNature">
+                    Tax Nature
+                  </button>
+                </th>
+                <th scope="col">
+                  <button class="register-sort-button" type="button" data-sort="challanNumber">
+                    A-Challan Number
+                  </button>
+                </th>
+                <th scope="col">
+                  <button class="register-sort-button" type="button" data-sort="challanDate">
+                    A-Challan Date
+                  </button>
+                </th>
+                <th scope="col">
+                  <button class="register-sort-button" type="button" data-sort="organizationName">
+                    Organization / Individual
+                  </button>
+                </th>
+                <th scope="col">
+                  <button class="register-sort-button" type="button" data-sort="individualAmount">
+                    Individual Amount
+                  </button>
+                </th>
+                <th scope="col">
+                  <button class="register-sort-button" type="button" data-sort="totalAmount">
+                    Total Amount
+                  </button>
+                </th>
+                <th scope="col">Delete</th>
+              </tr>
+            </thead>
+            <tbody id="challanRegisterTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
