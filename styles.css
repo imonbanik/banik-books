@@ -734,7 +734,7 @@ button:active {
 .challan-register-table-wrap {
   overflow-x: auto;
   margin-top: 12px;
-  border-radius: 18px;
+  border-radius: 0;
   background: #ffffff;
 }
 
@@ -743,26 +743,49 @@ button:active {
   min-width: 1080px;
   border-collapse: collapse;
   border: 1px solid #1f1f1f;
+  border-radius: 0;
 }
 
 .challan-register-table th,
 .challan-register-table td {
   padding: 10px 12px;
   border: 1px solid #1f1f1f;
-  text-align: left;
-  vertical-align: top;
+  vertical-align: middle;
   font-size: 0.92rem;
 }
 
 .challan-register-table th {
   background: #fafafa;
   font-weight: 600;
+  text-align: center;
+}
+
+.register-column-head {
+  display: grid;
+  gap: 7px;
+  justify-items: center;
+  align-items: center;
+}
+
+.register-column-filter {
+  width: 100%;
+  min-height: 30px;
+  border: 1px solid rgba(20, 20, 20, 0.18);
+  border-radius: 8px;
+  background: #ffffff;
+  padding: 0 8px;
+  color: #222222;
+  font: inherit;
+  font-size: 0.78rem;
+  outline: none;
 }
 
 .register-sort-button {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
+  width: 100%;
   margin: 0;
   padding: 0;
   border: none;
@@ -771,8 +794,75 @@ button:active {
   font: inherit;
   font-size: 0.88rem;
   font-weight: 600;
+  text-align: center;
   box-shadow: none;
   cursor: pointer;
+}
+
+.cell-center {
+  text-align: center;
+  vertical-align: middle;
+}
+
+.cell-left {
+  text-align: left;
+  vertical-align: middle;
+}
+
+.cell-amount {
+  text-align: right;
+  vertical-align: middle;
+  font-variant-numeric: tabular-nums;
+}
+
+.register-total-row td {
+  background: #fbfbfb;
+  font-weight: 700;
+}
+
+.register-total-label {
+  text-align: right;
+  color: var(--red-900);
+}
+
+.register-export-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 12px;
+}
+
+.excel-export-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 42px;
+  min-width: 46px;
+  min-height: 42px;
+  margin: 0;
+  padding: 0;
+  border-radius: 12px;
+  border: 1px solid rgba(18, 130, 75, 0.26);
+  background: rgba(241, 255, 248, 0.98);
+  color: #12824b;
+  box-shadow: none;
+}
+
+.excel-export-button svg {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.excel-export-button:hover,
+.excel-export-button:active {
+  transform: none;
+  filter: none;
+  background: rgba(225, 250, 236, 0.98);
 }
 
 .register-sort-button::after {
@@ -1089,6 +1179,7 @@ button:active {
   position: relative;
   display: grid;
   gap: 16px;
+  align-items: center;
   padding: 28px 32px;
   border-radius: 30px;
   background:
@@ -1101,10 +1192,12 @@ button:active {
 
 .challan-page-hero h1 {
   margin: 0;
+  max-width: none;
   font-family: "Ubuntu", sans-serif;
-  font-size: 3.4rem;
+  font-size: clamp(2.1rem, 4vw, 3.4rem);
   line-height: 1.02;
-  letter-spacing: 0;
+  letter-spacing: -0.05em;
+  white-space: nowrap;
 }
 
 .challan-tool-section {
@@ -1133,8 +1226,9 @@ button:active {
 }
 
 .challan-verification-panel {
-  width: min(760px, 100%);
-  padding: 20px;
+  width: fit-content;
+  max-width: 100%;
+  padding: 18px;
   border-radius: 24px;
   background: rgba(255, 255, 255, 0.92);
   border: 1px solid rgba(185, 28, 28, 0.14);
@@ -1153,14 +1247,15 @@ button:active {
 
 .challan-verification-row {
   display: grid;
-  grid-template-columns: minmax(260px, 420px) 74px;
-  gap: 14px;
+  grid-template-columns: 300px 58px;
+  gap: 10px;
   align-items: center;
+  justify-content: start;
 }
 
 .challan-verification-row input {
   width: 100%;
-  min-height: 58px;
+  min-height: 54px;
   border: 1px solid rgba(86, 30, 30, 0.18);
   border-radius: 18px;
   background: #ffffff;
@@ -1180,12 +1275,12 @@ button:active {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 74px;
-  height: 58px;
-  min-width: 74px;
-  min-height: 58px;
+  width: 58px;
+  height: 54px;
+  min-width: 58px;
+  min-height: 54px;
   padding: 0;
-  border-radius: 18px;
+  border-radius: 16px;
 }
 
 .challan-download-button svg,
@@ -1200,8 +1295,12 @@ button:active {
 }
 
 .challan-modal__dialog--record {
-  width: min(560px, 100%);
+  width: min(500px, 100%);
   border-radius: 26px;
+}
+
+.challan-modal__dialog--verification {
+  width: min(560px, 100%);
 }
 
 .record-modal-header,
@@ -1229,7 +1328,7 @@ button:active {
 .record-form-stack {
   display: grid;
   gap: 12px;
-  width: min(430px, 100%);
+  width: min(370px, 100%);
   margin: 0 auto;
 }
 
@@ -1247,11 +1346,11 @@ button:active {
 .record-field input,
 .record-field select {
   width: 100%;
-  min-height: 50px;
+  min-height: 46px;
   border: 1px solid rgba(86, 30, 30, 0.16);
-  border-radius: 16px;
+  border-radius: 14px;
   background: #ffffff;
-  padding: 0 15px;
+  padding: 0 14px;
   font: inherit;
   font-size: 0.98rem;
   color: var(--text);
@@ -1267,6 +1366,54 @@ button:active {
 .record-field input[readonly] {
   background: rgba(248, 248, 248, 0.95);
   color: var(--muted);
+}
+
+.organization-delete-panel {
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+  border-radius: 14px;
+  border: 1px solid rgba(185, 28, 28, 0.14);
+  background: rgba(255, 248, 248, 0.82);
+}
+
+.organization-delete-title {
+  color: #342020;
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+
+.organization-delete-list {
+  display: grid;
+  gap: 8px;
+  max-height: 172px;
+  overflow: auto;
+}
+
+.organization-delete-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 34px;
+  gap: 8px;
+  align-items: center;
+  padding: 8px 8px 8px 10px;
+  border-radius: 12px;
+  background: #ffffff;
+  border: 1px solid rgba(86, 30, 30, 0.1);
+}
+
+.organization-delete-row span,
+.organization-delete-empty {
+  color: var(--muted);
+  font-size: 0.88rem;
+  line-height: 1.4;
+}
+
+.organization-delete-row span {
+  overflow-wrap: anywhere;
+}
+
+.organization-delete-empty {
+  margin: 0;
 }
 
 .record-form-actions {
@@ -1334,7 +1481,7 @@ button:active {
 }
 
 .challan-register-table {
-  min-width: 1320px;
+  min-width: 1580px;
 }
 
 .challan-number-action {
@@ -1969,7 +2116,7 @@ button:active {
   }
 
   .challan-page-hero h1 {
-    font-size: 2.35rem;
+    font-size: clamp(1.7rem, 7vw, 2.35rem);
   }
 
   .challan-tool-section {
