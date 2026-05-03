@@ -231,6 +231,95 @@
         line-height: 1.5;
       }
 
+      .payee-add-field {
+        display: grid;
+        gap: 8px;
+      }
+
+      .payee-sub-label,
+      .payee-delete-title {
+        color: var(--text, #241717);
+        font-size: 0.9rem;
+        font-weight: 700;
+      }
+
+      .field .record-add-row {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 36px;
+        gap: 4px;
+        align-items: center;
+        min-height: 52px;
+        padding: 0 8px 0 16px;
+        border: 1px solid rgba(78, 26, 26, 0.16);
+        border-radius: 16px;
+        background: #ffffff;
+        line-height: 1;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+      }
+
+      .field .record-add-row:focus-within {
+        border-color: rgba(150, 47, 47, 0.72);
+        box-shadow: 0 0 0 4px rgba(150, 47, 47, 0.12);
+      }
+
+      .field .record-add-row input {
+        min-height: 50px;
+        height: 50px;
+        min-width: 0;
+        padding: 0;
+        border: 0;
+        border-radius: 0;
+        background: transparent;
+        box-shadow: none;
+        transform: none;
+      }
+
+      .field .record-add-row input:focus {
+        border: 0;
+        box-shadow: none;
+        transform: none;
+      }
+
+      .field .record-add-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+        margin: 0;
+        padding: 0;
+        border: 0;
+        border-radius: 10px;
+        background: transparent;
+        box-shadow: none;
+        color: #11a85a;
+        cursor: pointer;
+        font: inherit;
+        font-size: 1.45rem;
+        font-weight: 800;
+        line-height: 1;
+      }
+
+      .field .record-add-button:hover {
+        color: #078743;
+        background: rgba(17, 168, 90, 0.08);
+        filter: none;
+        transform: none;
+      }
+
+      .payee-delete-panel {
+        border-radius: 16px;
+      }
+
+      .payee-help {
+        min-height: 1.35em;
+      }
+
+      .payee-help--error {
+        color: var(--red-700, #b91c1c);
+        font-weight: 700;
+      }
+
       .actions {
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -658,13 +747,40 @@
 
             <div class="field">
               <label for="payeeName">Payee</label>
-              <input
-                id="payeeName"
-                name="payeeName"
-                type="text"
-                placeholder="Write the payee name"
-                autocomplete="off"
-              />
+              <select id="payeeName" name="payeeName">
+                <option value="" disabled selected hidden>Select payee</option>
+                <option value="__add__">Add</option>
+                <option value="__delete__">Delete</option>
+              </select>
+
+              <div id="payeeAddField" class="payee-add-field" hidden>
+                <span class="payee-sub-label">Add Payee</span>
+                <div class="record-add-row">
+                  <input
+                    id="payeeAddInput"
+                    name="payeeAddInput"
+                    type="text"
+                    placeholder="Write the payee name"
+                    autocomplete="off"
+                  />
+                  <button
+                    class="record-add-button"
+                    id="payeeAddButton"
+                    type="button"
+                    aria-label="Add payee"
+                    title="Add payee"
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+
+              <div id="payeeDeletePanel" class="organization-delete-panel payee-delete-panel" hidden>
+                <span class="payee-delete-title">Delete Payee</span>
+                <div id="payeeDeleteList" class="organization-delete-list"></div>
+              </div>
+
+              <small id="payeeHelp" class="payee-help"></small>
             </div>
 
             <div class="field">
@@ -744,9 +860,17 @@
     </div>
 
     <script>
+      const PAYEE_STORAGE_KEY = "banikBooksChequePayees";
+      const PAYEE_DELETED_STORAGE_KEY = "banikBooksChequeDeletedPayees";
       const printOrientationInput = document.getElementById("printOrientation");
       const chequeDateInput = document.getElementById("chequeDate");
       const payeeNameInput = document.getElementById("payeeName");
+      const payeeAddField = document.getElementById("payeeAddField");
+      const payeeAddInput = document.getElementById("payeeAddInput");
+      const payeeAddButton = document.getElementById("payeeAddButton");
+      const payeeDeletePanel = document.getElementById("payeeDeletePanel");
+      const payeeDeleteList = document.getElementById("payeeDeleteList");
+      const payeeHelp = document.getElementById("payeeHelp");
       const chequeAmountInput = document.getElementById("chequeAmount");
       const chequeTypeInput = document.getElementById("chequeType");
       const printChequeButton = document.getElementById("printCheque");
@@ -760,9 +884,212 @@
       const amountWordsLine2 = document.getElementById("amountWordsLine2");
       const amountMeasure = document.getElementById("amountMeasure");
       const accountPayeeStamp = document.getElementById("accountPayeeStamp");
+      let deletedPayeeKeys = loadDeletedPayeeKeys();
+      let payeeNames = loadPayeeNames();
 
       function padDateDigits(value) {
         return String(value).padStart(2, "0");
+      }
+
+      function normalizePayeeName(value) {
+        return String(value || "").trim().replace(/\s+/g, " ");
+      }
+
+      function getPayeeKey(value) {
+        return normalizePayeeName(value).toLowerCase();
+      }
+
+      function readStorageArray(storageKey) {
+        try {
+          const parsedItems = JSON.parse(localStorage.getItem(storageKey) || "[]");
+          return Array.isArray(parsedItems) ? parsedItems : [];
+        } catch {
+          return [];
+        }
+      }
+
+      function loadDeletedPayeeKeys() {
+        return readStorageArray(PAYEE_DELETED_STORAGE_KEY);
+      }
+
+      function persistDeletedPayeeKeys() {
+        localStorage.setItem(PAYEE_DELETED_STORAGE_KEY, JSON.stringify(deletedPayeeKeys));
+      }
+
+      function loadPayeeNames() {
+        return Array.from(
+          new Map(
+            readStorageArray(PAYEE_STORAGE_KEY)
+              .map(normalizePayeeName)
+              .filter(Boolean)
+              .filter((name) => !deletedPayeeKeys.includes(getPayeeKey(name)))
+              .map((name) => [getPayeeKey(name), name])
+          ).values()
+        ).sort((leftName, rightName) => leftName.localeCompare(rightName));
+      }
+
+      function persistPayeeNames() {
+        localStorage.setItem(PAYEE_STORAGE_KEY, JSON.stringify(payeeNames));
+      }
+
+      function findPayeeName(name) {
+        const targetKey = getPayeeKey(name);
+        return payeeNames.find((existingName) => getPayeeKey(existingName) === targetKey);
+      }
+
+      function escapeHtml(value) {
+        return String(value || "")
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#039;");
+      }
+
+      function trashIcon() {
+        return `
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M3 6h18M8 6V4h8v2m-1 4v8M9 10v8M6 6l1 15h10l1-15" />
+          </svg>
+        `;
+      }
+
+      function setPayeeHelp(message, isError) {
+        payeeHelp.textContent = message || "";
+        payeeHelp.classList.toggle("payee-help--error", Boolean(isError));
+      }
+
+      function renderPayeeOptions(selectedValue) {
+        payeeNameInput.innerHTML = "";
+
+        const placeholderOption = new Option("Select payee", "");
+        placeholderOption.disabled = true;
+        placeholderOption.hidden = true;
+        payeeNameInput.append(placeholderOption);
+
+        payeeNames.forEach((name) => {
+          payeeNameInput.append(new Option(name, name));
+        });
+
+        payeeNameInput.append(new Option("Add", "__add__"));
+        payeeNameInput.append(new Option("Delete", "__delete__"));
+        payeeNameInput.value = selectedValue || "";
+      }
+
+      function addPayeeName(rawName) {
+        const payeeName = normalizePayeeName(rawName);
+
+        if (!payeeName) {
+          return "";
+        }
+
+        const existingName = findPayeeName(payeeName);
+        if (existingName) {
+          return existingName;
+        }
+
+        deletedPayeeKeys = deletedPayeeKeys.filter(
+          (deletedKey) => deletedKey !== getPayeeKey(payeeName)
+        );
+        payeeNames = [...payeeNames, payeeName].sort((leftName, rightName) =>
+          leftName.localeCompare(rightName)
+        );
+        persistDeletedPayeeKeys();
+        persistPayeeNames();
+        renderPayeeOptions(payeeName);
+        return payeeName;
+      }
+
+      function commitPayeeName() {
+        const payeeName = normalizePayeeName(payeeAddInput.value);
+
+        if (!payeeName) {
+          setPayeeHelp("Write payee name before clicking plus.", true);
+          payeeAddInput.focus();
+          return false;
+        }
+
+        const existingName = findPayeeName(payeeName);
+        if (existingName) {
+          setPayeeHelp("This payee already exists. Select it from the dropdown.", true);
+          payeeAddInput.focus();
+          return false;
+        }
+
+        addPayeeName(payeeName);
+        setPayeeHelp("Payee added to the dropdown.", false);
+        togglePayeeManagedState();
+        renderPayee();
+        return true;
+      }
+
+      function renderPayeeDeleteList() {
+        if (payeeNames.length === 0) {
+          payeeDeleteList.innerHTML =
+            '<p class="organization-delete-empty">No saved payees to delete.</p>';
+          return;
+        }
+
+        payeeDeleteList.innerHTML = payeeNames
+          .map(
+            (name) => `
+              <div class="organization-delete-row">
+                <span>${escapeHtml(name)}</span>
+                <button
+                  class="icon-action-button icon-action-button--danger"
+                  type="button"
+                  data-delete-payee="${escapeHtml(name)}"
+                  title="Delete payee"
+                  aria-label="Delete ${escapeHtml(name)}"
+                >
+                  ${trashIcon()}
+                </button>
+              </div>
+            `
+          )
+          .join("");
+      }
+
+      function deletePayeeName(rawName) {
+        const payeeName = normalizePayeeName(rawName);
+        const payeeKey = getPayeeKey(payeeName);
+
+        payeeNames = payeeNames.filter((name) => getPayeeKey(name) !== payeeKey);
+        deletedPayeeKeys = Array.from(new Set([...deletedPayeeKeys, payeeKey]));
+
+        persistPayeeNames();
+        persistDeletedPayeeKeys();
+        renderPayeeOptions("__delete__");
+        togglePayeeManagedState();
+        renderPayee();
+        setPayeeHelp("Payee removed from dropdown.", false);
+      }
+
+      function togglePayeeManagedState() {
+        const isAdding = payeeNameInput.value === "__add__";
+        const isDeleting = payeeNameInput.value === "__delete__";
+
+        payeeAddField.hidden = !isAdding;
+        payeeAddInput.required = isAdding;
+        payeeDeletePanel.hidden = !isDeleting;
+
+        if (!isAdding) {
+          payeeAddInput.value = "";
+        }
+
+        if (isDeleting) {
+          renderPayeeDeleteList();
+        }
+      }
+
+      function getSelectedPayeeName() {
+        const payeeValue = payeeNameInput.value;
+
+        if (payeeValue === "__add__" || payeeValue === "__delete__") {
+          return "";
+        }
+
+        return normalizePayeeName(payeeValue);
       }
 
       function sanitizeAmount(rawValue) {
@@ -995,7 +1322,7 @@
       }
 
       function renderPayee() {
-        const payeeText = payeeNameInput.value.trim();
+        const payeeText = getSelectedPayeeName();
 
         if (payeeText) {
           payeePreview.textContent = payeeText;
@@ -1085,10 +1412,44 @@
       printOrientationInput.value = "";
       chequeDateInput.value = "";
       chequeTypeInput.value = "";
+      renderPayeeOptions("");
+      togglePayeeManagedState();
 
       printOrientationInput.addEventListener("change", renderOrientation);
       chequeDateInput.addEventListener("input", renderAll);
-      payeeNameInput.addEventListener("input", renderPayee);
+      payeeNameInput.addEventListener("change", () => {
+        setPayeeHelp("");
+        togglePayeeManagedState();
+
+        if (payeeNameInput.value === "__add__") {
+          window.setTimeout(() => payeeAddInput.focus(), 0);
+        }
+
+        renderPayee();
+      });
+      payeeAddInput.addEventListener("keydown", (event) => {
+        if (event.key !== "Enter") {
+          return;
+        }
+
+        event.preventDefault();
+        setPayeeHelp("Click the green plus button to add payee.", true);
+      });
+      payeeAddButton.addEventListener("click", (event) => {
+        event.preventDefault();
+        commitPayeeName();
+      });
+      payeeDeleteList.addEventListener("click", (event) => {
+        const deleteButton = event.target.closest("[data-delete-payee]");
+
+        if (!deleteButton) {
+          return;
+        }
+
+        event.preventDefault();
+        event.stopPropagation();
+        deletePayeeName(deleteButton.dataset.deletePayee);
+      });
       chequeAmountInput.addEventListener("input", handleAmountInput);
       chequeAmountInput.addEventListener("change", normalizeAmountInputField);
       chequeAmountInput.addEventListener("blur", normalizeAmountInputField);

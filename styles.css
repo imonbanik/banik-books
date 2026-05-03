@@ -1368,6 +1368,70 @@ button:active {
   color: var(--muted);
 }
 
+.record-add-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 36px;
+  gap: 4px;
+  align-items: center;
+  min-height: 46px;
+  border: 1px solid rgba(86, 30, 30, 0.16);
+  border-radius: 14px;
+  background: #ffffff;
+  padding: 0 8px 0 14px;
+  line-height: 1;
+}
+
+.record-add-row:focus-within {
+  border-color: rgba(185, 28, 28, 0.62);
+  box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.1);
+}
+
+.record-add-row input {
+  height: 46px;
+  min-width: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  padding: 0;
+  box-shadow: none;
+}
+
+.record-add-row input:focus {
+  border: 0;
+  box-shadow: none;
+}
+
+.record-add-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  align-self: center;
+  margin: 0;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  box-shadow: none;
+  color: #11a85a;
+  cursor: pointer;
+  font: inherit;
+  font-size: 1.45rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.record-add-button:hover {
+  filter: none;
+  transform: none;
+  color: #078743;
+  background: rgba(17, 168, 90, 0.08);
+}
+
+.record-add-button:active {
+  transform: translateY(0);
+}
+
 .organization-delete-panel {
   display: grid;
   gap: 8px;

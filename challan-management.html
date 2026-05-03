@@ -28,7 +28,7 @@
             deleteListId: "entryWithheldFyDeleteList",
             storageKey: "banikBooksChallanFiscalYears",
             deletedStorageKey: "banikBooksChallanDeletedFiscalYears",
-            defaults: ["FY 24-25", "FY 25-26"],
+            defaults: [],
             placeholder: "Write fiscal year",
           },
           {
@@ -54,7 +54,7 @@
             deleteListId: "entryTaxCategoryDeleteList",
             storageKey: "banikBooksChallanTaxCategories",
             deletedStorageKey: "banikBooksChallanDeletedTaxCategories",
-            defaults: ["Tax", "VAT"],
+            defaults: [],
             placeholder: "Write tax category",
           },
           {
@@ -67,7 +67,7 @@
             deleteListId: "entryTaxNatureDeleteList",
             storageKey: "banikBooksChallanTaxNatures",
             deletedStorageKey: "banikBooksChallanDeletedTaxNatures",
-            defaults: ["Salary", "House Rent", "Internet"],
+            defaults: [],
             placeholder: "Write tax nature",
           },
         ];
@@ -165,21 +165,6 @@
           }, {});
         }
 
-        function getManagedEntryValueFromEntry(entry, key) {
-          switch (key) {
-            case "withheldFy":
-              return entry.withheldFy;
-            case "month":
-              return entry.monthLabel || formatMonthLabel(entry.monthRaw) || entry.monthRaw;
-            case "taxCategory":
-              return entry.taxCategory;
-            case "taxNature":
-              return entry.taxNature;
-            default:
-              return "";
-          }
-        }
-
         function loadManagedEntryOptions(config) {
           const deletedKeys = managedEntryDeletedKeys[config.key] || [];
 
@@ -188,7 +173,6 @@
               [
                 ...config.defaults,
                 ...readStorageArray(config.storageKey),
-                ...entries.map((entry) => getManagedEntryValueFromEntry(entry, config.key)),
               ]
                 .map(normalizeEntryOption)
                 .filter(Boolean)
@@ -237,9 +221,12 @@
 
         function renderManagedEntryOptions(config, selectedValue) {
           const select = getManagedEntryControl(config, "select");
+          const placeholderOption = new Option("Select " + config.label.toLowerCase(), "");
 
           select.innerHTML = "";
-          select.append(new Option("Select " + config.label.toLowerCase(), ""));
+          placeholderOption.disabled = true;
+          placeholderOption.hidden = true;
+          select.append(placeholderOption);
           (managedEntryOptions[config.key] || []).forEach((option) => {
             select.append(new Option(option, option));
           });
@@ -278,6 +265,33 @@
           persistManagedEntryOptions(config);
           renderManagedEntryOptions(config, optionValue);
           return optionValue;
+        }
+
+        function commitManagedEntryOption(config) {
+          const addInput = getManagedEntryControl(config, "addInput");
+          const newValue = normalizeEntryOption(addInput.value);
+
+          if (!newValue) {
+            setEntryError("Write " + config.label.toLowerCase() + " before clicking plus.");
+            addInput.focus();
+            return false;
+          }
+
+          const existingOption = findManagedEntryOption(config, newValue);
+          if (existingOption) {
+            setEntryError(
+              "This " + config.label.toLowerCase() + " already exists. Select it from the dropdown."
+            );
+            showToast("Same " + config.label.toLowerCase() + " already exists.", "error");
+            addInput.focus();
+            return false;
+          }
+
+          addManagedEntryOption(config, newValue);
+          setEntryError("");
+          toggleManagedEntryOptionState(config);
+          showToast(config.label + " option added.", "success");
+          return true;
         }
 
         function renderManagedEntryDeleteList(config) {
@@ -355,27 +369,11 @@
           const addInput = getManagedEntryControl(config, "addInput");
 
           if (select.value === "__add__") {
-            const newValue = normalizeEntryOption(addInput.value);
-            if (!newValue) {
-              return {
-                error: "Add or select " + config.label.toLowerCase() + ".",
-                focus: addInput,
-                value: "",
-              };
-            }
-
-            const existingOption = findManagedEntryOption(config, newValue);
-            if (existingOption) {
-              renderManagedEntryOptions(config, existingOption);
-              toggleManagedEntryOptionState(config);
-              return {
-                error: "This " + config.label.toLowerCase() + " already exists. Select it from the dropdown.",
-                focus: select,
-                value: existingOption,
-              };
-            }
-
-            return { error: "", focus: null, value: addManagedEntryOption(config, newValue) };
+            return {
+              error: "Click the green plus button to add " + config.label.toLowerCase() + " first.",
+              focus: addInput,
+              value: "",
+            };
           }
 
           if (select.value === "__delete__") {
@@ -440,7 +438,7 @@
 
           return Array.from(
             new Map(
-              [...storedNames, ...entries.map((entry) => entry.organizationName)]
+              storedNames
                 .map(normalizeOrganizationName)
                 .filter(Boolean)
                 .filter((name) => !deletedOrganizationKeys.includes(getOrganizationKey(name)))
@@ -460,8 +458,11 @@
 
         function renderOrganizationOptions(selectedValue) {
           entryOrganizationSelect.innerHTML = "";
+          const placeholderOption = new Option("Select organization/individual", "");
 
-          entryOrganizationSelect.append(new Option("Select organization/individual", ""));
+          placeholderOption.disabled = true;
+          placeholderOption.hidden = true;
+          entryOrganizationSelect.append(placeholderOption);
           organizationNames.forEach((name) => {
             entryOrganizationSelect.append(new Option(name, name));
           });
@@ -492,6 +493,30 @@
           persistOrganizationNames();
           renderOrganizationOptions(normalizedName);
           return normalizedName;
+        }
+
+        function commitOrganizationName() {
+          const newName = normalizeOrganizationName(entryOrganizationNewInput.value);
+
+          if (!newName) {
+            setEntryError("Write organization/individual name before clicking plus.");
+            entryOrganizationNewInput.focus();
+            return false;
+          }
+
+          const existingName = findOrganizationName(newName);
+          if (existingName) {
+            setEntryError("This name already exists. Select it from the dropdown.");
+            showToast("Same organization/individual name already exists.", "error");
+            entryOrganizationNewInput.focus();
+            return false;
+          }
+
+          addOrganizationName(newName);
+          setEntryError("");
+          toggleNewOrganizationField();
+          showToast("Name added to the dropdown.", "success");
+          return true;
         }
 
         function toggleNewOrganizationField() {
@@ -1106,6 +1131,9 @@
           const select = getManagedEntryControl(config, "select");
           const addInput = getManagedEntryControl(config, "addInput");
           const deleteList = getManagedEntryControl(config, "deleteList");
+          const addButton = document.querySelector(
+            '[data-add-entry-option="' + config.key + '"]'
+          );
 
           select.addEventListener("change", () => {
             setEntryError("");
@@ -1116,28 +1144,19 @@
             }
           });
 
-          addInput.addEventListener("change", () => {
-            const newValue = normalizeEntryOption(addInput.value);
-
-            if (!newValue) {
+          addInput.addEventListener("keydown", (event) => {
+            if (event.key !== "Enter") {
               return;
             }
 
-            const existingOption = findManagedEntryOption(config, newValue);
-            if (existingOption) {
-              setEntryError(
-                "This " + config.label.toLowerCase() + " already exists. Select it from the dropdown."
-              );
-              showToast("Same " + config.label.toLowerCase() + " already exists.", "error");
-              renderManagedEntryOptions(config, existingOption);
-              toggleManagedEntryOptionState(config);
-              return;
-            }
+            event.preventDefault();
+            setEntryError("Click the green plus button to add " + config.label.toLowerCase() + ".");
+          });
 
-            addManagedEntryOption(config, newValue);
-            setEntryError("");
-            toggleManagedEntryOptionState(config);
-            showToast(config.label + " option added.", "success");
+          addButton.addEventListener("click", (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            commitManagedEntryOption(config);
           });
 
           deleteList.addEventListener("click", (event) => {
@@ -1169,26 +1188,19 @@
           }
         });
 
-        entryOrganizationNewInput.addEventListener("change", () => {
-          const newName = normalizeOrganizationName(entryOrganizationNewInput.value);
-
-          if (!newName) {
+        entryOrganizationNewInput.addEventListener("keydown", (event) => {
+          if (event.key !== "Enter") {
             return;
           }
 
-          const existingName = findOrganizationName(newName);
-          if (existingName) {
-            setEntryError("This name already exists. Select it from the dropdown.");
-            showToast("Same organization/individual name already exists.", "error");
-            renderOrganizationOptions(existingName);
-            toggleNewOrganizationField();
-            return;
-          }
+          event.preventDefault();
+          setEntryError("Click the green plus button to add organization/individual name.");
+        });
 
-          addOrganizationName(newName);
-          setEntryError("");
-          toggleNewOrganizationField();
-          showToast("Name added to the dropdown.", "success");
+        document.querySelector("[data-add-organization]").addEventListener("click", (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          commitOrganizationName();
         });
 
         entryOrganizationDeleteList.addEventListener("click", (event) => {
@@ -1234,7 +1246,7 @@
           const organizationSelection = entryOrganizationSelect.value;
           const organizationName =
             organizationSelection === "__add_new__"
-              ? normalizeOrganizationName(entryOrganizationNewInput.value)
+              ? ""
               : organizationSelection === "__delete_name__"
               ? ""
               : normalizeOrganizationName(organizationSelection);
@@ -1279,20 +1291,16 @@
           }
 
           if (!organizationName) {
-            setEntryError("Select or add the name of the withheld organization or individual.");
+            setEntryError(
+              organizationSelection === "__add_new__"
+                ? "Click the green plus button to add organization/individual name first."
+                : "Select or add the name of the withheld organization or individual."
+            );
             if (organizationSelection === "__add_new__") {
               entryOrganizationNewInput.focus();
             } else {
               entryOrganizationSelect.focus();
             }
-            return;
-          }
-
-          if (organizationSelection === "__add_new__" && findOrganizationName(organizationName)) {
-            setEntryError("This name already exists. Select it from the dropdown.");
-            showToast("Same organization/individual name already exists.", "error");
-            renderOrganizationOptions(findOrganizationName(organizationName));
-            toggleNewOrganizationField();
             return;
           }
 
@@ -1304,11 +1312,6 @@
           if (totalAmount === null) {
             setEntryError("Enter a valid total amount of challan.");
             return;
-          }
-
-          if (organizationSelection === "__add_new__") {
-            addOrganizationName(organizationName);
-            toggleNewOrganizationField();
           }
 
           entries.unshift({
@@ -1511,7 +1514,7 @@
             <label class="record-field" for="entryWithheldFy">
               <span>Fiscal Year</span>
               <select id="entryWithheldFy" name="entryWithheldFy" required>
-                <option value="">Select fiscal year</option>
+                <option value="" disabled selected hidden>Select fiscal year</option>
                 <option value="__add__">Add</option>
                 <option value="__delete__">Delete</option>
               </select>
@@ -1519,13 +1522,24 @@
 
             <label id="entryWithheldFyAddField" class="record-field" for="entryWithheldFyAddInput" hidden>
               <span>Add Fiscal Year</span>
-              <input
-                id="entryWithheldFyAddInput"
-                name="entryWithheldFyAddInput"
-                type="text"
-                autocomplete="off"
-                placeholder="Write fiscal year"
-              />
+              <div class="record-add-row">
+                <input
+                  id="entryWithheldFyAddInput"
+                  name="entryWithheldFyAddInput"
+                  type="text"
+                  autocomplete="off"
+                  placeholder="Write fiscal year"
+                />
+                <button
+                  class="record-add-button"
+                  type="button"
+                  data-add-entry-option="withheldFy"
+                  aria-label="Add fiscal year"
+                  title="Add fiscal year"
+                >
+                  +
+                </button>
+              </div>
             </label>
 
             <div id="entryWithheldFyDeletePanel" class="organization-delete-panel" hidden>
@@ -1536,7 +1550,7 @@
             <label class="record-field" for="entryMonth">
               <span>Month</span>
               <select id="entryMonth" name="entryMonth" required>
-                <option value="">Select month</option>
+                <option value="" disabled selected hidden>Select month</option>
                 <option value="__add__">Add</option>
                 <option value="__delete__">Delete</option>
               </select>
@@ -1544,13 +1558,24 @@
 
             <label id="entryMonthAddField" class="record-field" for="entryMonthAddInput" hidden>
               <span>Add Month</span>
-              <input
-                id="entryMonthAddInput"
-                name="entryMonthAddInput"
-                type="text"
-                autocomplete="off"
-                placeholder="Example: Dec-25"
-              />
+              <div class="record-add-row">
+                <input
+                  id="entryMonthAddInput"
+                  name="entryMonthAddInput"
+                  type="text"
+                  autocomplete="off"
+                  placeholder="Example: Dec-25"
+                />
+                <button
+                  class="record-add-button"
+                  type="button"
+                  data-add-entry-option="month"
+                  aria-label="Add month"
+                  title="Add month"
+                >
+                  +
+                </button>
+              </div>
             </label>
 
             <div id="entryMonthDeletePanel" class="organization-delete-panel" hidden>
@@ -1561,7 +1586,7 @@
             <label class="record-field" for="entryTaxCategory">
               <span>Tax Category</span>
               <select id="entryTaxCategory" name="entryTaxCategory" required>
-                <option value="">Select tax category</option>
+                <option value="" disabled selected hidden>Select tax category</option>
                 <option value="__add__">Add</option>
                 <option value="__delete__">Delete</option>
               </select>
@@ -1569,13 +1594,24 @@
 
             <label id="entryTaxCategoryAddField" class="record-field" for="entryTaxCategoryAddInput" hidden>
               <span>Add Tax Category</span>
-              <input
-                id="entryTaxCategoryAddInput"
-                name="entryTaxCategoryAddInput"
-                type="text"
-                autocomplete="off"
-                placeholder="Write tax category"
-              />
+              <div class="record-add-row">
+                <input
+                  id="entryTaxCategoryAddInput"
+                  name="entryTaxCategoryAddInput"
+                  type="text"
+                  autocomplete="off"
+                  placeholder="Write tax category"
+                />
+                <button
+                  class="record-add-button"
+                  type="button"
+                  data-add-entry-option="taxCategory"
+                  aria-label="Add tax category"
+                  title="Add tax category"
+                >
+                  +
+                </button>
+              </div>
             </label>
 
             <div id="entryTaxCategoryDeletePanel" class="organization-delete-panel" hidden>
@@ -1586,7 +1622,7 @@
             <label class="record-field" for="entryTaxNature">
               <span>Tax Nature</span>
               <select id="entryTaxNature" name="entryTaxNature" required>
-                <option value="">Select tax nature</option>
+                <option value="" disabled selected hidden>Select tax nature</option>
                 <option value="__add__">Add</option>
                 <option value="__delete__">Delete</option>
               </select>
@@ -1594,13 +1630,24 @@
 
             <label id="entryTaxNatureAddField" class="record-field" for="entryTaxNatureAddInput" hidden>
               <span>Add Tax Nature</span>
-              <input
-                id="entryTaxNatureAddInput"
-                name="entryTaxNatureAddInput"
-                type="text"
-                autocomplete="off"
-                placeholder="Write tax nature"
-              />
+              <div class="record-add-row">
+                <input
+                  id="entryTaxNatureAddInput"
+                  name="entryTaxNatureAddInput"
+                  type="text"
+                  autocomplete="off"
+                  placeholder="Write tax nature"
+                />
+                <button
+                  class="record-add-button"
+                  type="button"
+                  data-add-entry-option="taxNature"
+                  aria-label="Add tax nature"
+                  title="Add tax nature"
+                >
+                  +
+                </button>
+              </div>
             </label>
 
             <div id="entryTaxNatureDeletePanel" class="organization-delete-panel" hidden>
@@ -1630,7 +1677,7 @@
             <label class="record-field" for="entryOrganizationName">
               <span>Name of Withheld Organization or Individual</span>
               <select id="entryOrganizationName" name="entryOrganizationName" required>
-                <option value="">Select organization/individual</option>
+                <option value="" disabled selected hidden>Select organization/individual</option>
                 <option value="__add_new__">Add</option>
                 <option value="__delete_name__">Delete</option>
               </select>
@@ -1643,13 +1690,24 @@
               hidden
             >
               <span>Add Organization or Individual</span>
-              <input
-                id="entryOrganizationNewName"
-                name="entryOrganizationNewName"
-                type="text"
-                autocomplete="off"
-                placeholder="Write organization or individual name"
-              />
+              <div class="record-add-row">
+                <input
+                  id="entryOrganizationNewName"
+                  name="entryOrganizationNewName"
+                  type="text"
+                  autocomplete="off"
+                  placeholder="Write organization or individual name"
+                />
+                <button
+                  class="record-add-button"
+                  type="button"
+                  data-add-organization
+                  aria-label="Add organization or individual"
+                  title="Add organization or individual"
+                >
+                  +
+                </button>
+              </div>
             </label>
 
             <div id="entryOrganizationDeletePanel" class="organization-delete-panel" hidden>
