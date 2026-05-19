@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="BANIK Books logo">
+  <path
+    fill="#f51b23"
+    fill-rule="evenodd"
+    d="
+      M118 14
+      H386
+      C442 14 487 59 487 115
+      V397
+      C487 446 447 486 398 486
+      H244
+      L318 411
+      L376 380
+      L318 324
+      L243 486
+      H118
+      C60 486 13 439 13 381
+      V120
+      C13 61 60 14 118 14
+      Z
+
+      M118 119
+      V376
+      L374 119
+      Z
+
+      M393 250
+      L487 342
+      V158
+      Z
+    "
+  />
+</svg>

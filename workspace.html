@@ -16,19 +16,21 @@
     />
     <link rel="stylesheet" href="./styles.css" />
     <script src="./app-config.js" defer></script>
+    <script src="./auth.js" type="module"></script>
   </head>
   <body>
     <div class="page-shell workspace-page">
       <header class="topbar">
         <a class="brand" href="./index.html">
           <span class="brand-mark" aria-hidden="true">
-            <span class="brand-mark__inner">B</span>
+            <img src="./assets/banik-logo.svg" alt="" />
           </span>
           <span class="brand-copy">
             <span class="brand-copy__title">BANIK Books</span>
             <span class="brand-copy__tag">Simple accounting for growing businesses</span>
           </span>
         </a>
+        <div class="auth-controls" data-auth-controls></div>
       </header>
 
       <main class="workspace-layout">
@@ -43,6 +45,11 @@
 
         <section class="workspace-panel">
           <div class="workspace-grid">
+            <a class="workspace-button" href="./signup.html">
+              <span class="workspace-button__title">My Profile</span>
+              <span class="workspace-button__meta">Update your profile and workspace setup anytime</span>
+            </a>
+
             <a class="workspace-button" href="./journal-entry.html">
               <span class="workspace-button__title">Journal Entry</span>
               <span class="workspace-button__meta">Record day-to-day accounting entries</span>

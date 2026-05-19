@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Create Account | BANIK Books</title>
+    <title>Profile Setup | BANIK Books</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -16,29 +16,30 @@
     />
     <link rel="stylesheet" href="./styles.css" />
     <script src="./app-config.js" defer></script>
+    <script src="./auth.js" type="module"></script>
   </head>
   <body>
     <div class="page-shell signup-page">
       <header class="topbar">
         <a class="brand" href="./index.html">
           <span class="brand-mark" aria-hidden="true">
-            <span class="brand-mark__inner">B</span>
+            <img src="./assets/banik-logo.svg" alt="" />
           </span>
           <span class="brand-copy">
             <span class="brand-copy__title">BANIK Books</span>
             <span class="brand-copy__tag">Simple accounting for growing businesses</span>
           </span>
         </a>
+        <div class="auth-controls" data-auth-controls></div>
       </header>
 
       <main class="signup-layout">
         <section class="signup-intro">
-          <span class="eyebrow">Set up your company in minutes</span>
-          <h1>Create your BANIK Books workspace</h1>
+          <span class="eyebrow">Complete your profile</span>
+          <h1>Set up your BANIK Books workspace</h1>
           <p class="lead">
-            This signup flow is designed for simple Bangladeshi business
-            accounting. First create your account, then add the company details
-            needed to start bookkeeping.
+            Add the profile and business details needed to prepare your
+            accounting workspace.
           </p>
 
           <div class="process-steps">
@@ -46,8 +47,7 @@
               <span class="process-card__number">01</span>
               <h2>Account owner details</h2>
               <p>
-                Add the owner or admin name, business email, phone number, and
-                secure password.
+                Add the owner or admin name, email address, and phone number.
               </p>
             </article>
             <article class="process-card">
@@ -65,42 +65,27 @@
           <div class="sheet-header">
             <div>
               <p class="sheet-header__eyebrow">Step 1 of 2</p>
-              <h2>Create account</h2>
+              <h2>Profile details</h2>
             </div>
-            <a class="text-link" href="./index.html">Back to home</a>
+            <a class="text-link" href="./workspace.html">Back to workspace</a>
           </div>
 
-          <form class="account-form" action="./workspace.html">
+          <form class="account-form" id="profile-setup-form">
             <div class="field-grid">
-              <label class="stacked-field">
-                <span>Company name</span>
-                <input type="text" placeholder="BANIK Traders Ltd." />
-              </label>
-              <label class="stacked-field">
+              <label class="stacked-field stacked-field--full">
                 <span>Full name</span>
-                <input type="text" placeholder="Md. Rahim Uddin" />
+                <input id="profileFullName" type="text" placeholder="Md. Rahim Uddin" required />
               </label>
             </div>
 
             <div class="field-grid">
               <label class="stacked-field">
-                <span>Work email</span>
-                <input type="email" placeholder="accounts@company.com" />
+                <span>Email</span>
+                <input id="profileEmail" type="email" placeholder="accounts@company.com" readonly />
               </label>
               <label class="stacked-field">
                 <span>Mobile number</span>
-                <input type="tel" placeholder="+8801XXXXXXXXX" />
-              </label>
-            </div>
-
-            <div class="field-grid">
-              <label class="stacked-field">
-                <span>Password</span>
-                <input type="password" placeholder="Create a secure password" />
-              </label>
-              <label class="stacked-field">
-                <span>Confirm password</span>
-                <input type="password" placeholder="Re-enter password" />
+                <input id="profileMobileNumber" type="tel" placeholder="+8801XXXXXXXXX" required />
               </label>
             </div>
 
@@ -116,7 +101,7 @@
             <div class="field-grid">
               <label class="stacked-field">
                 <span>Business type</span>
-                <select>
+                <select id="profileBusinessType">
                   <option>Trading business</option>
                   <option>Retail shop</option>
                   <option>Service company</option>
@@ -126,7 +111,7 @@
               </label>
               <label class="stacked-field">
                 <span>Currency</span>
-                <select>
+                <select id="profileCurrency">
                   <option>BDT - Bangladeshi Taka</option>
                   <option>USD - US Dollar</option>
                 </select>
@@ -136,18 +121,18 @@
             <div class="field-grid">
               <label class="stacked-field stacked-field--full">
                 <span>Company address</span>
-                <input type="text" placeholder="House, Road, Area, City" />
+                <input id="profileCompanyAddress" type="text" placeholder="House, Road, Area, City" required />
               </label>
             </div>
 
             <div class="field-grid">
               <label class="stacked-field">
                 <span>Fiscal year start</span>
-                <input type="date" />
+                <input id="profileFiscalYearStart" type="date" />
               </label>
               <label class="stacked-field">
                 <span>Preferred plan</span>
-                <select>
+                <select id="profilePreferredPlan">
                   <option>Start Free</option>
                   <option>Business</option>
                   <option>Enterprise</option>
@@ -156,17 +141,76 @@
             </div>
 
             <label class="checkbox-row">
-              <input type="checkbox" checked />
-              <span>I agree to create a BANIK Books workspace for my company.</span>
+              <input id="profileAgreement" type="checkbox" checked required />
+              <span>I agree to save this profile for my BANIK Books workspace.</span>
             </label>
 
+            <p class="auth-form-status" id="profileSetupStatus" aria-live="polite"></p>
+
             <div class="form-actions">
-              <a class="secondary-button" href="./index.html">Cancel</a>
-              <button type="submit">Create workspace</button>
+              <a class="secondary-button" href="./workspace.html">Cancel</a>
+              <button id="profileSubmitButton" type="submit">Save profile</button>
             </div>
           </form>
         </section>
       </main>
     </div>
+    <script>
+      document.addEventListener("DOMContentLoaded", async () => {
+        const form = document.getElementById("profile-setup-form");
+        const status = document.getElementById("profileSetupStatus");
+        const submitButton = document.getElementById("profileSubmitButton");
+        const currentUser = await window.BanikAuth.getCurrentUser();
+
+        if (!currentUser) {
+          status.textContent = "Please log in before completing your profile.";
+          status.className = "auth-form-status auth-form-status--error";
+          form.querySelectorAll("input, select, button").forEach((control) => {
+            control.disabled = true;
+          });
+          return;
+        }
+
+        document.getElementById("profileFullName").value = currentUser.fullName || "";
+        document.getElementById("profileEmail").value = currentUser.email || "";
+        document.getElementById("profileMobileNumber").value = currentUser.mobileNumber || "";
+        document.getElementById("profileBusinessType").value =
+          currentUser.businessType || "Trading business";
+        document.getElementById("profileCurrency").value =
+          currentUser.currency || "BDT - Bangladeshi Taka";
+        document.getElementById("profileCompanyAddress").value = currentUser.companyAddress || "";
+        document.getElementById("profileFiscalYearStart").value = currentUser.fiscalYearStart || "";
+        document.getElementById("profilePreferredPlan").value =
+          currentUser.preferredPlan || "Start Free";
+
+        form.addEventListener("submit", async (event) => {
+          event.preventDefault();
+          submitButton.disabled = true;
+          status.textContent = "Saving profile...";
+          status.className = "auth-form-status";
+
+          const result = await window.BanikAuth.updateProfile({
+            fullName: document.getElementById("profileFullName").value,
+            mobileNumber: document.getElementById("profileMobileNumber").value,
+            businessType: document.getElementById("profileBusinessType").value,
+            currency: document.getElementById("profileCurrency").value,
+            companyAddress: document.getElementById("profileCompanyAddress").value,
+            fiscalYearStart: document.getElementById("profileFiscalYearStart").value,
+            preferredPlan: document.getElementById("profilePreferredPlan").value,
+          });
+
+          if (!result.ok) {
+            status.textContent = result.message;
+            status.className = "auth-form-status auth-form-status--error";
+            submitButton.disabled = false;
+            return;
+          }
+
+          status.textContent = "Profile saved. Opening workspace...";
+          status.className = "auth-form-status auth-form-status--success";
+          window.location.href = result.user.role === "admin" ? "./admin.html" : "./workspace.html";
+        });
+      });
+    </script>
   </body>
 </html>

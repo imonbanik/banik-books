@@ -54,6 +54,7 @@ a {
   display: flex;
   align-items: center;
   justify-content: flex-start;
+  gap: 18px;
 }
 
 .brand {
@@ -65,19 +66,18 @@ a {
 .brand-mark {
   width: 58px;
   height: 58px;
-  border-radius: 18px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(145deg, var(--red-500), var(--red-900));
-  box-shadow: 0 20px 40px rgba(185, 28, 28, 0.25);
 }
 
-.brand-mark__inner {
-  color: white;
-  font-size: 1.8rem;
-  font-weight: 800;
-  letter-spacing: 0.06em;
+.brand-mark img,
+.signup-panel__logo img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 20px 28px rgba(185, 28, 28, 0.18));
 }
 
 .brand-copy {
@@ -122,11 +122,23 @@ a {
 
 h1 {
   margin: 18px 0 18px;
-  max-width: 13ch;
+  max-width: none;
   font-family: "Ubuntu", sans-serif;
-  font-size: clamp(2.2rem, 4.1vw, 3.9rem);
-  line-height: 1.02;
-  letter-spacing: -0.04em;
+  font-size: clamp(1.85rem, 2.65vw, 2.65rem);
+  line-height: 1.14;
+  letter-spacing: 0;
+  text-align: left;
+  font-weight: 700;
+}
+
+.hero-title {
+  display: grid;
+  gap: 0.1em;
+}
+
+.hero-title span {
+  display: block;
+  white-space: nowrap;
 }
 
 .lead {
@@ -144,24 +156,43 @@ h1 {
 }
 
 .feature-card {
-  padding: 22px 20px;
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr);
+  align-items: center;
+  gap: 14px;
+  min-height: 108px;
+  padding: 18px 20px;
   border: 1px solid rgba(185, 28, 28, 0.09);
-  border-radius: 24px;
+  border-radius: 18px;
   background: rgba(255, 255, 255, 0.72);
   backdrop-filter: blur(10px);
   box-shadow: 0 18px 40px rgba(185, 28, 28, 0.08);
 }
 
-.feature-card h2 {
-  margin: 0 0 10px;
-  font-size: 1.02rem;
+.feature-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--red-700);
 }
 
-.feature-card p {
+.feature-icon svg {
+  width: 23px;
+  height: 23px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.feature-card h2 {
   margin: 0;
-  color: var(--muted);
-  line-height: 1.6;
-  font-size: 0.95rem;
+  font-size: 1.02rem;
 }
 
 .signup-panel {
@@ -198,24 +229,17 @@ h1 {
   width: 104px;
   height: 104px;
   margin: 22px auto 24px;
-  border-radius: 999px;
   display: grid;
   place-items: center;
-  background: linear-gradient(145deg, var(--red-500), var(--red-700));
-  color: #fff7f7;
-  font-size: 2rem;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  box-shadow: 0 20px 40px rgba(185, 28, 28, 0.24);
 }
 
 .signup-panel h2 {
   margin: 0;
   text-align: center;
   font-family: "Ubuntu", sans-serif;
-  font-size: clamp(2rem, 4vw, 2.9rem);
+  font-size: clamp(1.75rem, 3.2vw, 2.35rem);
   line-height: 1.05;
-  letter-spacing: -0.04em;
+  letter-spacing: 0;
 }
 
 .signup-panel__text {
@@ -297,15 +321,102 @@ button:active {
 .signup-links {
   display: flex;
   justify-content: center;
-  gap: 26px;
+  gap: 6px;
   margin-top: 26px;
   flex-wrap: wrap;
+  color: var(--text);
+  font-size: 0.98rem;
+  font-weight: 400;
 }
 
 .signup-links a {
   color: var(--red-700);
   font-size: 0.98rem;
-  font-weight: 500;
+  font-weight: 700;
+}
+
+.signup-links span {
+  color: var(--text);
+  font-weight: 400;
+}
+
+.auth-form-status {
+  min-height: 1.4em;
+  margin: 12px 0 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+.auth-form-status--success {
+  color: #166534;
+}
+
+.auth-form-status--error {
+  color: var(--red-700);
+}
+
+.auth-controls {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-left: auto;
+  flex-wrap: wrap;
+}
+
+.auth-user-chip,
+.auth-link,
+.auth-logout-button {
+  min-height: 38px;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.auth-user-chip {
+  display: inline-flex;
+  align-items: center;
+  max-width: 220px;
+  padding: 0 14px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid rgba(185, 28, 28, 0.14);
+  color: var(--red-900);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.auth-link {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 14px;
+  background: rgba(255, 245, 244, 0.96);
+  border: 1px solid rgba(185, 28, 28, 0.18);
+  color: var(--red-900);
+}
+
+.auth-logout-button {
+  margin: 0;
+  padding: 0 14px;
+  border: 1px solid rgba(185, 28, 28, 0.18);
+  background: rgba(255, 255, 255, 0.94);
+  color: var(--red-900);
+  box-shadow: none;
+  font-size: 0.9rem;
+}
+
+.auth-logout-button:hover,
+.auth-logout-button:active {
+  transform: none;
+  filter: none;
+}
+
+.is-access-disabled {
+  opacity: 0.48;
+  cursor: not-allowed;
+  filter: grayscale(0.25);
 }
 
 .signup-page {
@@ -646,6 +757,168 @@ button:active {
 .small-tool-button:hover {
   transform: translateY(-1px);
   filter: brightness(1.03);
+}
+
+.admin-page {
+  padding-bottom: 56px;
+}
+
+.admin-layout {
+  display: grid;
+  gap: 24px;
+  padding: 42px 0 24px;
+}
+
+.admin-hero {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.admin-hero h1 {
+  max-width: 14ch;
+  margin-bottom: 12px;
+}
+
+.admin-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.admin-summary-card,
+.admin-panel {
+  border: 1px solid rgba(185, 28, 28, 0.12);
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: var(--shadow);
+}
+
+.admin-summary-card {
+  display: grid;
+  gap: 8px;
+  padding: 22px;
+  border-radius: 24px;
+}
+
+.admin-summary-card span {
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.admin-summary-card strong {
+  color: var(--red-900);
+  font-family: "Ubuntu", sans-serif;
+  font-size: 2.2rem;
+}
+
+.admin-panel {
+  padding: 26px;
+  border-radius: 30px;
+}
+
+.admin-table-wrap {
+  overflow-x: auto;
+  border-radius: 18px;
+  border: 1px solid rgba(86, 30, 30, 0.14);
+  background: #ffffff;
+}
+
+.admin-table {
+  width: 100%;
+  min-width: 1120px;
+  border-collapse: collapse;
+}
+
+.admin-table th,
+.admin-table td {
+  padding: 14px 12px;
+  border-bottom: 1px solid rgba(86, 30, 30, 0.1);
+  text-align: left;
+  vertical-align: middle;
+  font-size: 0.92rem;
+}
+
+.admin-table th {
+  background: rgba(255, 245, 244, 0.94);
+  color: var(--red-900);
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.admin-table td strong,
+.admin-table td span {
+  display: block;
+}
+
+.admin-table td span {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.admin-toggle-cell {
+  text-align: center;
+}
+
+.admin-switch {
+  position: relative;
+  display: inline-flex;
+  width: 48px;
+  height: 28px;
+}
+
+.admin-switch input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.admin-switch span {
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  background: rgba(122, 84, 81, 0.26);
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.admin-switch span::after {
+  content: "";
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  background: #ffffff;
+  box-shadow: 0 4px 10px rgba(36, 19, 18, 0.18);
+  transition: transform 0.2s ease;
+}
+
+.admin-switch input:checked + span {
+  background: #16a34a;
+}
+
+.admin-switch input:checked + span::after {
+  transform: translateX(20px);
+}
+
+.admin-note {
+  margin: 14px 0 0;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.admin-empty {
+  color: var(--muted);
+  text-align: center;
+}
+
+.access-denied-card h1 {
+  max-width: 18ch;
 }
 
 .challan-register-card {
@@ -2063,7 +2336,7 @@ button:active {
   }
 
   h1 {
-    max-width: 14ch;
+    max-width: none;
   }
 
   .feature-list {
@@ -2088,6 +2361,10 @@ button:active {
     margin-right: auto;
   }
 
+  .admin-summary-grid {
+    grid-template-columns: 1fr;
+  }
+
   .journal-hero,
   .journal-toolbar-row,
   .journal-footer {
@@ -2106,13 +2383,23 @@ button:active {
     display: none;
   }
 
+  .auth-controls {
+    width: 100%;
+    justify-content: flex-start;
+    margin-left: 0;
+  }
+
+  .auth-user-chip {
+    max-width: 100%;
+  }
+
   .hero {
     padding-top: 34px;
   }
 
   h1 {
-    font-size: 2.65rem;
-    max-width: 12ch;
+    font-size: clamp(1.42rem, 6vw, 1.9rem);
+    max-width: none;
   }
 
   .lead {
@@ -2144,6 +2431,15 @@ button:active {
   .workspace-panel,
   .detail-card {
     padding: 22px 16px;
+    border-radius: 24px;
+  }
+
+  .admin-hero {
+    flex-direction: column;
+  }
+
+  .admin-panel {
+    padding: 20px 14px;
     border-radius: 24px;
   }
 

@@ -1,0 +1,36 @@
+{
+  "users": [
+    {
+      "id": "admin-founder",
+      "email": "admin@banikbooks.local",
+      "password": "pbkdf2_sha256$210000$ecb15694355debfe5798c7923ed0dbe2$8d9f1d56643667d7ea46049227db1f2eaf93555dc78d0373fef540281f236110",
+      "companyName": "BANIK Books",
+      "fullName": "Founder",
+      "role": "admin",
+      "permissions": {
+        "journal-entry": true,
+        "chart-of-accounts": true,
+        "necessary-tools": true,
+        "cheque-printer": true,
+        "challan-management": true,
+        "reports": true
+      },
+      "createdAt": "2026-05-15T16:15:38.559Z",
+      "lastLoginAt": "2026-05-15T16:17:45.440Z"
+    }
+  ],
+  "sessions": [
+    {
+      "id": "c7888f21050abaa87292830e5887a90defc6523d131806696521c88d3ddebb92",
+      "userId": "admin-founder",
+      "createdAt": "2026-05-15T16:15:52.467Z",
+      "expiresAt": "2026-05-29T16:15:52.467Z"
+    },
+    {
+      "id": "f7eecf64870b0e91c97e3cf41b8c657cd7aab0c6398ef7b4f404328d13a0ed68",
+      "userId": "admin-founder",
+      "createdAt": "2026-05-15T16:17:45.440Z",
+      "expiresAt": "2026-05-29T16:17:45.440Z"
+    }
+  ]
+}

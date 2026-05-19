@@ -16,13 +16,14 @@
     />
     <link rel="stylesheet" href="./styles.css" />
     <script src="./app-config.js" defer></script>
+    <script src="./auth.js" type="module"></script>
   </head>
   <body>
     <div class="page-shell">
       <header class="topbar">
         <a class="brand" href="#">
           <span class="brand-mark" aria-hidden="true">
-            <span class="brand-mark__inner">B</span>
+            <img src="./assets/banik-logo.svg" alt="" />
           </span>
           <span class="brand-copy">
             <span class="brand-copy__title">BANIK Books</span>
@@ -34,7 +35,10 @@
       <main class="hero">
         <section class="hero-copy">
           <span class="eyebrow">Built for Bangladeshi companies</span>
-          <h1>Manage everyday business accounts without the clutter.</h1>
+          <h1 class="hero-title">
+            <span>Manage everyday business</span>
+            <span>accounts without the clutter.</span>
+          </h1>
           <p class="lead">
             BANIK Books helps small and medium businesses keep track of income,
             expenses, invoices, receivables, and reports from one clean online
@@ -43,59 +47,134 @@
 
           <div class="feature-list">
             <article class="feature-card">
+              <span class="feature-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                  <path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" />
+                </svg>
+              </span>
               <h2>Daily bookkeeping</h2>
-              <p>
-                Record cash, bank, sales, purchases, and expenses in a simple,
-                organized way.
-              </p>
             </article>
             <article class="feature-card">
+              <span class="feature-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                  <path d="M4 19V5M4 19h16M8 16v-5M12 16V8M16 16v-7M20 16v-3" />
+                </svg>
+              </span>
               <h2>Clear business reporting</h2>
-              <p>
-                Get quick visibility into profit, due amounts, and account
-                balances whenever you need it.
-              </p>
             </article>
             <article class="feature-card">
+              <span class="feature-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                  <path d="M16 11a4 4 0 1 0-8 0M4 21a8 8 0 0 1 16 0M19 8v6M22 11h-6" />
+                </svg>
+              </span>
               <h2>Made for real teams</h2>
-              <p>
-                A straightforward web experience for owners, managers, and
-                accountants who want less hassle.
-              </p>
             </article>
           </div>
         </section>
 
         <aside class="signup-panel">
           <div class="signup-panel__badge">Start with BANIK Books</div>
-          <div class="signup-panel__logo" aria-hidden="true">BB</div>
-          <h2>Create your account</h2>
+          <div class="signup-panel__logo" aria-hidden="true">
+            <img src="./assets/banik-logo.svg" alt="" />
+          </div>
+          <h2>Sign In to your Account</h2>
           <p class="signup-panel__text">
-            Sign up to explore a cleaner way to handle your company accounts.
+            Use your email and password to open your workspace.
           </p>
 
-          <form class="signup-form" action="./signup.html">
+          <form class="signup-form" id="home-auth-form">
             <label class="field">
-              <span class="sr-only">Company email address</span>
-              <input type="email" placeholder="Company email address" />
+              <span class="sr-only">Email address</span>
+              <input id="home-auth-email" type="email" placeholder="Email address" autocomplete="email" required />
             </label>
             <label class="field">
               <span class="sr-only">Password</span>
-              <input type="password" placeholder="Password" />
+              <input id="home-auth-password" type="password" placeholder="Password" autocomplete="current-password" required />
             </label>
-            <label class="field">
-              <span class="sr-only">Company name</span>
-              <input type="text" placeholder="Company name" />
-            </label>
-            <button type="submit">Sign up</button>
+            <p class="auth-form-status" id="home-auth-status" aria-live="polite"></p>
+            <button id="home-auth-submit" type="submit">Sign In</button>
           </form>
 
           <div class="signup-links">
-            <a href="./signup.html">Already have an account?</a>
-            <a href="./signup.html">Need help getting started?</a>
+            <span>New to BANIK Books?</span>
+            <a href="#" id="home-auth-mode-toggle">Create a new account</a>
           </div>
         </aside>
       </main>
     </div>
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const form = document.getElementById("home-auth-form");
+        const emailInput = document.getElementById("home-auth-email");
+        const passwordInput = document.getElementById("home-auth-password");
+        const status = document.getElementById("home-auth-status");
+        const submitButton = document.getElementById("home-auth-submit");
+        const modeToggle = document.getElementById("home-auth-mode-toggle");
+        const panelTitle = document.querySelector(".signup-panel h2");
+        const panelText = document.querySelector(".signup-panel__text");
+        let mode = "login";
+
+        function setMode(nextMode) {
+          mode = nextMode;
+          const isLogin = mode === "login";
+          status.textContent = "";
+          status.className = "auth-form-status";
+          submitButton.textContent = isLogin ? "Sign In" : "Sign up";
+          modeToggle.textContent = isLogin ? "Create a new account" : "Already have an account?";
+          panelTitle.textContent = isLogin ? "Sign In to your Account" : "Create your account";
+          panelText.textContent = isLogin
+            ? "Use your email and password to open your workspace."
+            : "Sign up to explore a cleaner way to handle your company accounts.";
+          document.querySelector(".signup-links span").hidden = !isLogin;
+        }
+
+        function setStatus(message, isError) {
+          status.textContent = message;
+          status.className = `auth-form-status ${isError ? "auth-form-status--error" : "auth-form-status--success"}`;
+        }
+
+        modeToggle.addEventListener("click", (event) => {
+          event.preventDefault();
+          setMode(mode === "signup" ? "login" : "signup");
+        });
+
+        form.addEventListener("submit", async (event) => {
+          event.preventDefault();
+          submitButton.disabled = true;
+          setStatus("Please wait...", false);
+          const result =
+            mode === "login"
+              ? await window.BanikAuth.login(emailInput.value, passwordInput.value)
+              : await window.BanikAuth.register({
+                  email: emailInput.value,
+                  password: passwordInput.value,
+                });
+
+          if (!result.ok) {
+            setStatus(result.message, !result.requiresVerification);
+            submitButton.disabled = false;
+            return;
+          }
+
+          if (result.requiresVerification) {
+            submitButton.disabled = false;
+            setMode("login");
+            setStatus(result.message, false);
+            return;
+          }
+
+          setStatus("Success. Opening your workspace...", false);
+          if (!result.user.profileCompleted) {
+            window.location.href = "./signup.html";
+            return;
+          }
+
+          window.location.href = result.user.role === "admin" ? "./admin.html" : "./workspace.html";
+        });
+
+        setMode("login");
+      });
+    </script>
   </body>
 </html>
