@@ -37,8 +37,8 @@ const BANIK_MODULES = Object.freeze([
   },
   {
     key: "vat-tax-calculator",
-    label: "VAT/Tax Calculator",
-    pages: ["vat-tax-calculator.html"],
+    label: "Withholding VAT/Tax Calculator",
+    pages: ["withholding-vat-tax-calculator.html"],
   },
   {
     key: "reports",

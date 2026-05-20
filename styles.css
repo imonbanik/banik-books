@@ -1525,18 +1525,18 @@ button:active {
 
 .vat-tax-shell {
   display: grid;
-  gap: 26px;
-  margin-top: 26px;
+  gap: 16px;
+  margin-top: 18px;
   padding-top: 0;
 }
 
 .vat-tax-hero {
   position: relative;
   display: grid;
-  gap: 16px;
+  gap: 10px;
   align-items: center;
-  padding: 28px 32px;
-  border-radius: 30px;
+  padding: 20px 28px;
+  border-radius: 24px;
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(255, 247, 246, 0.9)),
     radial-gradient(circle at top right, rgba(239, 68, 68, 0.12), transparent 32%);
@@ -1549,16 +1549,16 @@ button:active {
   margin: 0;
   max-width: none;
   font-family: "Ubuntu", sans-serif;
-  font-size: clamp(2.1rem, 4vw, 3.4rem);
+  font-size: clamp(1.8rem, 3.6vw, 2.85rem);
   line-height: 1.02;
-  letter-spacing: -0.05em;
+  letter-spacing: 0;
   white-space: nowrap;
 }
 
 .vat-tax-calculator {
   display: grid;
-  gap: 26px;
-  width: min(960px, 100%);
+  gap: 14px;
+  width: min(900px, 100%);
   margin: 0 auto;
   padding: 0;
   background: transparent;
@@ -1570,7 +1570,7 @@ button:active {
   display: grid;
   overflow: hidden;
   border: 1px solid rgba(127, 29, 29, 0.14);
-  border-radius: 28px;
+  border-radius: 22px;
   color: var(--ink);
   box-shadow: var(--shadow);
 }
@@ -1589,9 +1589,9 @@ button:active {
 
 .vat-sheet h2 {
   margin: 0;
-  padding: 24px 28px 18px;
+  padding: 14px 22px 12px;
   color: var(--red-900);
-  font-size: clamp(1.24rem, 2.6vw, 1.65rem);
+  font-size: clamp(1.04rem, 2.1vw, 1.32rem);
   line-height: 1.2;
   letter-spacing: 0;
   background: rgba(255, 242, 240, 0.86);
@@ -1600,9 +1600,9 @@ button:active {
 
 .vat-sheet-row {
   display: grid;
-  grid-template-columns: minmax(360px, 1fr) minmax(180px, 0.48fr) minmax(170px, 0.46fr);
+  grid-template-columns: minmax(340px, 1fr) minmax(150px, 0.45fr) minmax(145px, 0.42fr);
   align-items: center;
-  min-height: 58px;
+  min-height: 44px;
   border-bottom: 1px solid rgba(127, 29, 29, 0.09);
 }
 
@@ -1612,8 +1612,8 @@ button:active {
 
 .vat-sheet-row > label,
 .vat-sheet-row > span {
-  padding: 12px 28px;
-  font-size: 1.08rem;
+  padding: 8px 22px;
+  font-size: 0.96rem;
   font-weight: 700;
   color: #3f2a2a;
 }
@@ -1621,14 +1621,14 @@ button:active {
 .vat-sheet-row input,
 .vat-sheet-row output {
   width: 100%;
-  min-height: 58px;
+  min-height: 44px;
   margin: 0;
-  padding: 12px 18px;
+  padding: 8px 14px;
   border: none;
   border-radius: 0;
   color: var(--ink);
   font: inherit;
-  font-size: 1.1rem;
+  font-size: 1rem;
   font-weight: 700;
   line-height: 1.4;
   text-align: right;
@@ -3388,11 +3388,11 @@ button:active {
   }
 
   .vat-tax-shell {
-    padding-top: 24px;
+    margin-top: 18px;
+    padding-top: 0;
   }
 
-  .vat-tax-hero,
-  .vat-tax-calculator {
+  .vat-tax-hero {
     border-radius: 24px;
   }
 
