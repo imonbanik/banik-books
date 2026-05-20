@@ -55,6 +55,18 @@ function sanitizeObject(value) {
   return value;
 }
 
+function normalizeTimestamp(value) {
+  if (!value) {
+    return "";
+  }
+
+  if (typeof value.toDate === "function") {
+    return value.toDate().toISOString();
+  }
+
+  return String(value);
+}
+
 function assertConfigured() {
   if (!db || !auth) {
     throw new Error("Firebase config missing.");
@@ -115,8 +127,8 @@ function normalizeChallanDoc(id, data) {
     organizationName: data.organizationName || "",
     individualAmount: Number(data.individualAmount || 0),
     totalAmount: Number(data.totalAmount || 0),
-    createdAt: data.createdAt || "",
-    updatedAt: data.updatedAt || "",
+    createdAt: normalizeTimestamp(data.createdAt),
+    updatedAt: normalizeTimestamp(data.updatedAt),
   };
 }
 

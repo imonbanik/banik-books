@@ -690,6 +690,66 @@
           return new Date(parts[2], parts[1] - 1, parts[0]).getTime();
         }
 
+        function parseEntryTimestamp(value) {
+          if (!value) {
+            return null;
+          }
+
+          if (typeof value.toDate === "function") {
+            return value.toDate();
+          }
+
+          const parsedDate = new Date(value);
+          return Number.isNaN(parsedDate.getTime()) ? null : parsedDate;
+        }
+
+        function padDatePart(value) {
+          return String(value).padStart(2, "0");
+        }
+
+        function formatEntryTimestamp(value) {
+          const entryDate = parseEntryTimestamp(value);
+
+          if (!entryDate) {
+            return "-";
+          }
+
+          const monthLabels = [
+            "Jan",
+            "Feb",
+            "Mar",
+            "Apr",
+            "May",
+            "Jun",
+            "Jul",
+            "Aug",
+            "Sep",
+            "Oct",
+            "Nov",
+            "Dec",
+          ];
+          const hour24 = entryDate.getHours();
+          const hour12 = hour24 % 12 || 12;
+          const meridiem = hour24 >= 12 ? "PM" : "AM";
+
+          const formattedDate =
+            padDatePart(entryDate.getDate()) +
+            "-" +
+            monthLabels[entryDate.getMonth()] +
+            "-" +
+            entryDate.getFullYear();
+          const formattedTime =
+            padDatePart(hour12) +
+            ":" +
+            padDatePart(entryDate.getMinutes()) +
+            ":" +
+            padDatePart(entryDate.getSeconds()) +
+            " " +
+            meridiem;
+
+          return formattedDate + "\n" + formattedTime;
+        }
+
         function normalizeAmount(value) {
           const cleanValue = sanitizeAmountInput(value);
           if (!cleanValue || cleanValue === ".") {
@@ -800,6 +860,8 @@
               return entry.challanNumber || "";
             case "challanDate":
               return parseDisplayDate(entry.challanDate);
+            case "createdAt":
+              return parseEntryTimestamp(entry.createdAt)?.getTime() || 0;
             case "organizationName":
               return (entry.organizationName || "").toLowerCase();
             case "individualAmount":
@@ -825,6 +887,8 @@
               return entry.challanNumber || "";
             case "challanDate":
               return entry.challanDate || "";
+            case "createdAt":
+              return formatEntryTimestamp(entry.createdAt);
             case "organizationName":
               return entry.organizationName || "";
             case "individualAmount":
@@ -909,6 +973,7 @@
             "Organization / Individual",
             "Individual Amount",
             "Total Amount",
+            "Time of Entry",
           ];
           const individualTotal = currentRegisterRows.reduce(
             (total, entry) => total + (Number(entry.individualAmount) || 0),
@@ -927,6 +992,7 @@
                   <td>${escapeHtml(entry.organizationName)}</td>
                   <td>${escapeHtml(formatAmount(entry.individualAmount))}</td>
                   <td>${escapeHtml(formatAmount(entry.totalAmount))}</td>
+                  <td style="white-space: pre-line;">${escapeHtml(formatEntryTimestamp(entry.createdAt))}</td>
                 </tr>
               `
             )
@@ -947,6 +1013,7 @@
                     <tr>
                       <td colspan="7"><strong>Total Individual Amount</strong></td>
                       <td><strong>${escapeHtml(formatAmount(individualTotal))}</strong></td>
+                      <td></td>
                       <td></td>
                     </tr>
                   </tbody>
@@ -1010,6 +1077,7 @@
                   <td class="cell-left">${escapeHtml(entry.organizationName)}</td>
                   <td class="cell-amount">${escapeHtml(formatAmount(entry.individualAmount))}</td>
                   <td class="cell-amount">${escapeHtml(formatAmount(entry.totalAmount))}</td>
+                  <td class="cell-center" style="white-space: pre-line;">${escapeHtml(formatEntryTimestamp(entry.createdAt))}</td>
                   <td class="cell-center">
                     <button
                       class="icon-action-button"
@@ -1937,6 +2005,16 @@
                     </select>
                   </div>
                 </th>
+                <th scope="col">
+                  <div class="register-column-head">
+                    <button class="register-sort-button" type="button" data-sort="createdAt">
+                      Time of Entry
+                    </button>
+                    <select class="register-column-filter" data-register-filter="createdAt" aria-label="Filter Time of Entry">
+                      <option value="">All</option>
+                    </select>
+                  </div>
+                </th>
                 <th scope="col">Download</th>
                 <th scope="col">Delete</th>
               </tr>
@@ -1946,7 +2024,7 @@
               <tr class="register-total-row">
                 <td class="register-total-label" colspan="7">Total Individual Amount</td>
                 <td id="registerIndividualTotal" class="cell-amount">0.00</td>
-                <td colspan="3"></td>
+                <td colspan="4"></td>
               </tr>
             </tfoot>
           </table>

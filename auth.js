@@ -31,6 +31,11 @@ const BANIK_MODULES = Object.freeze([
   { key: "cheque-printer", label: "Cheque Printer", pages: ["cheque-printer.html", "Imon-Cheque.html"] },
   { key: "challan-management", label: "Challan Management", pages: ["challan-management.html"] },
   {
+    key: "payroll-tax-calculator",
+    label: "Payroll Tax Calculator",
+    pages: ["payroll-tax-calculator.html"],
+  },
+  {
     key: "reports",
     label: "Reports",
     pages: [
