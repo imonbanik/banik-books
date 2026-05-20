@@ -13,8 +13,9 @@
     <link rel="stylesheet" href="./styles.css" />
     <script src="./app-config.js" defer></script>
     <script src="./auth.js" type="module"></script>
+    <script src="./data-service.js" type="module"></script>
     <script>
-      document.addEventListener("DOMContentLoaded", () => {
+      document.addEventListener("DOMContentLoaded", async () => {
         const CHALLAN_STORAGE_KEY = "banikBooksChallanRegisterEntries";
         const ORGANIZATION_STORAGE_KEY = "banikBooksChallanOrganizations";
         const ORGANIZATION_DELETED_STORAGE_KEY = "banikBooksChallanDeletedOrganizations";
@@ -109,11 +110,12 @@
           document.querySelectorAll("[data-register-filter]")
         );
 
-        let entries = loadEntries();
-        let managedEntryDeletedKeys = loadAllManagedEntryDeletedKeys();
-        let managedEntryOptions = loadAllManagedEntryOptions();
-        let deletedOrganizationKeys = loadDeletedOrganizationKeys();
-        let organizationNames = loadOrganizationNames();
+        let entries = [];
+        let managedEntryDeletedKeys = {};
+        let managedEntryOptions = {};
+        let deletedOrganizationKeys = [];
+        let organizationNames = [];
+        let currentUserStoragePrefix = "banikBooks:signedOut:challan";
         let registerFilters = {};
         let currentRegisterRows = [];
         let currentSort = {
@@ -122,24 +124,60 @@
         };
         let toastTimer = null;
 
-        function loadEntries() {
-          try {
-            const parsedEntries = JSON.parse(localStorage.getItem(CHALLAN_STORAGE_KEY) || "[]");
-            if (!Array.isArray(parsedEntries)) {
-              return [];
-            }
+        function getScopedStorageKey(storageKey) {
+          return currentUserStoragePrefix + ":" + storageKey;
+        }
 
-            return parsedEntries.map((entry) => ({
-              ...entry,
-              id: entry.id || String(Date.now()) + Math.random().toString(36).slice(2),
-            }));
+        async function prepareUserScopedLocalState() {
+          try {
+            const user =
+              window.BanikData && typeof window.BanikData.getCurrentUser === "function"
+                ? await window.BanikData.getCurrentUser()
+                : null;
+
+            if (user && user.id) {
+              currentUserStoragePrefix = "banikBooks:" + user.id + ":challan";
+            }
           } catch {
-            return [];
+            currentUserStoragePrefix = "banikBooks:signedOut:challan";
+          }
+
+          managedEntryDeletedKeys = loadAllManagedEntryDeletedKeys();
+          managedEntryOptions = loadAllManagedEntryOptions();
+          deletedOrganizationKeys = loadDeletedOrganizationKeys();
+          organizationNames = loadOrganizationNames();
+        }
+
+        async function loadCloudEntries() {
+          if (!window.BanikData || typeof window.BanikData.listChallans !== "function") {
+            entries = [];
+            showToast("Cloud data service is not ready. Please refresh after signing in.", "error");
+            return;
+          }
+
+          try {
+            entries = await window.BanikData.listChallans();
+            localStorage.removeItem(CHALLAN_STORAGE_KEY);
+          } catch {
+            entries = [];
+            showToast("Could not load cloud challans. Check sign-in and internet connection.", "error");
           }
         }
 
-        function persistEntries() {
-          localStorage.setItem(CHALLAN_STORAGE_KEY, JSON.stringify(entries));
+        async function saveCloudEntry(entry) {
+          if (!window.BanikData || typeof window.BanikData.saveChallan !== "function") {
+            throw new Error("Cloud data service is not ready.");
+          }
+
+          return window.BanikData.saveChallan(entry);
+        }
+
+        async function deleteCloudEntry(entryId) {
+          if (!window.BanikData || typeof window.BanikData.deleteChallan !== "function") {
+            throw new Error("Cloud data service is not ready.");
+          }
+
+          await window.BanikData.deleteChallan(entryId);
         }
 
         function normalizeEntryOption(value) {
@@ -152,7 +190,7 @@
 
         function readStorageArray(storageKey) {
           try {
-            const parsedItems = JSON.parse(localStorage.getItem(storageKey) || "[]");
+            const parsedItems = JSON.parse(localStorage.getItem(getScopedStorageKey(storageKey)) || "[]");
             return Array.isArray(parsedItems) ? parsedItems : [];
           } catch {
             return [];
@@ -191,12 +229,15 @@
         }
 
         function persistManagedEntryOptions(config) {
-          localStorage.setItem(config.storageKey, JSON.stringify(managedEntryOptions[config.key] || []));
+          localStorage.setItem(
+            getScopedStorageKey(config.storageKey),
+            JSON.stringify(managedEntryOptions[config.key] || [])
+          );
         }
 
         function persistManagedEntryDeletedKeys(config) {
           localStorage.setItem(
-            config.deletedStorageKey,
+            getScopedStorageKey(config.deletedStorageKey),
             JSON.stringify(managedEntryDeletedKeys[config.key] || [])
           );
         }
@@ -412,7 +453,7 @@
         function loadDeletedOrganizationKeys() {
           try {
             const parsedKeys = JSON.parse(
-              localStorage.getItem(ORGANIZATION_DELETED_STORAGE_KEY) || "[]"
+              localStorage.getItem(getScopedStorageKey(ORGANIZATION_DELETED_STORAGE_KEY)) || "[]"
             );
             return Array.isArray(parsedKeys) ? parsedKeys : [];
           } catch {
@@ -422,7 +463,7 @@
 
         function persistDeletedOrganizationKeys() {
           localStorage.setItem(
-            ORGANIZATION_DELETED_STORAGE_KEY,
+            getScopedStorageKey(ORGANIZATION_DELETED_STORAGE_KEY),
             JSON.stringify(deletedOrganizationKeys)
           );
         }
@@ -431,7 +472,9 @@
           let storedNames = [];
 
           try {
-            const parsedNames = JSON.parse(localStorage.getItem(ORGANIZATION_STORAGE_KEY) || "[]");
+            const parsedNames = JSON.parse(
+              localStorage.getItem(getScopedStorageKey(ORGANIZATION_STORAGE_KEY)) || "[]"
+            );
             storedNames = Array.isArray(parsedNames) ? parsedNames : [];
           } catch {
             storedNames = [];
@@ -449,7 +492,10 @@
         }
 
         function persistOrganizationNames() {
-          localStorage.setItem(ORGANIZATION_STORAGE_KEY, JSON.stringify(organizationNames));
+          localStorage.setItem(
+            getScopedStorageKey(ORGANIZATION_STORAGE_KEY),
+            JSON.stringify(organizationNames)
+          );
         }
 
         function findOrganizationName(name) {
@@ -1230,7 +1276,7 @@
           });
         });
 
-        entryForm.addEventListener("submit", (event) => {
+        entryForm.addEventListener("submit", async (event) => {
           event.preventDefault();
 
           const withheldFyResult = finalizeManagedEntryOption(getManagedEntryConfig("withheldFy"));
@@ -1315,7 +1361,7 @@
             return;
           }
 
-          entries.unshift({
+          const entryRecord = {
             id:
               typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
                 ? crypto.randomUUID()
@@ -1330,9 +1376,19 @@
             organizationName,
             individualAmount,
             totalAmount,
-          });
+          };
 
-          persistEntries();
+          let savedEntry;
+
+          try {
+            savedEntry = await saveCloudEntry(entryRecord);
+          } catch {
+            setEntryError("Could not save this challan to cloud. Check internet and try again.");
+            showToast("Challan entry was not saved.", "error");
+            return;
+          }
+
+          entries = [savedEntry, ...entries.filter((entry) => entry.id !== savedEntry.id)];
           renderRegister();
           resetEntryForm();
           closeEntryModal();
@@ -1363,7 +1419,7 @@
 
         exportRegisterExcelButton.addEventListener("click", downloadVisibleRegisterAsExcel);
 
-        registerTableBody.addEventListener("click", (event) => {
+        registerTableBody.addEventListener("click", async (event) => {
           const downloadButton = event.target.closest("[data-download-challan]");
           if (downloadButton) {
             event.preventDefault();
@@ -1389,15 +1445,23 @@
             return;
           }
 
+          try {
+            await deleteCloudEntry(entryId);
+          } catch {
+            showToast("Could not delete this challan from cloud. Try again.", "error");
+            return;
+          }
+
           entries = entries.filter((entry) => entry.id !== entryId);
-          persistEntries();
           renderRegister();
           showToast("Challan entry deleted.", "success");
         });
 
+        await prepareUserScopedLocalState();
         renderAllManagedEntryOptions();
         renderOrganizationOptions("");
         toggleNewOrganizationField();
+        await loadCloudEntries();
         renderRegister();
       });
     </script>

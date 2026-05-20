@@ -1,4 +1,8 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+import {
+  getApp,
+  getApps,
+  initializeApp,
+} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
 import {
   createUserWithEmailAndPassword,
   getAuth,
@@ -46,7 +50,11 @@ const isFirebaseConfigured = !Object.values(firebaseConfig).some((value) =>
   String(value || "").startsWith("PASTE_")
 );
 const normalizedFounderEmail = normalizeAuthEmail(BANIK_FOUNDER_ADMIN_EMAIL);
-const app = isFirebaseConfigured ? initializeApp(firebaseConfig) : null;
+const app = isFirebaseConfigured
+  ? getApps().length
+    ? getApp()
+    : initializeApp(firebaseConfig)
+  : null;
 const auth = app ? getAuth(app) : null;
 const db = app ? getFirestore(app) : null;
 
