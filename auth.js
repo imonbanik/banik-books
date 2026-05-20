@@ -36,6 +36,11 @@ const BANIK_MODULES = Object.freeze([
     pages: ["payroll-tax-calculator.html"],
   },
   {
+    key: "vat-tax-calculator",
+    label: "VAT/Tax Calculator",
+    pages: ["vat-tax-calculator.html"],
+  },
+  {
     key: "reports",
     label: "Reports",
     pages: [
