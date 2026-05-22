@@ -7,4 +7,4 @@ PORT="4103"
 
 cd "$PROJECT_DIR"
 echo "Starting banik_books at http://$HOST:$PORT"
-exec python3 -m http.server "$PORT" --bind "$HOST"
+exec env HOST="$HOST" PORT="$PORT" node server.js

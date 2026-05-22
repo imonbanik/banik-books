@@ -21,8 +21,22 @@ import {
   serverTimestamp,
   setDoc,
   updateDoc,
+  writeBatch,
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 import { BANIK_FOUNDER_ADMIN_EMAIL, firebaseConfig } from "./firebase-config.js";
+
+const LETTERHEAD_MAX_BYTES = 4 * 1024 * 1024;
+const LETTERHEAD_CHUNK_SIZE = 500000;
+const LETTERHEAD_ALLOWED_TYPES = new Set([
+  "image/png",
+  "image/jpeg",
+  "image/jpg",
+  "application/pdf",
+]);
+const ESIGN_MAX_BYTES = 512 * 1024;
+const ESIGN_ALLOWED_TYPES = new Set(["image/png", "image/jpeg", "image/jpg"]);
+const ESIGN_REQUIRED_WIDTH = 300;
+const ESIGN_REQUIRED_HEIGHT = 100;
 
 const BANIK_MODULES = Object.freeze([
   { key: "journal-entry", label: "Journal Entry", pages: ["journal-entry.html"] },
@@ -39,6 +53,21 @@ const BANIK_MODULES = Object.freeze([
     key: "vat-tax-calculator",
     label: "Withholding VAT/Tax Calculator",
     pages: ["withholding-vat-tax-calculator.html"],
+  },
+  {
+    key: "tax-vat-customs-rates",
+    label: "Tax, VAT & Customs Rates",
+    pages: ["tax-vat-customs-rates.html"],
+  },
+  {
+    key: "emi-calculator",
+    label: "EMI Calculator",
+    pages: ["emi-calculator.html"],
+  },
+  {
+    key: "invoice-generator",
+    label: "Invoice Generator",
+    pages: ["invoice-generator.html"],
   },
   {
     key: "reports",
@@ -155,6 +184,133 @@ function normalizeUserDoc(id, data) {
     emailVerified: Boolean(data.emailVerified),
     createdAt: normalizeTimestamp(data.createdAt),
     lastLoginAt: normalizeTimestamp(data.lastLoginAt),
+    letterheadMeta: data.letterheadMeta || null,
+    eSignMeta: data.eSignMeta || null,
+  };
+}
+
+function getLetterheadRefs(userId) {
+  const metaRef = doc(db, "userData", userId, "profile", "letterhead");
+  const chunksRef = collection(db, "userData", userId, "profile", "letterhead", "chunks");
+  return { metaRef, chunksRef };
+}
+
+function getESignRefs(userId) {
+  const metaRef = doc(db, "userData", userId, "profile", "eSign");
+  const chunksRef = collection(db, "userData", userId, "profile", "eSign", "chunks");
+  return { metaRef, chunksRef };
+}
+
+function getLetterheadExtension(type) {
+  if (type === "application/pdf") {
+    return "pdf";
+  }
+
+  if (type === "image/png") {
+    return "png";
+  }
+
+  return "jpg";
+}
+
+function normalizeLetterheadPayload(payload) {
+  const name = String(payload && payload.name ? payload.name : "organization-letterhead").trim();
+  const rawType = String(payload && payload.type ? payload.type : "").trim().toLowerCase();
+  const type = rawType === "image/jpg" ? "image/jpeg" : rawType;
+  const size = Number(payload && payload.size ? payload.size : 0);
+  const dataUrl = String(payload && payload.dataUrl ? payload.dataUrl : "");
+
+  if (!LETTERHEAD_ALLOWED_TYPES.has(type)) {
+    return {
+      ok: false,
+      message: "Upload PNG, JPG, or PDF format only.",
+    };
+  }
+
+  if (!size || size > LETTERHEAD_MAX_BYTES) {
+    return {
+      ok: false,
+      message: "Letterhead file must be 4 MB or smaller.",
+    };
+  }
+
+  const dataUrlTypeMatch = dataUrl.match(/^data:([^;]+);base64,/);
+  const dataUrlType = dataUrlTypeMatch
+    ? (dataUrlTypeMatch[1] === "image/jpg" ? "image/jpeg" : dataUrlTypeMatch[1])
+    : "";
+
+  if (dataUrlType !== type) {
+    return {
+      ok: false,
+      message: "Could not read the selected letterhead file.",
+    };
+  }
+
+  return {
+    ok: true,
+    letterhead: {
+      name,
+      type,
+      size,
+      extension: getLetterheadExtension(type),
+      dataUrl,
+    },
+  };
+}
+
+function normalizeESignPayload(payload) {
+  const name = String(payload && payload.name ? payload.name : "e-signature").trim();
+  const rawType = String(payload && payload.type ? payload.type : "").trim().toLowerCase();
+  const type = rawType === "image/jpg" ? "image/jpeg" : rawType;
+  const size = Number(payload && payload.size ? payload.size : 0);
+  const width = Number(payload && payload.width ? payload.width : 0);
+  const height = Number(payload && payload.height ? payload.height : 0);
+  const dataUrl = String(payload && payload.dataUrl ? payload.dataUrl : "");
+
+  if (!ESIGN_ALLOWED_TYPES.has(type)) {
+    return {
+      ok: false,
+      message: "Upload PNG or JPG e-sign only.",
+    };
+  }
+
+  if (!size || size > ESIGN_MAX_BYTES) {
+    return {
+      ok: false,
+      message: "E-sign file must be 512 KB or smaller.",
+    };
+  }
+
+  if (width !== ESIGN_REQUIRED_WIDTH || height !== ESIGN_REQUIRED_HEIGHT) {
+    return {
+      ok: false,
+      message: "E-sign must be exactly 300x100 pixels.",
+    };
+  }
+
+  const dataUrlTypeMatch = dataUrl.match(/^data:([^;]+);base64,/);
+  const dataUrlType = dataUrlTypeMatch
+    ? (dataUrlTypeMatch[1] === "image/jpg" ? "image/jpeg" : dataUrlTypeMatch[1])
+    : "";
+
+  if (dataUrlType !== type) {
+    return {
+      ok: false,
+      message: "Could not read the selected e-sign file.",
+    };
+  }
+
+  return {
+    ok: true,
+    eSign: {
+      name,
+      type,
+      size,
+      width,
+      height,
+      extension: getLetterheadExtension(type),
+      dataUrl,
+    },
   };
 }
 
@@ -413,6 +569,350 @@ async function updateCurrentUserProfile(profile) {
   }
 }
 
+async function saveCurrentUserLetterhead(payload) {
+  const configStatus = assertFirebaseConfigured();
+
+  if (!configStatus.ok) {
+    return configStatus;
+  }
+
+  const user = await getCurrentBanikUser();
+
+  if (!user) {
+    return { ok: false, message: "Please log in first." };
+  }
+
+  const normalized = normalizeLetterheadPayload(payload);
+
+  if (!normalized.ok) {
+    return normalized;
+  }
+
+  const { metaRef, chunksRef } = getLetterheadRefs(user.id);
+  const existingChunks = await getDocs(chunksRef);
+  const uploadedAtIso = new Date().toISOString();
+  const chunks = [];
+
+  for (let index = 0; index < normalized.letterhead.dataUrl.length; index += LETTERHEAD_CHUNK_SIZE) {
+    chunks.push(normalized.letterhead.dataUrl.slice(index, index + LETTERHEAD_CHUNK_SIZE));
+  }
+
+  const letterheadMeta = {
+    name: normalized.letterhead.name,
+    type: normalized.letterhead.type,
+    size: normalized.letterhead.size,
+    extension: normalized.letterhead.extension,
+    chunkCount: chunks.length,
+    dataLength: normalized.letterhead.dataUrl.length,
+    pageSize: "A4",
+    uploadedAtIso,
+  };
+
+  try {
+    const batch = writeBatch(db);
+
+    existingChunks.docs.forEach((chunkDoc) => {
+      batch.delete(chunkDoc.ref);
+    });
+
+    batch.set(metaRef, {
+      ...letterheadMeta,
+      uploadedAt: serverTimestamp(),
+    });
+
+    chunks.forEach((chunk, index) => {
+      batch.set(doc(chunksRef, String(index).padStart(4, "0")), {
+        order: index,
+        data: chunk,
+      });
+    });
+
+    await batch.commit();
+    await updateDoc(doc(db, "users", user.id), {
+      letterheadMeta,
+      updatedAt: serverTimestamp(),
+    });
+
+    cachedCurrentUser = {
+      ...user,
+      letterheadMeta,
+    };
+
+    return {
+      ok: true,
+      letterhead: {
+        ...letterheadMeta,
+        dataUrl: normalized.letterhead.dataUrl,
+      },
+      user: cachedCurrentUser,
+    };
+  } catch {
+    return { ok: false, message: "Could not save letterhead. Check Firestore rules and try again." };
+  }
+}
+
+async function getCurrentUserLetterhead() {
+  const configStatus = assertFirebaseConfigured();
+
+  if (!configStatus.ok) {
+    return configStatus;
+  }
+
+  const user = await getCurrentBanikUser();
+
+  if (!user) {
+    return { ok: false, message: "Please log in first." };
+  }
+
+  try {
+    const { metaRef, chunksRef } = getLetterheadRefs(user.id);
+    const metaSnapshot = await getDoc(metaRef);
+
+    if (!metaSnapshot.exists()) {
+      return { ok: true, letterhead: null };
+    }
+
+    const meta = metaSnapshot.data() || {};
+    const chunkSnapshot = await getDocs(chunksRef);
+    const dataUrl = chunkSnapshot.docs
+      .map((chunkDoc) => chunkDoc.data() || {})
+      .sort((left, right) => Number(left.order || 0) - Number(right.order || 0))
+      .map((chunk) => String(chunk.data || ""))
+      .join("");
+
+    return {
+      ok: true,
+      letterhead: {
+        name: meta.name || "organization-letterhead",
+        type: meta.type || "",
+        size: Number(meta.size || 0),
+        extension: meta.extension || "",
+        chunkCount: Number(meta.chunkCount || chunkSnapshot.docs.length),
+        dataLength: Number(meta.dataLength || dataUrl.length),
+        pageSize: meta.pageSize || "A4",
+        uploadedAt: normalizeTimestamp(meta.uploadedAt) || meta.uploadedAtIso || "",
+        uploadedAtIso: meta.uploadedAtIso || "",
+        dataUrl,
+      },
+    };
+  } catch {
+    return { ok: false, message: "Could not load letterhead." };
+  }
+}
+
+async function removeCurrentUserLetterhead() {
+  const configStatus = assertFirebaseConfigured();
+
+  if (!configStatus.ok) {
+    return configStatus;
+  }
+
+  const user = await getCurrentBanikUser();
+
+  if (!user) {
+    return { ok: false, message: "Please log in first." };
+  }
+
+  try {
+    const { metaRef, chunksRef } = getLetterheadRefs(user.id);
+    const chunkSnapshot = await getDocs(chunksRef);
+    const batch = writeBatch(db);
+
+    chunkSnapshot.docs.forEach((chunkDoc) => {
+      batch.delete(chunkDoc.ref);
+    });
+    batch.delete(metaRef);
+
+    await batch.commit();
+    await updateDoc(doc(db, "users", user.id), {
+      letterheadMeta: null,
+      updatedAt: serverTimestamp(),
+    });
+
+    cachedCurrentUser = {
+      ...user,
+      letterheadMeta: null,
+    };
+
+    return { ok: true, user: cachedCurrentUser };
+  } catch {
+    return { ok: false, message: "Could not remove letterhead. Check Firestore rules and try again." };
+  }
+}
+
+async function saveCurrentUserESign(payload) {
+  const configStatus = assertFirebaseConfigured();
+
+  if (!configStatus.ok) {
+    return configStatus;
+  }
+
+  const user = await getCurrentBanikUser();
+
+  if (!user) {
+    return { ok: false, message: "Please log in first." };
+  }
+
+  const normalized = normalizeESignPayload(payload);
+
+  if (!normalized.ok) {
+    return normalized;
+  }
+
+  const { metaRef, chunksRef } = getESignRefs(user.id);
+  const existingChunks = await getDocs(chunksRef);
+  const uploadedAtIso = new Date().toISOString();
+  const chunks = [];
+
+  for (let index = 0; index < normalized.eSign.dataUrl.length; index += LETTERHEAD_CHUNK_SIZE) {
+    chunks.push(normalized.eSign.dataUrl.slice(index, index + LETTERHEAD_CHUNK_SIZE));
+  }
+
+  const eSignMeta = {
+    name: normalized.eSign.name,
+    type: normalized.eSign.type,
+    size: normalized.eSign.size,
+    width: normalized.eSign.width,
+    height: normalized.eSign.height,
+    extension: normalized.eSign.extension,
+    chunkCount: chunks.length,
+    dataLength: normalized.eSign.dataUrl.length,
+    uploadedAtIso,
+  };
+
+  try {
+    const batch = writeBatch(db);
+
+    existingChunks.docs.forEach((chunkDoc) => {
+      batch.delete(chunkDoc.ref);
+    });
+
+    batch.set(metaRef, {
+      ...eSignMeta,
+      uploadedAt: serverTimestamp(),
+    });
+
+    chunks.forEach((chunk, index) => {
+      batch.set(doc(chunksRef, String(index).padStart(4, "0")), {
+        order: index,
+        data: chunk,
+      });
+    });
+
+    await batch.commit();
+    await updateDoc(doc(db, "users", user.id), {
+      eSignMeta,
+      updatedAt: serverTimestamp(),
+    });
+
+    cachedCurrentUser = {
+      ...user,
+      eSignMeta,
+    };
+
+    return {
+      ok: true,
+      eSign: {
+        ...eSignMeta,
+        dataUrl: normalized.eSign.dataUrl,
+      },
+      user: cachedCurrentUser,
+    };
+  } catch {
+    return { ok: false, message: "Could not save e-sign. Check Firestore rules and try again." };
+  }
+}
+
+async function getCurrentUserESign() {
+  const configStatus = assertFirebaseConfigured();
+
+  if (!configStatus.ok) {
+    return configStatus;
+  }
+
+  const user = await getCurrentBanikUser();
+
+  if (!user) {
+    return { ok: false, message: "Please log in first." };
+  }
+
+  try {
+    const { metaRef, chunksRef } = getESignRefs(user.id);
+    const metaSnapshot = await getDoc(metaRef);
+
+    if (!metaSnapshot.exists()) {
+      return { ok: true, eSign: null };
+    }
+
+    const meta = metaSnapshot.data() || {};
+    const chunkSnapshot = await getDocs(chunksRef);
+    const dataUrl = chunkSnapshot.docs
+      .map((chunkDoc) => chunkDoc.data() || {})
+      .sort((left, right) => Number(left.order || 0) - Number(right.order || 0))
+      .map((chunk) => String(chunk.data || ""))
+      .join("");
+
+    return {
+      ok: true,
+      eSign: {
+        name: meta.name || "e-signature",
+        type: meta.type || "",
+        size: Number(meta.size || 0),
+        width: Number(meta.width || 0),
+        height: Number(meta.height || 0),
+        extension: meta.extension || "",
+        chunkCount: Number(meta.chunkCount || chunkSnapshot.docs.length),
+        dataLength: Number(meta.dataLength || dataUrl.length),
+        uploadedAt: normalizeTimestamp(meta.uploadedAt) || meta.uploadedAtIso || "",
+        uploadedAtIso: meta.uploadedAtIso || "",
+        dataUrl,
+      },
+    };
+  } catch {
+    return { ok: false, message: "Could not load e-sign." };
+  }
+}
+
+async function removeCurrentUserESign() {
+  const configStatus = assertFirebaseConfigured();
+
+  if (!configStatus.ok) {
+    return configStatus;
+  }
+
+  const user = await getCurrentBanikUser();
+
+  if (!user) {
+    return { ok: false, message: "Please log in first." };
+  }
+
+  try {
+    const { metaRef, chunksRef } = getESignRefs(user.id);
+    const chunkSnapshot = await getDocs(chunksRef);
+    const batch = writeBatch(db);
+
+    chunkSnapshot.docs.forEach((chunkDoc) => {
+      batch.delete(chunkDoc.ref);
+    });
+    batch.delete(metaRef);
+
+    await batch.commit();
+    await updateDoc(doc(db, "users", user.id), {
+      eSignMeta: null,
+      updatedAt: serverTimestamp(),
+    });
+
+    cachedCurrentUser = {
+      ...user,
+      eSignMeta: null,
+    };
+
+    return { ok: true, user: cachedCurrentUser };
+  } catch {
+    return { ok: false, message: "Could not remove e-sign. Check Firestore rules and try again." };
+  }
+}
+
 function getCurrentPageName() {
   const pageName = window.location.pathname.split("/").pop();
   return pageName || "index.html";
@@ -587,6 +1087,12 @@ window.BanikAuth = {
   logout: logoutBanikUser,
   updateUserPermission,
   updateProfile: updateCurrentUserProfile,
+  saveLetterhead: saveCurrentUserLetterhead,
+  getLetterhead: getCurrentUserLetterhead,
+  removeLetterhead: removeCurrentUserLetterhead,
+  saveESign: saveCurrentUserESign,
+  getESign: getCurrentUserESign,
+  removeESign: removeCurrentUserESign,
   createPermissionMap,
   isConfigured: isFirebaseConfigured,
 };
