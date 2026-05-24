@@ -4,7 +4,7 @@ const FORM_DRAFT_STORAGE_KEY = "banikBooksChartFormDraft";
 const FORM_HISTORY_STORAGE_KEY = "banikBooksChartFormHistory";
 const COLLAPSED_GROUPS_STORAGE_KEY = "banikBooksCollapsedChartGroups";
 const DEFAULT_CHART_VERSION_STORAGE_KEY = "banikBooksDefaultChartVersion";
-const DEFAULT_CHART_VERSION = "banik-default-chart-2026-05-24-v4";
+const DEFAULT_CHART_VERSION = "banik-default-chart-2026-05-24-v5";
 const DEFAULT_CHART_ITEMS = Object.freeze([
   {
     type: "group",
@@ -57,9 +57,9 @@ const DEFAULT_CHART_ITEMS = Object.freeze([
               { type: "ledger", name: "Advance Income Tax", classification: "Asset" },
               { type: "ledger", name: "Advance to Supplier", classification: "Asset" },
               { type: "ledger", name: "Advance to Staff", classification: "Asset" },
-              { type: "ledger", name: "Sundry Receivable", classification: "Asset" },
             ],
           },
+          { type: "ledger", name: "Sundry Receivables", classification: "Asset" },
           {
             type: "group",
             name: "Cash & Cash Equivalents",
@@ -348,8 +348,110 @@ function normalizeTree(items) {
     .filter((item) => item.name && !isDiscardedChartNodeName(item.name));
 }
 
+function isSundryReceivablesName(name) {
+  return ["sundry receivable", "sundry receivables"].includes(
+    String(name || "").trim().toLowerCase()
+  );
+}
+
+function isCurrentAssetsGroup(node) {
+  return (
+    node &&
+    node.type === "group" &&
+    ["current asset", "current assets"].includes(String(node.name || "").trim().toLowerCase())
+  );
+}
+
+function removeSundryReceivables(items, exceptNode = null) {
+  let didRemove = false;
+
+  for (let index = items.length - 1; index >= 0; index -= 1) {
+    const item = items[index];
+
+    if (item !== exceptNode && isSundryReceivablesName(item.name)) {
+      items.splice(index, 1);
+      didRemove = true;
+      continue;
+    }
+
+    if (item.type === "group") {
+      didRemove = removeSundryReceivables(item.children || [], exceptNode) || didRemove;
+    }
+  }
+
+  return didRemove;
+}
+
+function findCurrentAssetsGroup(items) {
+  for (const item of items) {
+    if (isCurrentAssetsGroup(item)) {
+      return item;
+    }
+
+    if (item.type === "group") {
+      const foundGroup = findCurrentAssetsGroup(item.children || []);
+
+      if (foundGroup) {
+        return foundGroup;
+      }
+    }
+  }
+
+  return null;
+}
+
+function applyChartStructureRules(items) {
+  const preparedItems = normalizeTree(items);
+  const before = JSON.stringify(preparedItems);
+  const currentAssetsGroup = findCurrentAssetsGroup(preparedItems);
+
+  if (currentAssetsGroup) {
+    currentAssetsGroup.children = currentAssetsGroup.children || [];
+    const existingDirectLedger = currentAssetsGroup.children.find((item) =>
+      isSundryReceivablesName(item.name)
+    );
+    removeSundryReceivables(preparedItems, existingDirectLedger || null);
+
+    const sundryLedger =
+      existingDirectLedger || {
+        id: createId(),
+        type: "ledger",
+        name: "Sundry Receivables",
+        code: "",
+        classification: "Asset",
+      };
+    sundryLedger.type = "ledger";
+    sundryLedger.name = "Sundry Receivables";
+    sundryLedger.code = sundryLedger.code || "";
+    sundryLedger.classification = "Asset";
+    delete sundryLedger.children;
+    currentAssetsGroup.children = currentAssetsGroup.children.filter((item) => item !== sundryLedger);
+
+    const advanceGroupIndex = currentAssetsGroup.children.findIndex(
+      (item) => item.type === "group" && item.name === "Advance, Deposit & Prepayments"
+    );
+
+    if (advanceGroupIndex >= 0) {
+      currentAssetsGroup.children.splice(advanceGroupIndex + 1, 0, sundryLedger);
+    } else {
+      currentAssetsGroup.children.push(sundryLedger);
+    }
+  } else {
+    removeSundryReceivables(preparedItems);
+  }
+
+  return {
+    items: preparedItems,
+    changed: JSON.stringify(preparedItems) !== before,
+  };
+}
+
+function prepareChartItems(items) {
+  return applyChartStructureRules(items).items;
+}
+
 function createDefaultChartItems() {
-  return normalizeTree(DEFAULT_CHART_ITEMS);
+  return prepareChartItems(DEFAULT_CHART_ITEMS);
 }
 
 function shouldApplyDefaultChart() {
@@ -363,7 +465,7 @@ function markDefaultChartApplied() {
 async function loadDefaultChartItems() {
   if (window.BanikData && typeof window.BanikData.getDefaultChartOfAccounts === "function") {
     try {
-      const sharedItems = normalizeTree(await window.BanikData.getDefaultChartOfAccounts());
+      const sharedItems = prepareChartItems(await window.BanikData.getDefaultChartOfAccounts());
 
       if (sharedItems.length) {
         return sharedItems;
@@ -407,9 +509,14 @@ function escapeHtml(value) {
 }
 
 function readLocalTree() {
-  const localTree = normalizeTree(safeParseArray(localStorage.getItem(CHART_STORAGE_KEY)));
+  const localTreeResult = applyChartStructureRules(safeParseArray(localStorage.getItem(CHART_STORAGE_KEY)));
+  const localTree = localTreeResult.items;
 
   if (localTree.length) {
+    if (localTreeResult.changed) {
+      localStorage.setItem(CHART_STORAGE_KEY, JSON.stringify(localTree));
+    }
+
     return localTree;
   }
 
@@ -1591,14 +1698,15 @@ async function loadChart() {
   try {
     const rawRemoteItems = await window.BanikData.getChartOfAccounts();
     const hadDiscardedNodes = containsDiscardedChartNode(rawRemoteItems);
-    const remoteItems = normalizeTree(rawRemoteItems);
+    const remoteTreeResult = applyChartStructureRules(rawRemoteItems);
+    const remoteItems = remoteTreeResult.items;
 
     if (remoteItems.length) {
       chartItems = remoteItems;
       persistLocal();
       markDefaultChartApplied();
       renderTree();
-      if (hadDiscardedNodes) {
+      if (hadDiscardedNodes || remoteTreeResult.changed) {
         await window.BanikData.saveChartOfAccounts(chartItems);
       }
       const didSyncDefault = await syncDefaultTemplate(true);
