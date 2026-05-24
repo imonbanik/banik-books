@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <base href="/" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Journal Entry | BANIK Books</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+    <script src="./js/config/app-config.js" defer></script>
+    <script src="./js/core/auth.js" type="module"></script>
+    <script src="./js/services/data-service.js" type="module"></script>
+    <script src="./js/pages/journal-entry.js" defer></script>
+  </head>
+  <body>
+    <div class="page-shell journal-page">
+      <header class="topbar">
+        <a class="brand" href="./workspace.html">
+          <span class="brand-mark" aria-hidden="true">
+            <img src="./assets/banik-logo.svg" alt="" />
+          </span>
+          <span class="brand-copy">
+            <span class="brand-copy__title">BANIK Books</span>
+            <span class="brand-copy__tag">Simple accounting for growing businesses</span>
+          </span>
+        </a>
+      </header>
+
+      <main class="journal-layout">
+        <section class="journal-hero journal-hero--compact">
+          <div>
+            <h1>Journal Entry</h1>
+          </div>
+        </section>
+
+        <section class="journal-card">
+          <form id="journal-form" novalidate>
+            <div class="journal-meta-grid">
+              <label class="journal-meta-field">
+                <span>Journal date</span>
+                <input class="journal-control" id="journal-date" type="date" required />
+              </label>
+
+              <label class="journal-meta-field">
+                <span>Journal no.</span>
+                <input class="journal-control journal-control--readonly" id="journal-number" type="text" readonly />
+              </label>
+            </div>
+
+            <div class="journal-table-shell">
+              <div class="journal-table">
+                <div class="journal-grid journal-grid--head">
+                  <div class="journal-cell">Sl.</div>
+                  <div class="journal-cell">Account</div>
+                  <div class="journal-cell">Debit</div>
+                  <div class="journal-cell">Credit</div>
+                  <div class="journal-cell">Description</div>
+                  <div class="journal-cell">Name</div>
+                  <div class="journal-cell">Copy</div>
+                  <div class="journal-cell">Delete</div>
+                </div>
+
+                <div id="journal-lines"></div>
+
+                <div class="journal-grid journal-grid--total">
+                  <div class="journal-cell"></div>
+                  <div class="journal-cell journal-total-label">Total</div>
+                  <div class="journal-cell journal-total-amount" id="table-total-debit">Tk 0.00</div>
+                  <div class="journal-cell journal-total-amount" id="table-total-credit">Tk 0.00</div>
+                  <div class="journal-cell"></div>
+                  <div class="journal-cell"></div>
+                  <div class="journal-cell"></div>
+                  <div class="journal-cell"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="journal-toolbar-row">
+              <button class="journal-button journal-button--ghost" id="add-line-btn" type="button">
+                Add line
+              </button>
+              <button class="journal-button journal-button--ghost" id="clear-lines-btn" type="button">
+                Clear all lines
+              </button>
+              <button class="journal-button journal-button--ghost" id="create-ledger-btn" type="button">
+                Create Ledger
+              </button>
+              <div class="journal-status" id="journal-status" aria-live="polite" hidden></div>
+            </div>
+
+            <div class="journal-bottom-grid">
+              <label class="journal-block-field">
+                <span>Description</span>
+                <textarea id="journal-description" rows="6"></textarea>
+              </label>
+
+              <div class="journal-block-field">
+                <span>Attachments</span>
+                <label class="attachment-dropzone" for="journal-attachment" id="attachment-dropzone">
+                  <input id="journal-attachment" type="file" multiple />
+                  <strong>Add attachment</strong>
+                  <small>Any file type. Up to 20 MB total per transaction.</small>
+                </label>
+                <ul class="attachment-list" id="attachment-list"></ul>
+              </div>
+            </div>
+
+            <div class="journal-footer">
+              <div class="journal-submit-actions">
+                <button class="journal-button journal-button--primary" id="save-btn" type="submit">
+                  Save
+                </button>
+                <button class="journal-button journal-button--primary-alt" id="copy-journal-btn" type="button">
+                  Copy Journal
+                </button>
+              </div>
+            </div>
+          </form>
+        </section>
+      </main>
+
+      <div class="journal-save-toast" id="journal-save-toast" aria-live="polite" aria-hidden="true">
+        <span aria-hidden="true">&#10003;</span>
+        <strong>Saved</strong>
+      </div>
+
+      <div class="journal-popup" id="journal-alert" hidden>
+        <div class="journal-popup__dialog" role="alertdialog" aria-modal="true" aria-labelledby="journal-alert-title">
+          <h2 id="journal-alert-title">Please check</h2>
+          <p id="journal-alert-message">Debit Credit is not Equal, please check.</p>
+          <button class="journal-button journal-button--primary" id="journal-alert-close" type="button">OK</button>
+        </div>
+      </div>
+
+      <div class="journal-popup" id="quick-ledger-modal" hidden>
+        <div class="journal-popup__dialog journal-popup__dialog--ledger" role="dialog" aria-modal="true" aria-labelledby="quick-ledger-title">
+          <button class="journal-modal-close" id="quick-ledger-close" type="button" aria-label="Close">x</button>
+          <div>
+            <span class="journal-modal-kicker">Ledger</span>
+            <h2 id="quick-ledger-title">Create Ledger</h2>
+          </div>
+          <form class="quick-ledger-form" id="quick-ledger-form" novalidate>
+            <label>
+              <span>Ledger Name</span>
+              <input id="quick-ledger-name" type="text" required />
+            </label>
+            <label>
+              <span>Ledger Code</span>
+              <input id="quick-ledger-code" type="text" />
+            </label>
+            <label>
+              <span>Classification</span>
+              <select id="quick-ledger-classification">
+                <option value="">Not specified</option>
+                <option value="Asset">Asset</option>
+                <option value="Liability">Liability</option>
+                <option value="Equity">Equity</option>
+                <option value="Income">Income</option>
+                <option value="Expense">Expense</option>
+              </select>
+            </label>
+            <label>
+              <span>Place Under</span>
+              <select id="quick-ledger-parent"></select>
+            </label>
+            <button class="journal-button journal-button--primary" type="submit">Add Ledger</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <template id="journal-row-template">
+      <div class="journal-grid journal-row">
+        <div class="journal-cell journal-cell--serial">
+          <span class="line-number">1</span>
+        </div>
+        <div class="journal-cell">
+          <div class="journal-ledger-picker">
+            <input class="line-input line-account" type="text" autocomplete="off" placeholder="Select ledger" aria-label="Account" />
+            <div class="journal-ledger-menu" role="listbox" hidden></div>
+          </div>
+        </div>
+        <div class="journal-cell">
+          <input class="line-input line-number-input line-debit" type="text" inputmode="decimal" aria-label="Debit" />
+        </div>
+        <div class="journal-cell">
+          <input class="line-input line-number-input line-credit" type="text" inputmode="decimal" aria-label="Credit" />
+        </div>
+        <div class="journal-cell">
+          <input class="line-input" type="text" aria-label="Description" />
+        </div>
+        <div class="journal-cell">
+          <input class="line-input" type="text" aria-label="Name" />
+        </div>
+        <div class="journal-cell">
+          <button class="line-action line-action--copy" type="button" aria-label="Copy line">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <rect x="8" y="8" width="11" height="11" rx="2"></rect>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+            </svg>
+          </button>
+        </div>
+        <div class="journal-cell">
+          <button class="line-action line-action--delete" type="button" aria-label="Delete line">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M3 6h18"></path>
+              <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+              <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path>
+              <path d="M10 11v6"></path>
+              <path d="M14 11v6"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </template>
+  </body>
+</html>

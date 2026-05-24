@@ -6,6 +6,7 @@ const path = require("node:path");
 const HOST = process.env.HOST || "127.0.0.1";
 const PORT = Number(process.env.PORT || 4104);
 const ROOT_DIR = __dirname;
+const COMPAT_ROUTE_DIR = path.join(ROOT_DIR, "routes", "compat");
 const RATE_CSV_SOURCES = Object.freeze({
   tax: "https://docs.google.com/spreadsheets/d/e/2PACX-1vSbvytUuGCejzOfJMRKS4xqk9p8PwZhataapcgCDcR1M_N7PNyMDv-gwBUdYEFcbqZNACMBxHxpkmsy/pub?gid=157320309&single=true&output=csv",
   vat: "https://docs.google.com/spreadsheets/d/e/2PACX-1vSbvytUuGCejzOfJMRKS4xqk9p8PwZhataapcgCDcR1M_N7PNyMDv-gwBUdYEFcbqZNACMBxHxpkmsy/pub?gid=1347947834&single=true&output=csv",
@@ -32,9 +33,17 @@ function sendStatic(request, response) {
   const requestedPath = decodeURIComponent(url.pathname);
   const pageName = requestedPath === "/" ? "index.html" : requestedPath.replace(/^\/+/, "");
   const safePath = path.normalize(pageName).replace(/^(\.\.[/\\])+/, "");
-  const filePath = path.join(ROOT_DIR, safePath);
+  const rootFilePath = path.join(ROOT_DIR, safePath);
+  const compatFilePath = path.join(COMPAT_ROUTE_DIR, safePath);
+  const isRootHtmlRequest = !safePath.includes(path.sep) && path.extname(safePath) === ".html";
+  const filePath =
+    isRootHtmlRequest && fs.existsSync(compatFilePath) ? compatFilePath : rootFilePath;
 
-  if (!filePath.startsWith(ROOT_DIR) || !fs.existsSync(filePath) || fs.statSync(filePath).isDirectory()) {
+  if (
+    !filePath.startsWith(ROOT_DIR) ||
+    !fs.existsSync(filePath) ||
+    fs.statSync(filePath).isDirectory()
+  ) {
     response.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" });
     response.end("Not found");
     return;

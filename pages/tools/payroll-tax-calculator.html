@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <base href="/" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Payroll Tax Calculator | BANIK Books</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Ubuntu:wght@500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+    <script src="./js/config/app-config.js" defer></script>
+    <script src="./js/core/auth.js" type="module"></script>
+  </head>
+  <body>
+    <div class="page-shell payroll-page">
+      <header class="topbar">
+        <a class="brand" href="./workspace.html">
+          <span class="brand-mark" aria-hidden="true">
+            <img src="./assets/banik-logo.svg" alt="" />
+          </span>
+          <span class="brand-copy">
+            <span class="brand-copy__title">BANIK Books</span>
+            <span class="brand-copy__tag">Everyday business essentials</span>
+          </span>
+        </a>
+        <a class="topbar-back-button" href="./necessary-tools.html">Back</a>
+      </header>
+
+      <main class="payroll-calculator-shell">
+        <section class="vat-tax-hero payroll-tax-hero">
+          <h1>Payroll Tax Calculator</h1>
+        </section>
+
+        <section class="payroll-context-panel" aria-label="Payroll tax calculation inputs">
+          <label>
+            <span>Tax year</span>
+            <select id="taxYearSelect">
+              <option value="2025-2026">2025-2026</option>
+              <option value="2024-2025">2024-2025</option>
+            </select>
+          </label>
+          <label>
+            <span>Gross monthly salary</span>
+            <input
+              id="grossSalaryInput"
+              type="text"
+              inputmode="numeric"
+              autocomplete="off"
+              placeholder="0"
+              value="120,000"
+            />
+          </label>
+          <label>
+            <span>Location</span>
+            <select id="locationSelect">
+              <option value="dhaka">Dhaka</option>
+              <option value="chattogram">Chattogram</option>
+              <option value="otherCity">Other City Corporation</option>
+              <option value="otherArea">Other Area</option>
+            </select>
+          </label>
+          <label>
+            <span>Gender / category</span>
+            <select id="taxpayerCategory">
+              <option value="male">Male</option>
+              <option value="female" selected>Female</option>
+              <option value="senior">Age 65+</option>
+              <option value="disabled">Disabled / third gender</option>
+              <option value="freedomFighter">Gazetted freedom fighter</option>
+            </select>
+          </label>
+          <button id="calculatePayrollButton" type="button">Calculate</button>
+        </section>
+
+        <section class="payroll-board">
+          <div class="payroll-left-stack">
+            <article class="payroll-breakdown-card">
+              <h2>Monthly Payroll Breakdown</h2>
+              <div class="payroll-donut-grid">
+                <div class="payroll-donut" id="monthlyBreakdownDonut" aria-hidden="true"></div>
+                <div class="payroll-legend">
+                  <div>
+                    <span class="payroll-legend-dot payroll-legend-dot--tax"></span>
+                    <small>Monthly Tax</small>
+                    <strong id="monthlyTaxValue">Tk 0</strong>
+                  </div>
+                  <div>
+                    <span class="payroll-legend-dot payroll-legend-dot--home"></span>
+                    <small>Take Home</small>
+                    <strong id="takeHomeValue">Tk 0</strong>
+                  </div>
+                  <div>
+                    <span class="payroll-legend-dot payroll-legend-dot--income"></span>
+                    <small>Monthly Income</small>
+                    <strong id="monthlyIncomeValue">Tk 0</strong>
+                  </div>
+                </div>
+              </div>
+            </article>
+
+            <article class="payroll-income-card">
+              <h2>Income Details</h2>
+              <table class="payroll-mini-table payroll-income-table">
+                <thead>
+                  <tr>
+                    <th></th>
+                    <th>Monthly Income</th>
+                    <th>Projected Annual Income</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Gross Salary</td>
+                    <td id="grossMonthlyCell">0</td>
+                    <td id="grossAnnualCell">0</td>
+                  </tr>
+                  <tr>
+                    <td>Monthly Benefits</td>
+                    <td id="monthlyBenefitCell">0</td>
+                    <td id="monthlyBenefitAnnualCell">0</td>
+                  </tr>
+                  <tr>
+                    <td>Yearly Benefits</td>
+                    <td id="yearlyBenefitMonthlyCell">0</td>
+                    <td id="yearlyBenefitCell">0</td>
+                  </tr>
+                  <tr class="payroll-total-row">
+                    <td>Total Income</td>
+                    <td id="totalMonthlyIncomeCell">0</td>
+                    <td id="totalAnnualIncomeCell">0</td>
+                  </tr>
+                </tbody>
+              </table>
+
+              <div class="payroll-benefit-block">
+                <button class="payroll-add-button" type="button" data-focus-target="monthlyBenefitAmount">
+                  + Add Monthly Benefits
+                </button>
+                <div class="payroll-benefit-grid">
+                  <input id="monthlyBenefitTitle" type="text" placeholder="Bonus Title" />
+                  <input
+                    id="monthlyBenefitAmount"
+                    type="text"
+                    inputmode="numeric"
+                    placeholder="Bonus Amount"
+                  />
+                </div>
+              </div>
+
+              <div class="payroll-benefit-block">
+                <button class="payroll-add-button" type="button" data-focus-target="yearlyBenefitAmount">
+                  + Add Yearly Benefits
+                </button>
+                <div class="payroll-benefit-grid">
+                  <input id="yearlyBenefitTitle" type="text" placeholder="Yearly Bonus Title" />
+                  <input
+                    id="yearlyBenefitAmount"
+                    type="text"
+                    inputmode="numeric"
+                    placeholder="Yearly Bonus Amount"
+                  />
+                </div>
+              </div>
+
+              <h3>Input Details</h3>
+              <div class="payroll-input-details">
+                <label>
+                  <span>+ Actual investment amount</span>
+                  <input
+                    id="investmentInput"
+                    type="text"
+                    inputmode="numeric"
+                    placeholder="Enter actual amount of eligible investment"
+                  />
+                </label>
+                <label>
+                  <span>+ Add Advance Income Tax Paid</span>
+                  <input id="advanceTaxInput" type="text" inputmode="numeric" placeholder="AIT Amount" />
+                </label>
+              </div>
+              <button class="payroll-board-calculate" id="calculatePayrollButtonBottom" type="button">
+                Calculate
+              </button>
+            </article>
+          </div>
+
+          <div class="payroll-right-stack">
+            <article class="payroll-result-sheet payroll-result-sheet--taxable">
+              <div class="payroll-result-sheet__head">
+                <span>Total Taxable Income</span>
+                <strong id="taxableIncomeValue">Tk 0</strong>
+              </div>
+              <div class="payroll-table-window">
+                <h3>Total Annual Income: <span id="annualIncomeValue">0</span></h3>
+                <table class="payroll-spreadsheet">
+                  <thead>
+                    <tr>
+                      <th colspan="3">Taxable Income</th>
+                    </tr>
+                    <tr>
+                      <th>Condition</th>
+                      <th>Exemption Amount</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody id="taxableIncomeRows"></tbody>
+                </table>
+              </div>
+            </article>
+
+            <article class="payroll-result-sheet payroll-result-sheet--liability">
+              <div class="payroll-result-sheet__head">
+                <span>Total Income Tax Liability</span>
+                <strong id="totalTaxBeforeCredit">Tk 0</strong>
+              </div>
+              <div class="payroll-table-window">
+                <table class="payroll-spreadsheet">
+                  <thead>
+                    <tr>
+                      <th colspan="4">Calculation of Income Tax Liability</th>
+                    </tr>
+                    <tr>
+                      <th>Slabs</th>
+                      <th>Taxable Income</th>
+                      <th>Tax Rate</th>
+                      <th>Tax Amount</th>
+                    </tr>
+                  </thead>
+                  <tbody id="taxSlabRows"></tbody>
+                  <tfoot>
+                    <tr>
+                      <td>Total Income Tax Liability</td>
+                      <td id="totalSlabIncome">0</td>
+                      <td></td>
+                      <td id="totalTaxBeforeCreditFooter">0</td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            </article>
+
+            <article class="payroll-result-sheet payroll-result-sheet--credit">
+              <div class="payroll-result-sheet__head">
+                <span>Tax Credit on Investment</span>
+                <strong id="taxCreditAllowed">Tk 0</strong>
+              </div>
+              <div class="payroll-table-window">
+                <table class="payroll-spreadsheet">
+                  <thead>
+                    <tr>
+                      <th colspan="4">Calculation of Tax Credit On Investment</th>
+                    </tr>
+                    <tr>
+                      <th>#</th>
+                      <th>Details</th>
+                      <th>Eligible Investments</th>
+                      <th>Credit Amount</th>
+                    </tr>
+                  </thead>
+                  <tbody id="investmentCreditRows"></tbody>
+                </table>
+              </div>
+            </article>
+
+            <article class="payroll-result-sheet payroll-result-sheet--payable">
+              <div class="payroll-result-sheet__head">
+                <span>Income Tax Payable</span>
+                <strong id="remainingTaxLiability">Tk 0</strong>
+              </div>
+              <div class="payroll-table-window">
+                <table class="payroll-spreadsheet">
+                  <thead>
+                    <tr>
+                      <th colspan="2">Income Tax Payable</th>
+                    </tr>
+                    <tr>
+                      <th>Details</th>
+                      <th>Amount</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>Total income tax payable</td>
+                      <td id="incomeTaxPayable">0</td>
+                    </tr>
+                    <tr>
+                      <td>Minimum tax by location</td>
+                      <td id="minimumTaxValue">0</td>
+                    </tr>
+                    <tr>
+                      <td>Less: Advance income tax</td>
+                      <td id="advanceTaxValue">0</td>
+                    </tr>
+                    <tr>
+                      <td>Remaining tax liability</td>
+                      <td id="remainingTaxLiabilityFooter">0</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </article>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const TAX_RULES = {
+          "2025-2026": {
+            label: "FY 2025-26",
+            salaryExemptionCap: 500000,
+            investmentCreditCap: 1000000,
+            taxFreeLimits: {
+              male: 375000,
+              female: 425000,
+              senior: 425000,
+              disabled: 500000,
+              freedomFighter: 525000,
+            },
+            slabsAfterFreeLimit: [
+              { limit: 300000, rate: 0.1 },
+              { limit: 400000, rate: 0.15 },
+              { limit: 500000, rate: 0.2 },
+              { limit: 2000000, rate: 0.25 },
+              { limit: Infinity, rate: 0.3 },
+            ],
+          },
+          "2024-2025": {
+            label: "FY 2024-25",
+            salaryExemptionCap: 450000,
+            investmentCreditCap: 1000000,
+            taxFreeLimits: {
+              male: 350000,
+              female: 400000,
+              senior: 400000,
+              disabled: 475000,
+              freedomFighter: 500000,
+            },
+            slabsAfterFreeLimit: [
+              { limit: 100000, rate: 0.05 },
+              { limit: 400000, rate: 0.1 },
+              { limit: 500000, rate: 0.15 },
+              { limit: 500000, rate: 0.2 },
+              { limit: 2000000, rate: 0.25 },
+              { limit: Infinity, rate: 0.3 },
+            ],
+          },
+        };
+        const LOCATION_RULES = {
+          dhaka: { label: "Dhaka", minimumTax: 5000 },
+          chattogram: { label: "Chattogram", minimumTax: 5000 },
+          otherCity: { label: "Other City Corporation", minimumTax: 4000 },
+          otherArea: { label: "Other Area", minimumTax: 3000 },
+        };
+
+        const taxYearSelect = document.getElementById("taxYearSelect");
+        const grossSalaryInput = document.getElementById("grossSalaryInput");
+        const locationSelect = document.getElementById("locationSelect");
+        const taxpayerCategory = document.getElementById("taxpayerCategory");
+        const monthlyBenefitAmount = document.getElementById("monthlyBenefitAmount");
+        const yearlyBenefitAmount = document.getElementById("yearlyBenefitAmount");
+        const investmentInput = document.getElementById("investmentInput");
+        const advanceTaxInput = document.getElementById("advanceTaxInput");
+        const calculatePayrollButton = document.getElementById("calculatePayrollButton");
+        const calculatePayrollButtonBottom = document.getElementById("calculatePayrollButtonBottom");
+        const monthlyBreakdownDonut = document.getElementById("monthlyBreakdownDonut");
+        const monthlyTaxValue = document.getElementById("monthlyTaxValue");
+        const takeHomeValue = document.getElementById("takeHomeValue");
+        const monthlyIncomeValue = document.getElementById("monthlyIncomeValue");
+        const grossMonthlyCell = document.getElementById("grossMonthlyCell");
+        const grossAnnualCell = document.getElementById("grossAnnualCell");
+        const monthlyBenefitCell = document.getElementById("monthlyBenefitCell");
+        const monthlyBenefitAnnualCell = document.getElementById("monthlyBenefitAnnualCell");
+        const yearlyBenefitMonthlyCell = document.getElementById("yearlyBenefitMonthlyCell");
+        const yearlyBenefitCell = document.getElementById("yearlyBenefitCell");
+        const totalMonthlyIncomeCell = document.getElementById("totalMonthlyIncomeCell");
+        const totalAnnualIncomeCell = document.getElementById("totalAnnualIncomeCell");
+        const annualIncomeValue = document.getElementById("annualIncomeValue");
+        const taxableIncomeValue = document.getElementById("taxableIncomeValue");
+        const taxSlabRows = document.getElementById("taxSlabRows");
+        const totalSlabIncome = document.getElementById("totalSlabIncome");
+        const totalTaxBeforeCredit = document.getElementById("totalTaxBeforeCredit");
+        const totalTaxBeforeCreditFooter = document.getElementById("totalTaxBeforeCreditFooter");
+        const investmentCreditRows = document.getElementById("investmentCreditRows");
+        const taxCreditAllowed = document.getElementById("taxCreditAllowed");
+        const taxableIncomeRows = document.getElementById("taxableIncomeRows");
+        const incomeTaxPayable = document.getElementById("incomeTaxPayable");
+        const minimumTaxValue = document.getElementById("minimumTaxValue");
+        const advanceTaxValue = document.getElementById("advanceTaxValue");
+        const remainingTaxLiability = document.getElementById("remainingTaxLiability");
+        const remainingTaxLiabilityFooter = document.getElementById("remainingTaxLiabilityFooter");
+
+        function parseMoney(value) {
+          return Number(String(value || "").replace(/[^\d.]/g, "")) || 0;
+        }
+
+        function formatMoney(value) {
+          return new Intl.NumberFormat("en-IN", {
+            maximumFractionDigits: 0,
+          }).format(Math.max(0, Math.round(value || 0)));
+        }
+
+        function formatTk(value) {
+          return "Tk " + formatMoney(value);
+        }
+
+        function formatInput(input) {
+          const amount = parseMoney(input.value);
+          input.value = amount ? formatMoney(amount) : "";
+        }
+
+        function getActiveRule() {
+          return TAX_RULES[taxYearSelect.value] || TAX_RULES["2025-2026"];
+        }
+
+        function getActiveLocation() {
+          return LOCATION_RULES[locationSelect.value] || LOCATION_RULES.dhaka;
+        }
+
+        function calculateSlabTax(taxableIncome, category, rule) {
+          const freeLimit = rule.taxFreeLimits[category] || rule.taxFreeLimits.male;
+          const rows = [];
+          let remainingIncome = taxableIncome;
+          let totalTax = 0;
+          const freeIncome = Math.min(remainingIncome, freeLimit);
+
+          rows.push({
+            slab: "On the first Tk.",
+            taxableAmount: freeIncome,
+            slabLimit: freeLimit,
+            rate: 0,
+            taxAmount: 0,
+          });
+          remainingIncome = Math.max(0, remainingIncome - freeLimit);
+
+          rule.slabsAfterFreeLimit.forEach((slab) => {
+            const taxableAmount = remainingIncome > 0 ? Math.min(remainingIncome, slab.limit) : 0;
+            const taxAmount = taxableAmount * slab.rate;
+
+            rows.push({
+              slab: slab.limit === Infinity ? "On the balance Tk." : "On the next Tk.",
+              taxableAmount,
+              slabLimit: slab.limit,
+              rate: slab.rate,
+              taxAmount,
+            });
+            totalTax += taxAmount;
+            remainingIncome = Math.max(0, remainingIncome - taxableAmount);
+          });
+
+          return { rows, totalTax, freeLimit };
+        }
+
+        function calculatePayrollTax() {
+          const rule = getActiveRule();
+          const locationRule = getActiveLocation();
+          const monthlyGross = parseMoney(grossSalaryInput.value);
+          const monthlyBenefits = parseMoney(monthlyBenefitAmount.value);
+          const yearlyBenefits = parseMoney(yearlyBenefitAmount.value);
+          const advanceTax = parseMoney(advanceTaxInput.value);
+          const monthlyPayrollIncome = monthlyGross + monthlyBenefits;
+          const annualIncome = monthlyGross * 12 + monthlyBenefits * 12 + yearlyBenefits;
+          const oneThirdExemption = annualIncome / 3;
+          const salaryExemption = Math.min(oneThirdExemption, rule.salaryExemptionCap);
+          const taxableIncome = Math.max(0, annualIncome - salaryExemption);
+          const hasInvestmentInput = String(investmentInput.value || "").trim() !== "";
+          const actualInvestment = hasInvestmentInput
+            ? parseMoney(investmentInput.value)
+            : taxableIncome * 0.2;
+          const slabResult = calculateSlabTax(taxableIncome, taxpayerCategory.value, rule);
+          const taxBeforeCredit = slabResult.totalTax;
+          const creditByTaxableIncome = taxableIncome * 0.03;
+          const creditByInvestment = actualInvestment * 0.15;
+          const allowedCredit = Math.min(
+            creditByTaxableIncome,
+            creditByInvestment,
+            rule.investmentCreditCap,
+            taxBeforeCredit
+          );
+          const taxAfterCredit = Math.max(0, taxBeforeCredit - allowedCredit);
+          const minimumTax = taxBeforeCredit > 0 ? locationRule.minimumTax : 0;
+          const taxPayable = taxBeforeCredit > 0 ? Math.max(taxAfterCredit, minimumTax) : 0;
+          const remainingTax = Math.max(0, taxPayable - advanceTax);
+          const monthlyTax = remainingTax / 12;
+          const takeHome = Math.max(0, monthlyPayrollIncome - monthlyTax);
+
+          renderResults({
+            rule,
+            locationRule,
+            monthlyGross,
+            monthlyBenefits,
+            yearlyBenefits,
+            monthlyPayrollIncome,
+            annualIncome,
+            oneThirdExemption,
+            salaryExemption,
+            taxableIncome,
+            slabRows: slabResult.rows,
+            taxBeforeCredit,
+            actualInvestment,
+            creditByTaxableIncome,
+            creditByInvestment,
+            allowedCredit,
+            minimumTax,
+            taxPayable,
+            advanceTax,
+            remainingTax,
+            monthlyTax,
+            takeHome,
+          });
+        }
+
+        function renderResults(result) {
+          monthlyTaxValue.textContent = formatTk(result.monthlyTax);
+          takeHomeValue.textContent = formatTk(result.takeHome);
+          monthlyIncomeValue.textContent = formatTk(result.monthlyPayrollIncome);
+          grossMonthlyCell.textContent = formatMoney(result.monthlyGross);
+          grossAnnualCell.textContent = formatMoney(result.monthlyGross * 12);
+          monthlyBenefitCell.textContent = formatMoney(result.monthlyBenefits);
+          monthlyBenefitAnnualCell.textContent = formatMoney(result.monthlyBenefits * 12);
+          yearlyBenefitMonthlyCell.textContent = "0";
+          yearlyBenefitCell.textContent = formatMoney(result.yearlyBenefits);
+          totalMonthlyIncomeCell.textContent = formatMoney(result.monthlyPayrollIncome);
+          totalAnnualIncomeCell.textContent = formatMoney(result.annualIncome);
+          annualIncomeValue.textContent = formatMoney(result.annualIncome);
+          taxableIncomeValue.textContent = formatTk(result.taxableIncome);
+          totalSlabIncome.textContent = formatMoney(result.taxableIncome);
+          totalTaxBeforeCredit.textContent = formatTk(result.taxBeforeCredit);
+          totalTaxBeforeCreditFooter.textContent = formatMoney(result.taxBeforeCredit);
+          taxCreditAllowed.textContent = "(" + formatTk(result.allowedCredit) + ")";
+          incomeTaxPayable.textContent = formatMoney(result.taxPayable);
+          minimumTaxValue.textContent = formatMoney(result.minimumTax);
+          advanceTaxValue.textContent = "(" + formatMoney(result.advanceTax) + ")";
+          remainingTaxLiability.textContent = formatTk(result.remainingTax);
+          remainingTaxLiabilityFooter.textContent = formatMoney(result.remainingTax);
+
+          const taxShare = result.monthlyPayrollIncome
+            ? (result.monthlyTax / result.monthlyPayrollIncome) * 100
+            : 0;
+          monthlyBreakdownDonut.style.setProperty(
+            "--monthly-tax-share",
+            Math.min(100, taxShare).toFixed(2) + "%"
+          );
+
+          taxableIncomeRows.innerHTML = `
+            <tr class="payroll-muted-row">
+              <td>Lower of:</td>
+              <td></td>
+              <td></td>
+            </tr>
+            <tr>
+              <td>1/3 of projected annual income</td>
+              <td>${formatMoney(result.oneThirdExemption)}</td>
+              <td rowspan="2">${formatMoney(result.salaryExemption)}</td>
+            </tr>
+            <tr>
+              <td>Maximum limit</td>
+              <td>${formatMoney(result.rule.salaryExemptionCap)}</td>
+            </tr>
+            <tr class="payroll-total-sheet-row">
+              <td>Total Taxable Income</td>
+              <td></td>
+              <td>${formatMoney(result.taxableIncome)}</td>
+            </tr>
+          `;
+
+          taxSlabRows.innerHTML = result.slabRows
+            .map(
+              (row) => `
+                <tr>
+                  <td>${row.slab}</td>
+                  <td>${row.slabLimit === Infinity ? "" : formatMoney(row.slabLimit)}</td>
+                  <td>${Math.round(row.rate * 100)}%</td>
+                  <td>${formatMoney(row.taxAmount)}</td>
+                </tr>
+              `
+            )
+            .join("");
+
+          investmentCreditRows.innerHTML = `
+            <tr class="payroll-muted-row">
+              <td colspan="4">Lower of:</td>
+            </tr>
+            <tr>
+              <td>a</td>
+              <td>0.03 x Total Taxable Income</td>
+              <td>${formatMoney(result.creditByTaxableIncome)}</td>
+              <td>${formatMoney(result.creditByTaxableIncome)}</td>
+            </tr>
+            <tr>
+              <td>b</td>
+              <td>0.15 x Actual Investment declared/made</td>
+              <td>${formatMoney(result.actualInvestment)}</td>
+              <td>${formatMoney(result.creditByInvestment)}</td>
+            </tr>
+            <tr>
+              <td>c</td>
+              <td>Maximum allowable limit</td>
+              <td>${formatMoney(result.rule.investmentCreditCap)}</td>
+              <td></td>
+            </tr>
+            <tr class="payroll-total-sheet-row">
+              <td colspan="3">Tax credit allowed</td>
+              <td>(${formatMoney(result.allowedCredit)})</td>
+            </tr>
+          `;
+        }
+
+        document.querySelectorAll("[data-focus-target]").forEach((button) => {
+          button.addEventListener("click", () => {
+            const target = document.getElementById(button.dataset.focusTarget);
+            if (target) {
+              target.focus();
+            }
+          });
+        });
+
+        [
+          grossSalaryInput,
+          monthlyBenefitAmount,
+          yearlyBenefitAmount,
+          investmentInput,
+          advanceTaxInput,
+        ].forEach((input) => {
+          input.addEventListener("input", () => {
+            input.value = String(input.value || "").replace(/[^\d,]/g, "");
+            calculatePayrollTax();
+          });
+          input.addEventListener("blur", () => {
+            formatInput(input);
+            calculatePayrollTax();
+          });
+        });
+
+        [taxYearSelect, locationSelect, taxpayerCategory].forEach((control) => {
+          control.addEventListener("change", calculatePayrollTax);
+        });
+        calculatePayrollButton.addEventListener("click", calculatePayrollTax);
+        calculatePayrollButtonBottom.addEventListener("click", calculatePayrollTax);
+        calculatePayrollTax();
+      });
+    </script>
+  </body>
+</html>

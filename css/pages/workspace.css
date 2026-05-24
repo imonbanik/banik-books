@@ -1,0 +1,103 @@
+/* Workspace page */
+.workspace-page {
+  padding-bottom: 56px;
+}
+
+.workspace-layout {
+  display: grid;
+  gap: 28px;
+  padding: 48px 0 24px;
+}
+
+.workspace-hero h1 {
+  max-width: 14ch;
+}
+
+.workspace-panel {
+  padding: 28px;
+  border-radius: 30px;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(185, 28, 28, 0.12);
+  box-shadow: var(--shadow);
+}
+
+.workspace-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+  align-items: start;
+}
+
+.workspace-button {
+  display: grid;
+  gap: 10px;
+  min-height: 150px;
+  padding: 24px;
+  border-radius: 24px;
+  background: linear-gradient(180deg, rgba(255, 252, 252, 0.98), rgba(255, 239, 237, 0.94));
+  border: 1px solid rgba(185, 28, 28, 0.15);
+  box-shadow: 0 18px 36px rgba(185, 28, 28, 0.09);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.workspace-button:hover,
+.workspace-menu:hover .workspace-button--reports {
+  transform: translateY(-3px);
+  border-color: rgba(185, 28, 28, 0.36);
+  box-shadow: 0 24px 48px rgba(185, 28, 28, 0.13);
+}
+
+.workspace-button__title {
+  font-family: "Ubuntu", sans-serif;
+  font-size: 1.5rem;
+  color: var(--red-900);
+}
+
+.workspace-button__meta {
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.workspace-menu {
+  position: relative;
+}
+
+.reports-dropdown {
+  position: absolute;
+  top: calc(100% + 14px);
+  left: 0;
+  right: 0;
+  display: grid;
+  gap: 10px;
+  padding: 16px;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.98);
+  border: 1px solid rgba(185, 28, 28, 0.16);
+  box-shadow: 0 28px 54px rgba(127, 16, 16, 0.16);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(8px);
+  transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s ease;
+  z-index: 5;
+}
+
+.workspace-menu:hover .reports-dropdown {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.reports-dropdown a {
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: rgba(255, 244, 243, 0.9);
+  color: var(--text);
+  font-weight: 500;
+  line-height: 1.45;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.reports-dropdown a:hover {
+  background: rgba(239, 68, 68, 0.12);
+  color: var(--red-900);
+}
