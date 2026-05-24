@@ -1,6 +1,7 @@
 const STORAGE_KEYS = {
   journals: "banikBooksJournals",
   ledgers: "banikBooksLedgers",
+  chartOfAccounts: "banikBooksChartOfAccounts",
 };
 
 const DEFAULT_ROW_COUNT = 4;
@@ -69,6 +70,73 @@ function getLedgerNames() {
       return "";
     })
     .filter(Boolean);
+}
+
+function collectChartLedgers(items, ledgers = []) {
+  if (!Array.isArray(items)) {
+    return ledgers;
+  }
+
+  items.forEach((item) => {
+    if (item && item.type === "ledger" && item.name) {
+      ledgers.push({
+        id: item.id || item.name,
+        name: item.name,
+        ledgerName: item.name,
+        code: item.code || "",
+        classification: item.classification || "",
+      });
+      return;
+    }
+
+    collectChartLedgers((item && item.children) || [], ledgers);
+  });
+
+  return ledgers;
+}
+
+function waitForBanikData() {
+  if (window.BanikData && typeof window.BanikData.getChartOfAccounts === "function") {
+    return Promise.resolve();
+  }
+
+  return new Promise((resolve) => {
+    let attempts = 0;
+    const intervalId = window.setInterval(() => {
+      attempts += 1;
+
+      if (
+        (window.BanikData && typeof window.BanikData.getChartOfAccounts === "function") ||
+        attempts >= 20
+      ) {
+        window.clearInterval(intervalId);
+        resolve();
+      }
+    }, 100);
+  });
+}
+
+async function refreshLedgersFromChartOfAccounts() {
+  await waitForBanikData();
+
+  if (!window.BanikData || typeof window.BanikData.getChartOfAccounts !== "function") {
+    return;
+  }
+
+  try {
+    const chartItems = await window.BanikData.getChartOfAccounts();
+    const ledgers = collectChartLedgers(chartItems);
+
+    if (Array.isArray(chartItems)) {
+      localStorage.setItem(STORAGE_KEYS.chartOfAccounts, JSON.stringify(chartItems));
+    }
+
+    if (ledgers.length) {
+      localStorage.setItem(STORAGE_KEYS.ledgers, JSON.stringify(ledgers));
+    }
+  } catch {
+    // Local ledger data remains available if backend sync is unavailable.
+  }
 }
 
 function formatMoney(value) {
@@ -483,9 +551,10 @@ saveNewButton.addEventListener("click", (event) => {
   handleSave(event, true);
 });
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
   journalDateInput.value = formatDateForInput(new Date());
   updateJournalNumber();
+  await refreshLedgersFromChartOfAccounts();
   updateLedgerAvailabilityNote();
   resetRows();
   renderAttachments();

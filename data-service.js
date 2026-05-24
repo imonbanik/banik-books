@@ -7,6 +7,7 @@ import {
   collection,
   deleteDoc,
   doc,
+  getDoc,
   getDocs,
   getFirestore,
   setDoc,
@@ -132,6 +133,31 @@ function normalizeChallanDoc(id, data) {
   };
 }
 
+function normalizeChartNodes(nodes) {
+  if (!Array.isArray(nodes)) {
+    return [];
+  }
+
+  return nodes
+    .map((node) => {
+      const nodeType = node && node.type === "ledger" ? "ledger" : "group";
+      const normalizedNode = {
+        id: String(node.id || createId()),
+        type: nodeType,
+        name: String(node.name || "").trim(),
+        code: String(node.code || "").trim(),
+        classification: String(node.classification || "").trim(),
+      };
+
+      if (nodeType === "group") {
+        normalizedNode.children = normalizeChartNodes(node.children || []);
+      }
+
+      return normalizedNode;
+    })
+    .filter((node) => node.name);
+}
+
 async function listChallans() {
   const challanCollection = await getUserCollection("challans");
   const snapshot = await getDocs(challanCollection);
@@ -165,9 +191,40 @@ async function deleteChallan(entryId) {
   await deleteDoc(doc(db, "userData", user.id, "challans", entryId));
 }
 
+async function getChartOfAccounts() {
+  const user = await getCurrentUser();
+  const snapshot = await getDoc(doc(db, "userData", user.id, "settings", "chartOfAccounts"));
+
+  if (!snapshot.exists()) {
+    return [];
+  }
+
+  return normalizeChartNodes((snapshot.data() || {}).items || []);
+}
+
+async function saveChartOfAccounts(items) {
+  const user = await getCurrentUser();
+  const normalizedItems = normalizeChartNodes(items);
+
+  await setDoc(
+    doc(db, "userData", user.id, "settings", "chartOfAccounts"),
+    sanitizeObject({
+      items: normalizedItems,
+      ownerUserId: user.id,
+      ownerEmail: user.email,
+      updatedAt: new Date().toISOString(),
+    }),
+    { merge: true }
+  );
+
+  return normalizedItems;
+}
+
 window.BanikData = {
   getCurrentUser,
   listChallans,
   saveChallan,
   deleteChallan,
+  getChartOfAccounts,
+  saveChartOfAccounts,
 };
