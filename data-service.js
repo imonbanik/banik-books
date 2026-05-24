@@ -202,6 +202,17 @@ async function getChartOfAccounts() {
   return normalizeChartNodes((snapshot.data() || {}).items || []);
 }
 
+async function getDefaultChartOfAccounts() {
+  await getCurrentUser();
+  const snapshot = await getDoc(doc(db, "publicSettings", "chartOfAccountsTemplate"));
+
+  if (!snapshot.exists()) {
+    return [];
+  }
+
+  return normalizeChartNodes((snapshot.data() || {}).items || []);
+}
+
 async function saveChartOfAccounts(items) {
   const user = await getCurrentUser();
   const normalizedItems = normalizeChartNodes(items);
@@ -220,11 +231,31 @@ async function saveChartOfAccounts(items) {
   return normalizedItems;
 }
 
+async function saveDefaultChartOfAccounts(items) {
+  const user = await getCurrentUser();
+  const normalizedItems = normalizeChartNodes(items);
+
+  await setDoc(
+    doc(db, "publicSettings", "chartOfAccountsTemplate"),
+    sanitizeObject({
+      items: normalizedItems,
+      ownerUserId: user.id,
+      ownerEmail: user.email,
+      updatedAt: new Date().toISOString(),
+    }),
+    { merge: true }
+  );
+
+  return normalizedItems;
+}
+
 window.BanikData = {
   getCurrentUser,
   listChallans,
   saveChallan,
   deleteChallan,
   getChartOfAccounts,
+  getDefaultChartOfAccounts,
   saveChartOfAccounts,
+  saveDefaultChartOfAccounts,
 };

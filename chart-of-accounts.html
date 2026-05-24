@@ -41,11 +41,8 @@
 
         <section class="journal-hero coa-hero">
           <div>
-            <p class="sheet-header__eyebrow">Module</p>
             <h1>Chart of Accounts</h1>
-            <p class="lead">
-              Create account groups and ledgers, then drag and drop them into the structure you need.
-            </p>
+            <p class="lead">Create account groups and ledgers, then drag and drop them into the structure you need.</p>
           </div>
           <a class="secondary-button" href="./workspace.html">Back to workspace</a>
         </section>
@@ -56,16 +53,20 @@
               <span class="coa-card-kicker">Group</span>
               <h2>Create Group</h2>
             </div>
-            <label>
+            <label class="coa-suggest-field">
               <span>Group Name</span>
               <input
                 id="coaGroupName"
                 type="text"
-                list="coaGroupNameHistory"
+                autocomplete="off"
+                aria-autocomplete="list"
+                aria-controls="coaGroupNameSuggestions"
+                aria-expanded="false"
                 placeholder="Example: Current Assets"
                 required
               />
               <datalist id="coaGroupNameHistory"></datalist>
+              <div class="coa-name-suggestions" id="coaGroupNameSuggestions" role="listbox" hidden></div>
             </label>
             <label>
               <span>Group Code</span>
@@ -97,16 +98,20 @@
               <span class="coa-card-kicker">Ledger</span>
               <h2>Create Ledger</h2>
             </div>
-            <label>
+            <label class="coa-suggest-field">
               <span>Ledger Name</span>
               <input
                 id="coaLedgerName"
                 type="text"
-                list="coaLedgerNameHistory"
+                autocomplete="off"
+                aria-autocomplete="list"
+                aria-controls="coaLedgerNameSuggestions"
+                aria-expanded="false"
                 placeholder="Example: Cash in Hand"
                 required
               />
               <datalist id="coaLedgerNameHistory"></datalist>
+              <div class="coa-name-suggestions" id="coaLedgerNameSuggestions" role="listbox" hidden></div>
             </label>
             <label>
               <span>Ledger Code</span>
@@ -143,6 +148,9 @@
             <div class="coa-summary">
               <span><strong id="coaGroupCount">0</strong> Groups</span>
               <span><strong id="coaLedgerCount">0</strong> Ledgers</span>
+              <button class="coa-default-button" id="coaDefaultButton" type="button" hidden>
+                Set as default
+              </button>
             </div>
           </div>
 

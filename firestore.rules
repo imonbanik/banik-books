@@ -40,5 +40,10 @@ service cloud.firestore {
     match /userData/{userId}/{document=**} {
       allow read, write: if isOwnUserDoc(userId) || isFounderAdmin();
     }
+
+    match /publicSettings/{document=**} {
+      allow read: if isVerified();
+      allow write: if isFounderAdmin();
+    }
   }
 }

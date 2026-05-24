@@ -4,7 +4,7 @@ const FORM_DRAFT_STORAGE_KEY = "banikBooksChartFormDraft";
 const FORM_HISTORY_STORAGE_KEY = "banikBooksChartFormHistory";
 const COLLAPSED_GROUPS_STORAGE_KEY = "banikBooksCollapsedChartGroups";
 const DEFAULT_CHART_VERSION_STORAGE_KEY = "banikBooksDefaultChartVersion";
-const DEFAULT_CHART_VERSION = "banik-default-chart-2026-05-24-v3";
+const DEFAULT_CHART_VERSION = "banik-default-chart-2026-05-24-v4";
 const DEFAULT_CHART_ITEMS = Object.freeze([
   {
     type: "group",
@@ -149,76 +149,89 @@ const DEFAULT_CHART_ITEMS = Object.freeze([
       },
     ],
   },
-  { type: "ledger", name: "Revenue", classification: "Income" },
   {
     type: "group",
-    name: "Cost of Services",
-    classification: "Expense",
-    children: [
-      { type: "ledger", name: "Salaries & Allowances - COS", classification: "Expense" },
-      { type: "ledger", name: "Festival & Incentive Bonus - COS", classification: "Expense" },
-      { type: "ledger", name: "Cost of Service Rendered - COS", classification: "Expense" },
-    ],
+    name: "INCOME",
+    classification: "Income",
+    children: [{ type: "ledger", name: "Service Revenue", classification: "Income" }],
   },
   {
     type: "group",
-    name: "Selling, Marketing & Distribution Expenses",
+    name: "EXPENSE",
     classification: "Expense",
     children: [
-      { type: "ledger", name: "Salaries & Allowances - SD", classification: "Expense" },
-      { type: "ledger", name: "Domestic Travel/Daily Allowances - SD", classification: "Expense" },
-      { type: "ledger", name: "Festival & Incentive Bonus - SD", classification: "Expense" },
-      { type: "ledger", name: "Media & Advertisement", classification: "Expense" },
-      { type: "ledger", name: "Seminar, Workshop, Meeting & Events - SD", classification: "Expense" },
-    ],
-  },
-  {
-    type: "group",
-    name: "General & Administrative Expenses",
-    classification: "Expense",
-    children: [
-      { type: "ledger", name: "Salaries & Allowances - AD", classification: "Expense" },
-      { type: "ledger", name: "Festival & Incentive Bonus - AD", classification: "Expense" },
-      { type: "ledger", name: "Office Rent", classification: "Expense" },
-      { type: "ledger", name: "Office Service Charge", classification: "Expense" },
       {
         type: "group",
-        name: "Utility Bill",
+        name: "Cost of Services",
         classification: "Expense",
         children: [
-          { type: "ledger", name: "Electricity Expense", classification: "Expense" },
-          { type: "ledger", name: "WASA Expense", classification: "Expense" },
-          { type: "ledger", name: "Gas Expense", classification: "Expense" },
+          { type: "ledger", name: "Salaries & Allowances - COS", classification: "Expense" },
+          { type: "ledger", name: "Festival & Incentive Bonus - COS", classification: "Expense" },
+          { type: "ledger", name: "Cost of Service Rendered - COS", classification: "Expense" },
         ],
-      },
-      { type: "ledger", name: "Staff Accomodation Rent", classification: "Expense" },
-      { type: "ledger", name: "Internet Bill", classification: "Expense" },
-      { type: "ledger", name: "Lunch for Staff", classification: "Expense" },
-      { type: "ledger", name: "Stationeries & Supplies", classification: "Expense" },
-      { type: "ledger", name: "Repair & Maintenance", classification: "Expense" },
-      { type: "ledger", name: "Printing & Photocopy", classification: "Expense" },
-      { type: "ledger", name: "Registration & Renewal", classification: "Expense" },
-      { type: "ledger", name: "Seminar, Workshop, Meeting & Events - AD", classification: "Expense" },
-      { type: "ledger", name: "Domestic Travel/Daily Allowances - AD", classification: "Expense" },
-      { type: "ledger", name: "Mobile Phone Bill", classification: "Expense" },
-      { type: "ledger", name: "Postal & Courier Charges", classification: "Expense" },
-      { type: "ledger", name: "Insurance Premium", classification: "Expense" },
-      { type: "ledger", name: "Legal & Professional Fees", classification: "Expense" },
-      { type: "ledger", name: "Office General Expenses", classification: "Expense" },
-      { type: "ledger", name: "Audit Fee", classification: "Expense" },
-      { type: "ledger", name: "Bank Charge", classification: "Expense" },
-      { type: "ledger", name: "Depreciation on Computer & Peripherals", classification: "Expense" },
-      { type: "ledger", name: "Depreciation on Office Equipments", classification: "Expense" },
-      {
-        type: "ledger",
-        name: "Depreciation on Leasehold Improvements",
-        classification: "Expense",
       },
       {
         type: "group",
-        name: "Income Tax",
+        name: "Selling, Marketing & Distribution Expenses",
         classification: "Expense",
-        children: [{ type: "ledger", name: "Income Tax Expenses", classification: "Expense" }],
+        children: [
+          { type: "ledger", name: "Salaries & Allowances - SD", classification: "Expense" },
+          { type: "ledger", name: "Domestic Travel/Daily Allowances - SD", classification: "Expense" },
+          { type: "ledger", name: "Festival & Incentive Bonus - SD", classification: "Expense" },
+          { type: "ledger", name: "Media & Advertisement", classification: "Expense" },
+          { type: "ledger", name: "Seminar, Workshop, Meeting & Events - SD", classification: "Expense" },
+        ],
+      },
+      {
+        type: "group",
+        name: "General & Administrative Expenses",
+        classification: "Expense",
+        children: [
+          { type: "ledger", name: "Salaries & Allowances - AD", classification: "Expense" },
+          { type: "ledger", name: "Festival & Incentive Bonus - AD", classification: "Expense" },
+          { type: "ledger", name: "Office Rent", classification: "Expense" },
+          { type: "ledger", name: "Office Service Charge", classification: "Expense" },
+          {
+            type: "group",
+            name: "Utility Bill",
+            classification: "Expense",
+            children: [
+              { type: "ledger", name: "Electricity Expense", classification: "Expense" },
+              { type: "ledger", name: "WASA Expense", classification: "Expense" },
+              { type: "ledger", name: "Gas Expense", classification: "Expense" },
+            ],
+          },
+          { type: "ledger", name: "Staff Accomodation Rent", classification: "Expense" },
+          { type: "ledger", name: "Internet Bill", classification: "Expense" },
+          { type: "ledger", name: "Lunch for Staff", classification: "Expense" },
+          { type: "ledger", name: "Stationeries & Supplies", classification: "Expense" },
+          { type: "ledger", name: "Repair & Maintenance", classification: "Expense" },
+          { type: "ledger", name: "Printing & Photocopy", classification: "Expense" },
+          { type: "ledger", name: "Registration & Renewal", classification: "Expense" },
+          { type: "ledger", name: "Seminar, Workshop, Meeting & Events - AD", classification: "Expense" },
+          { type: "ledger", name: "Domestic Travel/Daily Allowances - AD", classification: "Expense" },
+          { type: "ledger", name: "Mobile Phone Bill", classification: "Expense" },
+          { type: "ledger", name: "Postal & Courier Charges", classification: "Expense" },
+          { type: "ledger", name: "Insurance Premium", classification: "Expense" },
+          { type: "ledger", name: "Legal & Professional Fees", classification: "Expense" },
+          { type: "ledger", name: "Office General Expenses", classification: "Expense" },
+          { type: "ledger", name: "Audit Fee", classification: "Expense" },
+          { type: "ledger", name: "Bank Charge", classification: "Expense" },
+          { type: "ledger", name: "Depreciation on Computer & Peripherals", classification: "Expense" },
+          { type: "ledger", name: "Depreciation on Office Equipments", classification: "Expense" },
+          {
+            type: "ledger",
+            name: "Depreciation on Leasehold Improvements",
+            classification: "Expense",
+          },
+          { type: "ledger", name: "Income Tax Expenses", classification: "Expense" },
+          {
+            type: "group",
+            name: "Income Tax",
+            classification: "Expense",
+            children: [{ type: "ledger", name: "Income Tax Expenses", classification: "Expense" }],
+          },
+        ],
       },
     ],
   },
@@ -232,17 +245,20 @@ const groupClassificationSelect = document.querySelector("#coaGroupClassificatio
 const groupParentSelect = document.querySelector("#coaGroupParent");
 const groupNameHistory = document.querySelector("#coaGroupNameHistory");
 const groupCodeHistory = document.querySelector("#coaGroupCodeHistory");
+const groupNameSuggestions = document.querySelector("#coaGroupNameSuggestions");
 const ledgerNameInput = document.querySelector("#coaLedgerName");
 const ledgerCodeInput = document.querySelector("#coaLedgerCode");
 const ledgerClassificationSelect = document.querySelector("#coaLedgerClassification");
 const ledgerParentSelect = document.querySelector("#coaLedgerParent");
 const ledgerNameHistory = document.querySelector("#coaLedgerNameHistory");
 const ledgerCodeHistory = document.querySelector("#coaLedgerCodeHistory");
+const ledgerNameSuggestions = document.querySelector("#coaLedgerNameSuggestions");
 const treeElement = document.querySelector("#coaTree");
 const rootDropZone = document.querySelector("#coaRootDrop");
 const statusElement = document.querySelector("#coaStatus");
 const groupCountElement = document.querySelector("#coaGroupCount");
 const ledgerCountElement = document.querySelector("#coaLedgerCount");
+const defaultButton = document.querySelector("#coaDefaultButton");
 const successToast = document.querySelector("#coaSuccessToast");
 const editModal = document.querySelector("#coaEditModal");
 const editNameInput = document.querySelector("#coaEditNameInput");
@@ -261,6 +277,13 @@ let didRestoreFormDraft = false;
 let collapsedGroupIds = new Set(safeParseArray(localStorage.getItem(COLLAPSED_GROUPS_STORAGE_KEY)));
 let pendingEditNodeId = "";
 let pendingDeleteNodeId = "";
+let canManageDefaultTemplate = false;
+let activeNameSuggestion = {
+  input: null,
+  panel: null,
+  items: [],
+  index: -1,
+};
 
 function createId() {
   if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
@@ -305,10 +328,24 @@ function normalizeNode(node) {
   return normalizedNode;
 }
 
+function isDiscardedChartNodeName(name) {
+  return String(name || "").trim().toLowerCase() === "asda";
+}
+
+function containsDiscardedChartNode(items) {
+  return Array.isArray(items) && items.some((item) => {
+    if (isDiscardedChartNodeName(item && item.name)) {
+      return true;
+    }
+
+    return item && item.type === "group" && containsDiscardedChartNode(item.children || []);
+  });
+}
+
 function normalizeTree(items) {
   return safeParseArray(JSON.stringify(Array.isArray(items) ? items : []))
     .map((item) => normalizeNode(item))
-    .filter((item) => item.name);
+    .filter((item) => item.name && !isDiscardedChartNodeName(item.name));
 }
 
 function createDefaultChartItems() {
@@ -321,6 +358,22 @@ function shouldApplyDefaultChart() {
 
 function markDefaultChartApplied() {
   localStorage.setItem(DEFAULT_CHART_VERSION_STORAGE_KEY, DEFAULT_CHART_VERSION);
+}
+
+async function loadDefaultChartItems() {
+  if (window.BanikData && typeof window.BanikData.getDefaultChartOfAccounts === "function") {
+    try {
+      const sharedItems = normalizeTree(await window.BanikData.getDefaultChartOfAccounts());
+
+      if (sharedItems.length) {
+        return sharedItems;
+      }
+    } catch {
+      // Fall back to the built-in template when the public template is not available.
+    }
+  }
+
+  return createDefaultChartItems();
 }
 
 function setStatus(message, type = "pending") {
@@ -445,6 +498,30 @@ function flattenNodesByType(items, nodeType, values = []) {
   return values;
 }
 
+function flattenNameSuggestions(items, nodeType, path = [], level = 0, suggestions = []) {
+  items.forEach((item) => {
+    const nextPath = [...path, item.name];
+
+    if (item.type === nodeType) {
+      suggestions.push({
+        name: item.name,
+        code: item.code || "",
+        classification: item.classification || "",
+        level,
+        path: path.join(" > "),
+        fullPath: nextPath.join(" > "),
+        type: item.type,
+      });
+    }
+
+    if (item.type === "group") {
+      flattenNameSuggestions(item.children || [], nodeType, nextPath, level + 1, suggestions);
+    }
+  });
+
+  return suggestions;
+}
+
 function countItems(items) {
   return items.reduce(
     (totals, item) => {
@@ -534,13 +611,22 @@ function persistCollapsedGroups() {
 
 function getFormHistory() {
   const history = safeParseObject(localStorage.getItem(FORM_HISTORY_STORAGE_KEY));
-
-  return {
-    groupNames: Array.isArray(history.groupNames) ? history.groupNames : [],
-    groupCodes: Array.isArray(history.groupCodes) ? history.groupCodes : [],
-    ledgerNames: Array.isArray(history.ledgerNames) ? history.ledgerNames : [],
-    ledgerCodes: Array.isArray(history.ledgerCodes) ? history.ledgerCodes : [],
+  const cleanHistory = {
+    groupNames: uniqueValues(Array.isArray(history.groupNames) ? history.groupNames : []).filter(
+      (name) => !isDiscardedChartNodeName(name)
+    ),
+    groupCodes: uniqueValues(Array.isArray(history.groupCodes) ? history.groupCodes : []),
+    ledgerNames: uniqueValues(Array.isArray(history.ledgerNames) ? history.ledgerNames : []).filter(
+      (name) => !isDiscardedChartNodeName(name)
+    ),
+    ledgerCodes: uniqueValues(Array.isArray(history.ledgerCodes) ? history.ledgerCodes : []),
   };
+
+  if (JSON.stringify(history) !== JSON.stringify(cleanHistory)) {
+    localStorage.setItem(FORM_HISTORY_STORAGE_KEY, JSON.stringify(cleanHistory));
+  }
+
+  return cleanHistory;
 }
 
 function uniqueValues(values) {
@@ -565,9 +651,13 @@ function uniqueValues(values) {
 function saveFormHistory(updates = {}) {
   const currentHistory = getFormHistory();
   const nextHistory = {
-    groupNames: uniqueValues([...(updates.groupNames || []), ...currentHistory.groupNames]),
+    groupNames: uniqueValues([...(updates.groupNames || []), ...currentHistory.groupNames]).filter(
+      (name) => !isDiscardedChartNodeName(name)
+    ),
     groupCodes: uniqueValues([...(updates.groupCodes || []), ...currentHistory.groupCodes]),
-    ledgerNames: uniqueValues([...(updates.ledgerNames || []), ...currentHistory.ledgerNames]),
+    ledgerNames: uniqueValues([...(updates.ledgerNames || []), ...currentHistory.ledgerNames]).filter(
+      (name) => !isDiscardedChartNodeName(name)
+    ),
     ledgerCodes: uniqueValues([...(updates.ledgerCodes || []), ...currentHistory.ledgerCodes]),
   };
 
@@ -582,6 +672,248 @@ function renderDatalist(datalist, values) {
     option.value = value;
     datalist.append(option);
   });
+}
+
+function getRecentNameSuggestions(nodeType) {
+  const history = getFormHistory();
+  const chartSuggestions = flattenNameSuggestions(chartItems, nodeType);
+  const seen = new Set(chartSuggestions.map((item) => item.name.trim().toLowerCase()));
+  const historyValues = nodeType === "group" ? history.groupNames : history.ledgerNames;
+
+  return uniqueValues(historyValues)
+    .filter((name) => !seen.has(name.toLowerCase()))
+    .map((name) => ({
+      name,
+      level: 0,
+      type: nodeType,
+      isSelectable: true,
+      isRecent: true,
+    }));
+}
+
+function matchesNameSuggestion(item, path, query) {
+  if (!query) {
+    return true;
+  }
+
+  return [item.name, item.code, item.classification, path.join(" ")]
+    .join(" ")
+    .toLowerCase()
+    .includes(query);
+}
+
+function hideNameSuggestions(panel, input) {
+  if (!panel || panel.hidden) {
+    return;
+  }
+
+  panel.hidden = true;
+  panel.innerHTML = "";
+  if (input) {
+    input.setAttribute("aria-expanded", "false");
+  }
+
+  if (activeNameSuggestion.panel === panel) {
+    activeNameSuggestion = {
+      input: null,
+      panel: null,
+      items: [],
+      index: -1,
+    };
+  }
+}
+
+function setActiveNameSuggestion(index) {
+  const { panel, items } = activeNameSuggestion;
+
+  if (!panel || !items.length) {
+    return;
+  }
+
+  const boundedIndex = Math.max(0, Math.min(index, items.length - 1));
+  activeNameSuggestion.index = boundedIndex;
+  [...panel.querySelectorAll(".coa-name-suggestions__option")].forEach((option) => {
+    const optionIndex = Number(option.dataset.index);
+    const isActive = optionIndex === boundedIndex;
+    option.classList.toggle("is-active", isActive);
+    option.setAttribute("aria-selected", isActive ? "true" : "false");
+
+    if (isActive) {
+      option.scrollIntoView({ block: "nearest" });
+    }
+  });
+}
+
+function applyNameSuggestion(input, panel, row) {
+  if (!row || !row.isSelectable) {
+    return;
+  }
+
+  input.value = row.name;
+  input.dispatchEvent(new Event("input", { bubbles: true }));
+  hideNameSuggestions(panel, input);
+  input.focus();
+}
+
+function buildNameSuggestionRows(items, nodeType, query = "", path = [], level = 0) {
+  const rows = [];
+
+  items.forEach((item) => {
+    const nextPath = [...path, item.name];
+
+    if (item.type === "group") {
+      const childRows = buildNameSuggestionRows(item.children || [], nodeType, query, nextPath, level + 1);
+      const isGroupSuggestion = nodeType === "group";
+      const isMatchedGroup = isGroupSuggestion && matchesNameSuggestion(item, nextPath, query);
+      const shouldShowGroup = !query || isMatchedGroup || childRows.length;
+
+      if (shouldShowGroup) {
+        rows.push({
+          id: item.id,
+          name: item.name,
+          type: "group",
+          level,
+          isSelectable: isGroupSuggestion,
+          isMainGroup: level === 0,
+        });
+        rows.push(...childRows);
+      }
+
+      return;
+    }
+
+    if (nodeType === "ledger" && matchesNameSuggestion(item, nextPath, query)) {
+      rows.push({
+        id: item.id,
+        name: item.name,
+        type: "ledger",
+        level,
+        isSelectable: true,
+      });
+    }
+  });
+
+  return rows;
+}
+
+function getNameSuggestionRows(nodeType, query) {
+  const rows = buildNameSuggestionRows(chartItems, nodeType, query);
+  const recentRows = getRecentNameSuggestions(nodeType)
+    .filter((row) => !query || row.name.toLowerCase().includes(query))
+    .map((row) => ({
+      ...row,
+      type: nodeType,
+      level: 0,
+    }));
+
+  return [...rows, ...recentRows].slice(0, 180);
+}
+
+function showNameSuggestions(input, panel, nodeType) {
+  if (!input || !panel) {
+    return;
+  }
+
+  const query = input.value.trim().toLowerCase();
+  const rows = getNameSuggestionRows(nodeType, query);
+
+  panel.innerHTML = "";
+
+  if (!rows.length) {
+    const empty = document.createElement("div");
+    empty.className = "coa-name-suggestions__empty";
+    empty.textContent = "No matching saved names.";
+    panel.append(empty);
+    panel.hidden = false;
+    input.setAttribute("aria-expanded", "true");
+    activeNameSuggestion = { input, panel, items: [], index: -1 };
+    return;
+  }
+
+  const selectableRows = rows.filter((row) => row.isSelectable);
+
+  rows.forEach((row) => {
+    const option = document.createElement("div");
+    option.className = [
+      "coa-name-suggestions__option",
+      `coa-name-suggestions__option--${row.type}`,
+      row.isMainGroup ? "coa-name-suggestions__option--main" : "",
+      row.isRecent ? "coa-name-suggestions__option--recent" : "",
+      row.isSelectable ? "" : "is-muted",
+    ]
+      .filter(Boolean)
+      .join(" ");
+    option.setAttribute("role", row.isSelectable ? "option" : "presentation");
+    option.setAttribute("aria-selected", "false");
+    option.style.setProperty("--coa-suggestion-indent", `${Math.min(row.level, 8) * 18}px`);
+    option.innerHTML = `
+      <span class="coa-name-suggestions__name">${escapeHtml(row.name)}</span>
+    `;
+
+    if (row.isSelectable) {
+      const selectableIndex = selectableRows.findIndex((selectableRow) => selectableRow === row);
+      option.dataset.index = String(selectableIndex);
+      option.addEventListener("mousedown", (event) => {
+        event.preventDefault();
+        applyNameSuggestion(input, panel, row);
+      });
+    }
+
+    panel.append(option);
+  });
+
+  panel.hidden = false;
+  input.setAttribute("aria-expanded", "true");
+  activeNameSuggestion = { input, panel, items: selectableRows, index: -1 };
+}
+
+function handleNameSuggestionKeydown(event, input, panel, nodeType) {
+  if (event.key === "ArrowDown") {
+    event.preventDefault();
+    if (panel.hidden) {
+      showNameSuggestions(input, panel, nodeType);
+    }
+    setActiveNameSuggestion(activeNameSuggestion.index + 1);
+    return;
+  }
+
+  if (event.key === "ArrowUp") {
+    event.preventDefault();
+    if (panel.hidden) {
+      showNameSuggestions(input, panel, nodeType);
+    }
+    setActiveNameSuggestion(activeNameSuggestion.index <= 0 ? activeNameSuggestion.items.length - 1 : activeNameSuggestion.index - 1);
+    return;
+  }
+
+  if (event.key === "Enter" && !panel.hidden && activeNameSuggestion.index >= 0) {
+    event.preventDefault();
+    applyNameSuggestion(input, panel, activeNameSuggestion.items[activeNameSuggestion.index]);
+    return;
+  }
+
+  if (event.key === "Escape") {
+    hideNameSuggestions(panel, input);
+  }
+}
+
+function setupNameSuggestions(input, panel, nodeType) {
+  input.addEventListener("focus", () => showNameSuggestions(input, panel, nodeType));
+  input.addEventListener("click", () => showNameSuggestions(input, panel, nodeType));
+  input.addEventListener("input", () => showNameSuggestions(input, panel, nodeType));
+  input.addEventListener("keydown", (event) => handleNameSuggestionKeydown(event, input, panel, nodeType));
+  input.addEventListener("blur", () => {
+    window.setTimeout(() => hideNameSuggestions(panel, input), 140);
+  });
+}
+
+function refreshOpenNameSuggestions() {
+  if (!activeNameSuggestion.input || !activeNameSuggestion.panel || activeNameSuggestion.panel.hidden) {
+    return;
+  }
+
+  const nodeType = activeNameSuggestion.input === groupNameInput ? "group" : "ledger";
+  showNameSuggestions(activeNameSuggestion.input, activeNameSuggestion.panel, nodeType);
 }
 
 function renderFormHistory() {
@@ -605,6 +937,7 @@ function renderFormHistory() {
     ledgerCodeHistory,
     [...ledgers.map((ledger) => ledger.code), ...history.ledgerCodes]
   );
+  refreshOpenNameSuggestions();
 }
 
 function getFormDraft() {
@@ -676,7 +1009,11 @@ async function persistRemote() {
 
   try {
     await window.BanikData.saveChartOfAccounts(chartItems);
-    setStatus("Saved. Journal Entry ledger dropdown is updated.", "success");
+    const didSyncDefault = await syncDefaultTemplate(true);
+    setStatus(
+      `Saved. Journal Entry ledger dropdown is updated.${didSyncDefault ? " Default template updated." : ""}`,
+      "success"
+    );
   } catch (error) {
     setStatus(error.message || "Saved locally, but backend sync failed.", "error");
   }
@@ -686,6 +1023,66 @@ function saveChart() {
   persistLocal();
   window.clearTimeout(saveTimer);
   saveTimer = window.setTimeout(persistRemote, 250);
+}
+
+async function revealDefaultTemplateButton() {
+  if (!defaultButton || !window.BanikAuth || typeof window.BanikAuth.getCurrentUser !== "function") {
+    return;
+  }
+
+  try {
+    const user = await window.BanikAuth.getCurrentUser();
+    canManageDefaultTemplate = !!(user && user.role === "admin");
+    defaultButton.hidden = !canManageDefaultTemplate;
+  } catch {
+    canManageDefaultTemplate = false;
+    defaultButton.hidden = true;
+  }
+}
+
+async function syncDefaultTemplate(silent = false) {
+  if (
+    !canManageDefaultTemplate ||
+    !window.BanikData ||
+    typeof window.BanikData.saveDefaultChartOfAccounts !== "function"
+  ) {
+    return false;
+  }
+
+  try {
+    await window.BanikData.saveDefaultChartOfAccounts(chartItems);
+    return true;
+  } catch (error) {
+    if (!silent) {
+      setStatus(error.message || "Could not save default chart template.", "error");
+    }
+    return false;
+  }
+}
+
+async function saveCurrentChartAsDefault() {
+  if (!defaultButton || !window.BanikData || typeof window.BanikData.saveDefaultChartOfAccounts !== "function") {
+    setStatus("Default template sync is not available.", "error");
+    return;
+  }
+
+  defaultButton.disabled = true;
+  defaultButton.textContent = "Saving...";
+
+  try {
+    const didSyncDefault = await syncDefaultTemplate(false);
+
+    if (didSyncDefault) {
+      markDefaultChartApplied();
+      showSuccessToast("Default saved");
+      setStatus("This structure is now the default for new users.", "success");
+    }
+  } catch (error) {
+    setStatus(error.message || "Could not save default chart template.", "error");
+  } finally {
+    defaultButton.disabled = false;
+    defaultButton.textContent = "Set as default";
+  }
 }
 
 function updateParentSelects() {
@@ -770,7 +1167,7 @@ function toggleGroup(nodeId) {
       if (collapsedGroupIds.has(nodeId)) {
         childrenElement.hidden = true;
       }
-    }, 220);
+    }, 380);
   }
 }
 
@@ -1170,19 +1567,18 @@ function handleDrop(event) {
 }
 
 async function loadChart() {
-  const shouldSeedDefault = shouldApplyDefaultChart();
-  chartItems = shouldSeedDefault ? createDefaultChartItems() : readLocalTree();
+  const localItems = readLocalTree();
+  chartItems = localItems.length ? localItems : createDefaultChartItems();
   renderTree();
 
-  if (shouldSeedDefault) {
-    persistLocal();
-    markDefaultChartApplied();
-    setStatus("Default chart of accounts loaded.", "success");
-  } else if (chartItems.length) {
+  if (localItems.length) {
     setStatus("Loaded saved chart from this browser.", "success");
+  } else {
+    setStatus("Default chart of accounts loaded.", "success");
   }
 
   await waitForBanikData();
+  await revealDefaultTemplateButton();
 
   if (!window.BanikData || typeof window.BanikData.getChartOfAccounts !== "function") {
     if (!chartItems.length) {
@@ -1192,31 +1588,29 @@ async function loadChart() {
     return;
   }
 
-  if (shouldSeedDefault) {
-    try {
-      await window.BanikData.saveChartOfAccounts(chartItems);
-      setStatus("Default chart of accounts saved.", "success");
-    } catch (error) {
-      setStatus(error.message || "Default chart loaded locally, but backend sync failed.", "error");
-    }
-
-    restoreFormDraft();
-    return;
-  }
-
   try {
-    const remoteItems = normalizeTree(await window.BanikData.getChartOfAccounts());
+    const rawRemoteItems = await window.BanikData.getChartOfAccounts();
+    const hadDiscardedNodes = containsDiscardedChartNode(rawRemoteItems);
+    const remoteItems = normalizeTree(rawRemoteItems);
 
     if (remoteItems.length) {
       chartItems = remoteItems;
       persistLocal();
+      markDefaultChartApplied();
       renderTree();
-      setStatus("Loaded saved chart of accounts.", "success");
+      if (hadDiscardedNodes) {
+        await window.BanikData.saveChartOfAccounts(chartItems);
+      }
+      const didSyncDefault = await syncDefaultTemplate(true);
+      setStatus(
+        `Loaded saved chart of accounts.${didSyncDefault ? " Default template updated." : ""}`,
+        "success"
+      );
       restoreFormDraft();
       return;
     }
 
-    chartItems = createDefaultChartItems();
+    chartItems = await loadDefaultChartItems();
     persistLocal();
     markDefaultChartApplied();
     renderTree();
@@ -1258,6 +1652,8 @@ ledgerForm.addEventListener("submit", addLedger);
 [groupClassificationSelect, groupParentSelect, ledgerClassificationSelect, ledgerParentSelect].forEach((select) => {
   select.addEventListener("change", persistFormDraft);
 });
+setupNameSuggestions(groupNameInput, groupNameSuggestions, "group");
+setupNameSuggestions(ledgerNameInput, ledgerNameSuggestions, "ledger");
 treeElement.addEventListener("click", handleTreeClick);
 treeElement.addEventListener("dragstart", handleDragStart);
 treeElement.addEventListener("dragend", handleDragEnd);
@@ -1275,6 +1671,9 @@ editNameInput.addEventListener("keydown", (event) => {
 });
 deleteCancelButton.addEventListener("click", closeDeleteModal);
 deleteConfirmButton.addEventListener("click", confirmDeleteModal);
+if (defaultButton) {
+  defaultButton.addEventListener("click", saveCurrentChartAsDefault);
+}
 [editModal, deleteModal].forEach((modal) => {
   modal.addEventListener("click", (event) => {
     if (event.target === modal) {

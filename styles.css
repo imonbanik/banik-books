@@ -3371,11 +3371,24 @@ button:active {
   position: relative;
   display: grid;
   gap: 18px;
-  padding: 26px 0 24px;
+  padding: 22px 0 24px;
+}
+
+.coa-hero {
+  gap: 16px;
 }
 
 .coa-hero h1 {
   max-width: none;
+  margin-bottom: 8px;
+}
+
+.coa-hero .lead {
+  max-width: none;
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.45;
+  white-space: nowrap;
 }
 
 .coa-builder-grid {
@@ -3428,6 +3441,15 @@ button:active {
   gap: 6px;
 }
 
+.coa-suggest-field {
+  position: relative;
+  z-index: 2;
+}
+
+.coa-suggest-field:focus-within {
+  z-index: 40;
+}
+
 .coa-form-card label span {
   color: #7f4b4b;
   font-size: 0.76rem;
@@ -3454,6 +3476,97 @@ button:active {
 .coa-form-card select:focus {
   border-color: rgba(185, 28, 28, 0.62);
   box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.1);
+}
+
+.coa-name-suggestions {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  z-index: 70;
+  display: grid;
+  gap: 1px;
+  max-height: 340px;
+  overflow-y: auto;
+  min-width: min(520px, calc(100vw - 52px));
+  padding: 7px;
+  border: 1px solid rgba(127, 29, 29, 0.14);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 22px 52px rgba(62, 20, 20, 0.18);
+}
+
+.coa-name-suggestions__option {
+  display: block;
+  min-height: 34px;
+  padding: 7px 10px 7px calc(10px + var(--coa-suggestion-indent, 0px));
+  border-radius: 9px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  color: var(--text);
+  font-size: 0.92rem;
+  line-height: 1.2;
+  white-space: nowrap;
+  transition: background 0.18s ease, border-color 0.18s ease;
+}
+
+.coa-name-suggestions__option:hover,
+.coa-name-suggestions__option.is-active {
+  background: #fff4f2;
+  border-color: rgba(185, 28, 28, 0.16);
+}
+
+.coa-name-suggestions__option.is-muted {
+  cursor: default;
+  pointer-events: none;
+}
+
+.coa-name-suggestions__option--group {
+  color: var(--text);
+  font-weight: 900;
+  text-transform: none;
+}
+
+.coa-name-suggestions__option--main {
+  color: var(--red-900);
+  text-transform: uppercase;
+}
+
+.coa-name-suggestions__option--ledger {
+  color: var(--text);
+  font-weight: 500;
+  text-transform: none;
+}
+
+.coa-name-suggestions__option--recent {
+  color: var(--muted);
+  font-style: italic;
+}
+
+.coa-name-suggestions__name {
+  display: block;
+  overflow: hidden;
+  color: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  text-overflow: ellipsis;
+  text-transform: inherit;
+}
+
+.coa-form-card label .coa-name-suggestions__name {
+  color: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  text-transform: inherit;
+}
+
+.coa-name-suggestions__empty {
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-weight: 800;
+  line-height: 1.3;
+  padding: 12px;
+  text-align: center;
 }
 
 .coa-submit-button {
@@ -3570,6 +3683,35 @@ button:active {
   color: var(--red-900);
   font-family: "Ubuntu", sans-serif;
   font-size: 1rem;
+}
+
+.coa-default-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 0 13px;
+  border: 1px solid rgba(127, 29, 29, 0.14);
+  border-radius: 14px;
+  background: #ffffff;
+  color: var(--red-900);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.86rem;
+  font-weight: 900;
+  box-shadow: none;
+}
+
+.coa-default-button:hover,
+.coa-default-button:active {
+  transform: none;
+  filter: none;
+  background: #fff2f0;
+}
+
+.coa-default-button:disabled {
+  cursor: wait;
+  opacity: 0.62;
 }
 
 .coa-root-drop {
@@ -3697,7 +3839,9 @@ button:active {
   overflow: hidden;
   color: var(--text);
   font-size: 0.96rem;
+  font-weight: 500;
   text-overflow: ellipsis;
+  text-transform: none;
   white-space: nowrap;
 }
 
@@ -3710,6 +3854,15 @@ button:active {
 .coa-node--group > .coa-node-bar .coa-node-title strong {
   color: var(--text);
   font-weight: 900;
+}
+
+.coa-tree > .coa-node--group > .coa-node-bar .coa-node-title strong {
+  color: var(--red-900);
+  text-transform: uppercase;
+}
+
+.coa-node--ledger > .coa-node-bar .coa-node-title strong {
+  font-weight: 500;
 }
 
 .coa-node-actions {
@@ -3752,10 +3905,10 @@ button:active {
   transform: translateY(0);
   transform-origin: top;
   transition:
-    max-height 0.24s ease,
-    opacity 0.18s ease,
-    transform 0.22s ease,
-    padding 0.22s ease,
+    max-height 0.38s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.28s ease,
+    transform 0.34s cubic-bezier(0.22, 1, 0.36, 1),
+    padding 0.34s cubic-bezier(0.22, 1, 0.36, 1),
     border-color 0.2s ease,
     background 0.2s ease,
     box-shadow 0.2s ease;
@@ -5310,6 +5463,10 @@ button:active {
 
   .coa-layout {
     padding-top: 24px;
+  }
+
+  .coa-hero .lead {
+    white-space: normal;
   }
 
   .coa-submit-button {
