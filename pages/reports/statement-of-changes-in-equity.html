@@ -7,16 +7,47 @@
     <title>Statement of Changes in Equity | BANIK Books</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
-    <link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@500;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="./styles.css" />
     <script src="./js/config/app-config.js" defer></script>
     <script src="./js/core/auth.js" type="module"></script>
+    <script src="./js/core/accounting-preferences.js" defer></script>
+    <script src="./js/pages/statement-of-changes-in-equity.js" defer></script>
   </head>
   <body>
-    <div class="page-shell detail-page">
-      <header class="topbar"><a class="brand" href="./workspace.html"><span class="brand-mark" aria-hidden="true"><img src="./assets/banik-logo.svg" alt="" /></span><span class="brand-copy"><span class="brand-copy__title">BANIK Books</span><span class="brand-copy__tag">Financial reports</span></span></a><a class="topbar-back-button" href="./reports.html">Back</a></header>
-      <main class="detail-card"><p class="sheet-header__eyebrow">Report</p><h1>Statement of Changes in Equity</h1><p class="lead">This page will explain movements in share capital, reserves, retained earnings, and total equity.</p><a class="secondary-button" href="./reports.html">Back to reports</a></main>
+    <div class="page-shell general-ledger-page changes-equity-page">
+      <header class="topbar">
+        <a class="brand" href="./workspace.html">
+          <span class="brand-mark" aria-hidden="true">
+            <img src="./assets/banik-logo.svg" alt="" />
+          </span>
+          <span class="brand-copy">
+            <span class="brand-copy__title">BANIK Books</span>
+            <span class="brand-copy__tag">Simple accounting for growing businesses</span>
+          </span>
+        </a>
+        <a class="topbar-back-button" href="./reports.html">Back</a>
+      </header>
+
+      <main class="general-ledger-layout">
+        <section class="general-ledger-hero">
+          <h1>Statement of Changes in Equity</h1>
+          <div class="general-ledger-filters changes-equity-filters">
+            <label>
+              <span>From</span>
+              <input id="changes-equity-from" type="date" />
+            </label>
+            <label>
+              <span>To</span>
+              <input id="changes-equity-to" type="date" />
+            </label>
+          </div>
+        </section>
+
+        <section class="changes-equity-card" aria-label="Statement of changes in equity">
+          <div class="changes-equity-table" id="changes-equity-table"></div>
+        </section>
+      </main>
     </div>
   </body>
 </html>

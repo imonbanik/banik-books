@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <base href="/" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Party Wise Transaction | BANIK Books</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="./styles.css" />
+    <script src="./js/config/app-config.js" defer></script>
+    <script src="./js/core/auth.js" type="module"></script>
+    <script src="./js/core/accounting-preferences.js" defer></script>
+    <script src="./js/pages/party-wise-transaction.js" defer></script>
+  </head>
+  <body>
+    <div class="page-shell general-ledger-page party-wise-transaction-page">
+      <header class="topbar">
+        <a class="brand" href="./workspace.html">
+          <span class="brand-mark" aria-hidden="true">
+            <img src="./assets/banik-logo.svg" alt="" />
+          </span>
+          <span class="brand-copy">
+            <span class="brand-copy__title">BANIK Books</span>
+            <span class="brand-copy__tag">Simple accounting for growing businesses</span>
+          </span>
+        </a>
+        <a class="topbar-back-button" href="./reports.html">Back</a>
+      </header>
+
+      <main class="general-ledger-layout">
+        <section class="general-ledger-hero">
+          <h1>Party Wise Transaction</h1>
+          <div class="general-ledger-filters">
+            <label>
+              <span>From</span>
+              <input id="party-wise-transaction-from" type="date" />
+            </label>
+            <label>
+              <span>To</span>
+              <input id="party-wise-transaction-to" type="date" />
+            </label>
+            <label class="general-ledger-search">
+              <span>Party Search</span>
+              <input id="party-wise-transaction-search" type="text" autocomplete="off" placeholder="Type any part of party name..." />
+            </label>
+          </div>
+          <div class="party-wise-transaction-selector">
+            <label>
+              <span>Related Ledger</span>
+              <select id="party-wise-transaction-account">
+                <option value="">All party ledgers</option>
+              </select>
+            </label>
+          </div>
+          <div class="general-ledger-actions">
+            <button
+              class="excel-export-button"
+              id="party-wise-transaction-excel"
+              type="button"
+              title="Download Party Wise Transaction as Excel"
+              aria-label="Download Party Wise Transaction as Excel"
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M5 3h9l5 5v13H5z" />
+                <path d="M14 3v5h5M8 10l4 6m0-6-4 6" />
+              </svg>
+            </button>
+            <button class="general-ledger-print-button" id="party-wise-transaction-print" type="button">Print</button>
+          </div>
+        </section>
+
+        <section class="general-ledger-card" aria-label="Party wise transaction tables">
+          <div id="party-wise-transaction-groups"></div>
+        </section>
+      </main>
+    </div>
+  </body>
+</html>

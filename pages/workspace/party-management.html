@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <base href="/" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Party Management | BANIK Books</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="./styles.css" />
+    <script src="./js/config/app-config.js" defer></script>
+    <script src="./js/core/auth.js" type="module"></script>
+    <script src="./js/pages/party-management.js" defer></script>
+  </head>
+  <body>
+    <div class="page-shell party-page">
+      <header class="topbar">
+        <a class="brand" href="./workspace.html">
+          <span class="brand-mark" aria-hidden="true">
+            <img src="./assets/banik-logo.svg" alt="" />
+          </span>
+          <span class="brand-copy">
+            <span class="brand-copy__title">BANIK Books</span>
+            <span class="brand-copy__tag">Simple accounting for growing businesses</span>
+          </span>
+        </a>
+        <a class="topbar-back-button" href="./workspace.html">Back</a>
+      </header>
+
+      <main class="party-layout">
+        <section class="party-hero">
+          <div>
+            <span class="party-kicker">Workspace</span>
+            <h1>Party Management</h1>
+            <p class="lead">Create and maintain customers, suppliers, combined parties, and employees in one place.</p>
+          </div>
+        </section>
+
+        <section class="party-tool-section">
+          <div class="party-tool-actions" aria-label="Party management tools">
+            <button class="party-tool-button party-tool-button--create" id="party-create-button" type="button">
+              Create Party
+            </button>
+            <button class="party-tool-button" type="button" data-open-party-register="Customer">
+              Customer Register
+            </button>
+            <button class="party-tool-button" type="button" data-open-party-register="Supplier">
+              Supplier Register
+            </button>
+            <button class="party-tool-button" type="button" data-open-party-register="Both">
+              Both Customer &amp; Supplier Register
+            </button>
+            <button class="party-tool-button" type="button" data-open-party-register="Employee">
+              Employee Register
+            </button>
+          </div>
+        </section>
+      </main>
+
+      <div class="challan-modal party-modal" id="party-modal" hidden>
+        <div class="challan-modal__dialog challan-modal__dialog--record party-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="party-modal-title">
+          <div class="record-modal-header">
+            <h2 id="party-modal-title">Create Party</h2>
+            <button class="challan-modal__close" id="party-close-button" type="button" aria-label="Close">&times;</button>
+          </div>
+
+          <form class="record-challan-form party-form" id="party-form" novalidate>
+            <label class="party-field party-field--type">
+              <span>Party Type</span>
+              <select id="party-type" name="type" required>
+                <option value="Customer">Customer</option>
+                <option value="Supplier">Supplier</option>
+                <option value="Both">Both</option>
+                <option value="Employee">Employee</option>
+              </select>
+            </label>
+
+            <div class="party-form-grid" id="party-dynamic-fields"></div>
+
+            <fieldset class="party-bank-fieldset">
+              <legend>Bank Information</legend>
+              <div class="party-form-grid party-form-grid--bank">
+                <label class="party-field">
+                  <span>Bank Name</span>
+                  <input id="party-bank-name" name="bankName" type="text" autocomplete="off" />
+                </label>
+                <label class="party-field">
+                  <span>Account Name</span>
+                  <input id="party-account-name" name="accountName" type="text" autocomplete="off" />
+                </label>
+                <label class="party-field">
+                  <span>Account Number</span>
+                  <input id="party-account-number" name="accountNumber" type="text" autocomplete="off" />
+                </label>
+                <label class="party-field">
+                  <span>Branch Name</span>
+                  <input id="party-branch-name" name="branchName" type="text" autocomplete="off" />
+                </label>
+                <label class="party-field">
+                  <span>Routing Number</span>
+                  <input id="party-routing-number" name="routingNumber" type="text" autocomplete="off" />
+                </label>
+              </div>
+            </fieldset>
+
+            <div class="record-form-actions party-form-actions">
+              <button class="record-cancel-button" id="party-cancel-button" type="button">Cancel</button>
+              <button class="record-save-button" id="party-save-button" type="submit">Save</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div class="challan-modal party-modal" id="party-register-modal" hidden>
+        <div class="challan-modal__dialog challan-modal__dialog--register party-register-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="party-register-title">
+          <div class="register-modal-header">
+            <div>
+              <h2 id="party-register-title">Customer Register</h2>
+              <p id="party-register-summary" class="challan-register-summary"></p>
+            </div>
+            <button class="challan-modal__close" id="party-register-close-button" type="button" aria-label="Close">&times;</button>
+          </div>
+
+          <p id="party-register-empty" class="challan-register-empty">No parties created yet.</p>
+          <div id="party-register-table-wrap" class="challan-register-table-wrap" hidden>
+            <table class="challan-register-table party-register-table">
+              <thead id="party-register-table-head"></thead>
+              <tbody id="party-register-table-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="challan-modal party-modal party-modal--confirm" id="party-delete-modal" hidden>
+        <div class="challan-modal__dialog party-modal__dialog--confirm" role="alertdialog" aria-modal="true" aria-labelledby="party-delete-title">
+          <h2 id="party-delete-title">Delete Party</h2>
+          <p>Are you sure you want to delete this Party?</p>
+          <div class="record-form-actions party-form-actions">
+            <button class="journal-button journal-button--danger" id="party-delete-yes" type="button">Yes</button>
+            <button class="journal-button journal-button--ghost" id="party-delete-no" type="button">No</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

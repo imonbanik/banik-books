@@ -29,6 +29,8 @@ function initializeBanikBooksSettings() {
   window.BANIK_BOOKS_DEFAULT_SETTINGS = BANIK_BOOKS_DEFAULT_SETTINGS;
   window.BANIK_BOOKS_SETTINGS = mergedSettings;
   document.documentElement.dataset.accountingBasis = mergedSettings.accountingBasis;
+  document.documentElement.removeAttribute("data-theme");
+  document.documentElement.style.colorScheme = "light";
 
   return mergedSettings;
 }
@@ -45,4 +47,5 @@ document.addEventListener("DOMContentLoaded", () => {
     .forEach((element) => {
       element.textContent = activeBanikBooksSettings.accountingBasisDescription;
     });
+
 });

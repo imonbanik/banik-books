@@ -24,6 +24,7 @@ function getContentType(filePath) {
     ".png": "image/png",
     ".svg": "image/svg+xml",
     ".json": "application/json; charset=utf-8",
+    ".md": "text/markdown; charset=utf-8",
   };
   return contentTypes[extension] || "application/octet-stream";
 }

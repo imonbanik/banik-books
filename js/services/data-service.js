@@ -151,6 +151,11 @@ function normalizeChartNodes(nodes) {
 
       if (nodeType === "group") {
         normalizedNode.children = normalizeChartNodes(node.children || []);
+      } else {
+        normalizedNode.openingBalance = Number(node.openingBalance || 0) || 0;
+        normalizedNode.openingBalanceDate = String(node.openingBalanceDate || "").trim();
+        normalizedNode.openingBalanceSide =
+          String(node.openingBalanceSide || "").toLowerCase() === "credit" ? "credit" : "debit";
       }
 
       return normalizedNode;

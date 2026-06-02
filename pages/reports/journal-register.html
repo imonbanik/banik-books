@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <base href="/" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Journal Register | BANIK Books</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="./styles.css" />
+    <script src="./js/config/app-config.js" defer></script>
+    <script src="./js/core/auth.js" type="module"></script>
+    <script src="./js/core/accounting-preferences.js" defer></script>
+    <script src="./js/pages/journal-register.js" defer></script>
+  </head>
+  <body>
+    <div class="page-shell journal-register-page">
+      <header class="topbar">
+        <a class="brand" href="./workspace.html">
+          <span class="brand-mark" aria-hidden="true">
+            <img src="./assets/banik-logo.svg" alt="" />
+          </span>
+          <span class="brand-copy">
+            <span class="brand-copy__title">BANIK Books</span>
+            <span class="brand-copy__tag">Simple accounting for growing businesses</span>
+          </span>
+        </a>
+        <a class="topbar-back-button" href="./reports.html">Back</a>
+      </header>
+
+      <main class="journal-register-layout">
+        <section class="journal-register-hero">
+          <h1>Journal Register</h1>
+          <div class="journal-register-filters">
+            <label>
+              <span>From</span>
+              <input id="journal-register-from" type="date" />
+            </label>
+            <label>
+              <span>To</span>
+              <input id="journal-register-to" type="date" />
+            </label>
+          </div>
+        </section>
+
+        <section class="journal-register-card" aria-label="Journal register table">
+          <div class="journal-register-scroll">
+              <div class="journal-register-table">
+                <div class="journal-register-grid journal-register-grid--head">
+                <div>Sl.</div>
+                <div>Journal Date</div>
+                <div>Journal No.</div>
+                <div>Account</div>
+                <div>Debit</div>
+                <div>Credit</div>
+                <div>Description</div>
+                <div>Name</div>
+                <div>Journal Note</div>
+                <div>Delete</div>
+              </div>
+
+              <div id="journal-register-rows"></div>
+
+              <div class="journal-register-grid journal-register-grid--total">
+                <div></div>
+                <div></div>
+                <div></div>
+                <div>Total</div>
+                <div id="journal-register-total-debit">0.00</div>
+                <div id="journal-register-total-credit">0.00</div>
+                <div></div>
+                <div></div>
+                <div></div>
+                <div></div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <div class="journal-popup" id="journal-register-delete-confirm" hidden>
+        <div class="journal-popup__dialog" role="alertdialog" aria-modal="true" aria-labelledby="journal-register-delete-title">
+          <h2 id="journal-register-delete-title">Delete Journal</h2>
+          <p>Are you sure you want to delete this Journal?</p>
+          <div class="journal-confirm-actions">
+            <button class="journal-button journal-button--danger" id="journal-register-delete-yes" type="button">Yes</button>
+            <button class="journal-button journal-button--ghost" id="journal-register-delete-no" type="button">No</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

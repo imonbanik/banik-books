@@ -7,14 +7,7 @@
     <title>Profile Setup | BANIK Books</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
-      rel="stylesheet"
-    />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@500;700&display=swap"
-      rel="stylesheet"
-    />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="./styles.css" />
     <script src="./js/config/app-config.js" defer></script>
     <script src="./js/core/auth.js" type="module"></script>
@@ -31,710 +24,253 @@
             <span class="brand-copy__tag">Simple accounting for growing businesses</span>
           </span>
         </a>
-        <a class="topbar-back-button" href="./workspace.html">Back</a>
-        <div class="auth-controls" data-auth-controls></div>
+        <div class="auth-controls" data-auth-controls data-auth-hide-logout></div>
+        <a class="topbar-back-button profile-topbar-back-button" href="./workspace.html">Back</a>
       </header>
 
-      <main class="signup-layout">
-        <section class="signup-intro">
-          <span class="eyebrow">Complete your profile</span>
-          <h1>Set up your BANIK Books workspace</h1>
-          <p class="lead">
-            Add the profile and business details needed to prepare your
-            accounting workspace.
-          </p>
-
-          <div class="process-steps">
-            <article class="process-card">
-              <span class="process-card__number">01</span>
-              <h2>Account owner details</h2>
-              <p>
-                Add the owner or admin name, email address, and phone number.
-              </p>
-            </article>
-            <article class="process-card">
-              <span class="process-card__number">02</span>
-              <h2>Company setup</h2>
-              <p>
-                Save business type, address, currency, and fiscal year so the
-                software is ready for daily accounting.
-              </p>
-            </article>
-            <article class="process-card">
-              <span class="process-card__number">03</span>
-              <h2>Letterhead setup</h2>
-              <p>
-                Upload an optional A4 letterhead for official document printing.
-              </p>
-            </article>
-            <article class="process-card">
-              <span class="process-card__number">04</span>
-              <h2>E-sign setup</h2>
-              <p>
-                Keep a 300x100 pixel signature ready for invoices and documents.
-              </p>
-            </article>
-          </div>
+      <main class="profile-page-layout">
+        <section class="profile-page-heading">
+          <h1>BANIK Books Profile</h1>
+          <p class="lead">Manage your account, workspace details, and preferences.</p>
+          <p class="profile-required-note">Mandatory fields are marked with <strong>**</strong> marks.</p>
         </section>
 
-        <section class="signup-sheet">
-          <div class="sheet-header">
-            <div>
-              <p class="sheet-header__eyebrow">Step 1 of 2</p>
-              <h2>Profile details</h2>
-            </div>
-            <a class="text-link" href="./workspace.html">Back to workspace</a>
-          </div>
-
-          <form class="account-form" id="profile-setup-form">
-            <div class="field-grid">
-              <label class="stacked-field stacked-field--full">
-                <span>Full name</span>
-                <input id="profileFullName" type="text" placeholder="Md. Rahim Uddin" required />
-              </label>
-            </div>
-
-            <div class="field-grid">
-              <label class="stacked-field">
-                <span>Email</span>
-                <input id="profileEmail" type="email" placeholder="accounts@company.com" readonly />
-              </label>
-              <label class="stacked-field">
-                <span>Mobile number</span>
-                <input id="profileMobileNumber" type="tel" placeholder="+8801XXXXXXXXX" required />
-              </label>
-            </div>
-
-            <div class="divider"></div>
-
-            <div class="sheet-header sheet-header--compact">
-              <div>
-                <p class="sheet-header__eyebrow">Step 2 of 2</p>
-                <h2>Company setup</h2>
-              </div>
-            </div>
-
-            <div class="field-grid">
-              <label class="stacked-field">
-                <span>Business type</span>
-                <select id="profileBusinessType">
-                  <option>Trading business</option>
-                  <option>Retail shop</option>
-                  <option>Service company</option>
-                  <option>Manufacturing</option>
-                  <option>Other</option>
-                </select>
-              </label>
-              <label class="stacked-field">
-                <span>Currency</span>
-                <select id="profileCurrency">
-                  <option>BDT - Bangladeshi Taka</option>
-                  <option>USD - US Dollar</option>
-                </select>
-              </label>
-            </div>
-
-            <div class="field-grid">
-              <label class="stacked-field stacked-field--full">
-                <span>Company address</span>
-                <input id="profileCompanyAddress" type="text" placeholder="House, Road, Area, City" required />
-              </label>
-            </div>
-
-            <div class="field-grid">
-              <label class="stacked-field">
-                <span>Fiscal year start</span>
-                <input id="profileFiscalYearStart" type="date" />
-              </label>
-              <label class="stacked-field">
-                <span>Preferred plan</span>
-                <select id="profilePreferredPlan">
-                  <option>Start Free</option>
-                  <option>Business</option>
-                  <option>Enterprise</option>
-                </select>
-              </label>
-            </div>
-
-            <div class="letterhead-upload-card">
-              <div class="letterhead-upload-card__head">
+        <section class="signup-sheet profile-sheet">
+          <form class="account-form profile-form" id="profile-setup-form">
+            <section class="profile-section profile-section--personal">
+              <div class="profile-section__head">
                 <div>
-                  <span class="letterhead-upload-card__eyebrow">Optional</span>
-                  <h3>Upload Organization's LetterHead</h3>
+                  <p class="sheet-header__eyebrow">Section 1</p>
+                  <h2>Personal Profile</h2>
                 </div>
-                <span class="letterhead-upload-card__badge">A4</span>
               </div>
 
-              <label class="letterhead-dropzone" for="profileLetterhead">
-                <input
-                  id="profileLetterhead"
-                  type="file"
-                  accept="image/png,image/jpeg,application/pdf"
-                />
-                <strong>Choose PNG, JPG, or PDF file</strong>
-                <small>
-                  Keep it as A4 size. This will be used later for official document printing.
-                </small>
-              </label>
-
-              <div class="letterhead-preview" id="profileLetterheadPreview" hidden></div>
-
-              <div class="letterhead-actions">
-                <button class="secondary-button" id="profileLetterheadUploadButton" type="button">
-                  Upload letterhead
-                </button>
-                <button class="secondary-button" id="profileLetterheadRemoveButton" type="button">
-                  Remove
-                </button>
+              <div class="letterhead-upload-card profile-photo-card">
+                <div class="letterhead-upload-card__head">
+                  <div>
+                    <h3>Profile Photo</h3>
+                  </div>
+                </div>
+                <label class="letterhead-dropzone" for="profilePhoto">
+                  <input id="profilePhoto" type="file" accept="image/png,image/jpeg" />
+                  <strong>Choose PNG or JPG photo</strong>
+                  <small>Crop will save a clean square profile photo.</small>
+                </label>
+                <div class="letterhead-preview profile-photo-preview">
+                  <div class="profile-image-preview profile-image-preview--square" id="profilePhotoPreview">
+                    <span>No photo</span>
+                  </div>
+                  <div class="letterhead-preview__copy">
+                    <span>Profile Photo</span>
+                    <strong>Photo preview</strong>
+                    <small>Square 1:1 image</small>
+                  </div>
+                </div>
+                <div class="letterhead-actions">
+                  <button class="secondary-button" id="profilePhotoRemoveButton" type="button" hidden>Remove</button>
+                </div>
+                <p class="letterhead-status" id="profilePhotoStatus" aria-live="polite"></p>
               </div>
-              <p class="letterhead-status" id="profileLetterheadStatus" aria-live="polite"></p>
-            </div>
 
-            <div class="letterhead-upload-card">
-              <div class="letterhead-upload-card__head">
+              <div class="field-grid">
+                <label class="stacked-field">
+                  <span>Full Name <strong class="required-mark">**</strong></span>
+                  <input id="profileFullName" type="text" placeholder="Your full name" required />
+                </label>
+                <label class="stacked-field">
+                  <span>Email <strong class="required-mark">**</strong></span>
+                  <input id="profileEmail" type="email" placeholder="accounts@company.com" readonly required />
+                </label>
+                <label class="stacked-field">
+                  <span>Mobile Number <strong class="required-mark">**</strong></span>
+                  <input id="profileMobileNumber" type="tel" placeholder="+8801XXXXXXXXX" required />
+                </label>
+              </div>
+            </section>
+
+            <section class="profile-section profile-section--workspace">
+              <div class="profile-section__head">
                 <div>
-                  <span class="letterhead-upload-card__eyebrow">Optional</span>
-                  <h3>Upload E-Sign</h3>
+                  <p class="sheet-header__eyebrow">Section 2</p>
+                  <h2>Workspace / Business Setup</h2>
                 </div>
-                <span class="letterhead-upload-card__badge">300x100</span>
               </div>
 
-              <label class="letterhead-dropzone" for="profileESign">
-                <input
-                  id="profileESign"
-                  type="file"
-                  accept="image/png,image/jpeg"
-                />
-                <strong>Choose PNG or JPG e-sign</strong>
-                <small>
-                  Signature image must be exactly 300x100 pixels.
-                </small>
-              </label>
-
-              <div class="letterhead-preview e-sign-preview" id="profileESignPreview" hidden></div>
-
-              <div class="letterhead-actions">
-                <button class="secondary-button" id="profileESignUploadButton" type="button">
-                  Upload e-sign
-                </button>
-                <button class="secondary-button" id="profileESignRemoveButton" type="button">
-                  Remove
-                </button>
+              <div class="field-grid workspace-field-grid">
+                <label class="stacked-field">
+                  <span>Business Name <strong class="required-mark">**</strong></span>
+                  <input id="profileBusinessName" type="text" placeholder="Your business name" required />
+                </label>
+                <label class="stacked-field">
+                  <span>Business Type <strong class="required-mark">**</strong></span>
+                  <select id="profileBusinessType" required>
+                    <option>Trading business</option>
+                    <option>Retail shop</option>
+                    <option>Service company</option>
+                    <option>Manufacturing</option>
+                    <option>Other</option>
+                  </select>
+                </label>
+                <label class="stacked-field">
+                  <span>Currency <strong class="required-mark">**</strong></span>
+                  <select id="profileCurrency" required>
+                    <option value="BDT - Bangladeshi Taka">BDT</option>
+                    <option value="USD - US Dollar">USD</option>
+                  </select>
+                </label>
+                <label class="stacked-field">
+                  <span>Fiscal Year Start Date <strong class="required-mark">**</strong></span>
+                  <input id="profileFiscalYearStart" type="date" required />
+                </label>
+                <label class="stacked-field workspace-field--address">
+                  <span>Business Address <strong class="required-mark">**</strong></span>
+                  <input id="profileCompanyAddress" type="text" placeholder="House, Road, Area, City" required />
+                </label>
+                <label class="stacked-field">
+                  <span>TIN Number <small>Optional</small></span>
+                  <input id="profileTinNumber" type="text" autocomplete="off" />
+                </label>
+                <label class="stacked-field">
+                  <span>BIN Number <small>Optional</small></span>
+                  <input id="profileBinNumber" type="text" autocomplete="off" />
+                </label>
               </div>
-              <p class="letterhead-status" id="profileESignStatus" aria-live="polite"></p>
-            </div>
 
-            <label class="checkbox-row">
-              <input id="profileAgreement" type="checkbox" checked required />
-              <span>I agree to save this profile for my BANIK Books workspace.</span>
-            </label>
+              <div class="profile-assets-grid">
+                <div class="letterhead-upload-card">
+                  <div class="letterhead-upload-card__head">
+                    <div>
+                      <h3>Business Letterhead</h3>
+                    </div>
+                  </div>
+                  <label class="letterhead-dropzone" for="profileLetterhead">
+                    <input id="profileLetterhead" type="file" accept="image/png,image/jpeg,application/pdf" />
+                    <strong>Choose PDF, PNG or JPG</strong>
+                  </label>
+                  <div class="letterhead-preview" id="profileLetterheadPreview" hidden></div>
+                  <div class="letterhead-actions">
+                    <button class="secondary-button" id="profileLetterheadRemoveButton" type="button" hidden>Remove</button>
+                  </div>
+                  <p class="letterhead-status" id="profileLetterheadStatus" aria-live="polite"></p>
+                </div>
 
-            <p class="auth-form-status" id="profileSetupStatus" aria-live="polite"></p>
+                <div class="letterhead-upload-card">
+                  <div class="letterhead-upload-card__head">
+                    <div>
+                      <h3>E-Signature</h3>
+                    </div>
+                  </div>
+                  <label class="letterhead-dropzone" for="profileESign">
+                    <input id="profileESign" type="file" accept="image/png,image/jpeg" />
+                    <strong>Choose PNG or JPG</strong>
+                  </label>
+                  <div class="letterhead-preview e-sign-preview" id="profileESignPreview" hidden></div>
+                  <div class="letterhead-actions">
+                    <button class="secondary-button" id="profileESignRemoveButton" type="button" hidden>Remove</button>
+                  </div>
+                  <p class="letterhead-status" id="profileESignStatus" aria-live="polite"></p>
+                </div>
 
-            <div class="form-actions">
-              <a class="secondary-button" href="./workspace.html">Cancel</a>
-              <button id="profileSubmitButton" type="submit">Save profile</button>
+                <div class="letterhead-upload-card">
+                  <div class="letterhead-upload-card__head">
+                    <div>
+                      <h3>Business Logo</h3>
+                    </div>
+                  </div>
+                  <label class="letterhead-dropzone" for="companyLogo">
+                    <input id="companyLogo" type="file" accept="image/png,image/jpeg" />
+                    <strong>Choose PNG or JPG</strong>
+                  </label>
+                  <div class="letterhead-preview company-logo-preview" id="companyLogoPreviewCard" hidden>
+                    <div class="letterhead-preview__media business-logo-preview__media" id="companyLogoPreview">
+                      <span>No logo</span>
+                    </div>
+                    <div class="letterhead-preview__copy">
+                      <span>Business Logo</span>
+                      <strong id="companyLogoPreviewName">Logo preview</strong>
+                      <small id="companyLogoPreviewMeta">300x200px · Ratio 3:2</small>
+                    </div>
+                  </div>
+                  <div class="letterhead-actions">
+                    <button class="secondary-button" id="companyLogoRemoveButton" type="button" hidden>Remove</button>
+                  </div>
+                  <p class="letterhead-status" id="companyLogoStatus" aria-live="polite"></p>
+                </div>
+              </div>
+            </section>
+
+            <section class="profile-section profile-section--preferences">
+              <div class="profile-section__head">
+                <div>
+                  <p class="sheet-header__eyebrow">Section 3</p>
+                  <h2>Preferences</h2>
+                </div>
+              </div>
+              <div class="field-grid">
+                <label class="stacked-field">
+                  <span>Date Format <strong class="required-mark">**</strong></span>
+                  <select id="profileDateFormat" required>
+                    <option>DD/MM/YYYY</option>
+                    <option>DD-MM-YYYY</option>
+                    <option>DD-MMM-YYYY</option>
+                  </select>
+                </label>
+                <label class="stacked-field">
+                  <span>Number Format <strong class="required-mark">**</strong></span>
+                  <select id="profileNumberFormat" required>
+                    <option>1,23,456.78</option>
+                    <option>123,456.78</option>
+                  </select>
+                </label>
+              </div>
+            </section>
+
+            <div class="profile-save-bar">
+              <div class="profile-save-bar__meta">
+                <label class="checkbox-row profile-agreement">
+                  <input id="profileAgreement" type="checkbox" required />
+                  <span>I agree to save this profile for my BANIK Books workspace.</span>
+                </label>
+                <p class="auth-form-status" id="profileSetupStatus" aria-live="polite"></p>
+              </div>
+
+              <div class="form-actions">
+                <a class="secondary-button" href="./workspace.html">Cancel</a>
+                <button id="profileSubmitButton" type="submit" disabled>Save Profile</button>
+              </div>
             </div>
           </form>
         </section>
       </main>
+      <div class="image-crop-modal" id="imageCropModal" hidden>
+        <div class="image-crop-modal__dialog" role="dialog" aria-modal="true" aria-label="Crop image">
+          <h2 id="imageCropTitle">Crop image</h2>
+          <div class="image-cropper" id="imageCropper">
+            <img id="imageCropSource" alt="" />
+            <div class="image-cropper__frame" id="imageCropFrame"></div>
+          </div>
+          <label class="stacked-field">
+            <span>Zoom</span>
+            <input id="imageCropZoom" type="range" min="1" max="3" step="0.01" value="1" />
+          </label>
+          <div class="form-actions">
+            <button class="secondary-button" id="imageCropCancel" type="button">Cancel</button>
+            <button id="imageCropApply" type="button">Use Cropped Image</button>
+          </div>
+        </div>
+      </div>
+      <div class="profile-confirm-modal" id="profileAttachmentConfirm" hidden>
+        <div class="profile-confirm-modal__dialog" role="alertdialog" aria-modal="true" aria-labelledby="profileAttachmentConfirmTitle">
+          <h2 id="profileAttachmentConfirmTitle">Remove Attachment</h2>
+          <p id="profileAttachmentConfirmMessage">Are you sure you want to remove this attachment?</p>
+          <div class="profile-confirm-modal__actions">
+            <button class="journal-button journal-button--danger" id="profileAttachmentConfirmYes" type="button">Yes, Remove</button>
+            <button class="journal-button journal-button--ghost" id="profileAttachmentConfirmNo" type="button">No</button>
+          </div>
+        </div>
+      </div>
     </div>
-    <script>
-      document.addEventListener("DOMContentLoaded", async () => {
-        const form = document.getElementById("profile-setup-form");
-        const status = document.getElementById("profileSetupStatus");
-        const submitButton = document.getElementById("profileSubmitButton");
-        const letterheadInput = document.getElementById("profileLetterhead");
-        const letterheadPreview = document.getElementById("profileLetterheadPreview");
-        const letterheadStatus = document.getElementById("profileLetterheadStatus");
-        const letterheadUploadButton = document.getElementById("profileLetterheadUploadButton");
-        const letterheadRemoveButton = document.getElementById("profileLetterheadRemoveButton");
-        const eSignInput = document.getElementById("profileESign");
-        const eSignPreview = document.getElementById("profileESignPreview");
-        const eSignStatus = document.getElementById("profileESignStatus");
-        const eSignUploadButton = document.getElementById("profileESignUploadButton");
-        const eSignRemoveButton = document.getElementById("profileESignRemoveButton");
-        const allowedLetterheadTypes = new Set(["image/png", "image/jpeg", "application/pdf"]);
-        const allowedESignTypes = new Set(["image/png", "image/jpeg"]);
-        const maxLetterheadBytes = 4 * 1024 * 1024;
-        const maxESignBytes = 512 * 1024;
-        let pendingLetterhead = null;
-        let savedLetterhead = null;
-        let pendingESign = null;
-        let savedESign = null;
-        const currentUser = await window.BanikAuth.getCurrentUser();
-
-        function escapeHtml(value) {
-          return String(value || "")
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;")
-            .replace(/'/g, "&#039;");
-        }
-
-        function formatBytes(bytes) {
-          if (!bytes) {
-            return "0 KB";
-          }
-
-          if (bytes >= 1024 * 1024) {
-            return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
-          }
-
-          return `${Math.max(1, Math.round(bytes / 1024))} KB`;
-        }
-
-        function getFileType(file) {
-          const type = String(file.type || "").toLowerCase();
-          const name = String(file.name || "").toLowerCase();
-
-          if (type === "image/jpg") {
-            return "image/jpeg";
-          }
-
-          if (type) {
-            return type;
-          }
-
-          if (name.endsWith(".pdf")) {
-            return "application/pdf";
-          }
-
-          if (name.endsWith(".png")) {
-            return "image/png";
-          }
-
-          if (name.endsWith(".jpg") || name.endsWith(".jpeg")) {
-            return "image/jpeg";
-          }
-
-          return "";
-        }
-
-        function readFileAsDataUrl(file) {
-          return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = () => resolve(String(reader.result || ""));
-            reader.onerror = () => reject(new Error("Could not read file."));
-            reader.readAsDataURL(file);
-          });
-        }
-
-        function getImageSize(dataUrl) {
-          return new Promise((resolve, reject) => {
-            const image = new Image();
-            image.onload = () => {
-              resolve({
-                width: image.naturalWidth,
-                height: image.naturalHeight,
-              });
-            };
-            image.onerror = () => reject(new Error("Could not verify the image size."));
-            image.src = dataUrl;
-          });
-        }
-
-        async function validateA4Image(dataUrl) {
-          const imageSize = await getImageSize(dataUrl);
-          const ratio = imageSize.height / imageSize.width;
-          const portraitA4 = Math.SQRT2;
-          const landscapeA4 = 1 / Math.SQRT2;
-          const isA4 =
-            Math.abs(ratio - portraitA4) <= 0.08 ||
-            Math.abs(ratio - landscapeA4) <= 0.05;
-
-          if (!isA4) {
-            throw new Error("Selected image is not A4 proportion. Use an A4 portrait or landscape file.");
-          }
-        }
-
-        function setLetterheadStatus(message, state = "") {
-          letterheadStatus.textContent = message;
-          letterheadStatus.className = `letterhead-status${state ? ` letterhead-status--${state}` : ""}`;
-        }
-
-        function setESignStatus(message, state = "") {
-          eSignStatus.textContent = message;
-          eSignStatus.className = `letterhead-status${state ? ` letterhead-status--${state}` : ""}`;
-        }
-
-        function renderAssetPreview({ preview, uploadButton, removeButton, savedAsset, pendingAsset, asset, mode, pendingLabel, savedLabel }) {
-          const activeAsset = asset || savedAsset || pendingAsset;
-          removeButton.disabled = !activeAsset;
-          uploadButton.disabled = !pendingAsset;
-
-          if (!activeAsset) {
-            preview.hidden = true;
-            preview.innerHTML = "";
-            return;
-          }
-
-          const type = activeAsset.type || "";
-          const isImage = type.startsWith("image/");
-          const badgeText = type === "application/pdf" ? "PDF" : "Image";
-          const statusText = mode === "pending" ? pendingLabel : savedLabel;
-          const media = isImage
-            ? `<img src="${activeAsset.dataUrl}" alt="${escapeHtml(activeAsset.name)} preview" />`
-            : `<span class="letterhead-preview__file-badge">PDF</span>`;
-          const sizeText = activeAsset.width && activeAsset.height
-            ? `${activeAsset.width}x${activeAsset.height}px &middot; ${formatBytes(activeAsset.size)}`
-            : `${badgeText} &middot; A4 &middot; ${formatBytes(activeAsset.size)}`;
-
-          preview.innerHTML = `
-            <div class="letterhead-preview__media">${media}</div>
-            <div class="letterhead-preview__copy">
-              <span>${statusText}</span>
-              <strong>${escapeHtml(activeAsset.name)}</strong>
-              <small>${sizeText}</small>
-            </div>
-          `;
-          preview.hidden = false;
-        }
-
-        function renderLetterheadPreview(letterhead, mode = "saved") {
-          renderAssetPreview({
-            preview: letterheadPreview,
-            uploadButton: letterheadUploadButton,
-            removeButton: letterheadRemoveButton,
-            savedAsset: savedLetterhead,
-            pendingAsset: pendingLetterhead,
-            asset: letterhead,
-            mode,
-            pendingLabel: "Ready to upload",
-            savedLabel: "Saved letterhead",
-          });
-        }
-
-        function renderESignPreview(eSign, mode = "saved") {
-          renderAssetPreview({
-            preview: eSignPreview,
-            uploadButton: eSignUploadButton,
-            removeButton: eSignRemoveButton,
-            savedAsset: savedESign,
-            pendingAsset: pendingESign,
-            asset: eSign,
-            mode,
-            pendingLabel: "Ready to upload",
-            savedLabel: "Saved e-sign",
-          });
-        }
-
-        async function createLetterheadPayload(file) {
-          const type = getFileType(file);
-
-          if (!allowedLetterheadTypes.has(type)) {
-            throw new Error("Upload PNG, JPG, or PDF format only.");
-          }
-
-          if (file.size > maxLetterheadBytes) {
-            throw new Error("Letterhead file must be 4 MB or smaller.");
-          }
-
-          const dataUrl = await readFileAsDataUrl(file);
-
-          if (type.startsWith("image/")) {
-            await validateA4Image(dataUrl);
-          }
-
-          return {
-            name: file.name,
-            type,
-            size: file.size,
-            dataUrl,
-          };
-        }
-
-        async function createESignPayload(file) {
-          const type = getFileType(file);
-
-          if (!allowedESignTypes.has(type)) {
-            throw new Error("Upload PNG or JPG e-sign only.");
-          }
-
-          if (file.size > maxESignBytes) {
-            throw new Error("E-sign file must be 512 KB or smaller.");
-          }
-
-          const dataUrl = await readFileAsDataUrl(file);
-          const imageSize = await getImageSize(dataUrl);
-
-          if (imageSize.width !== 300 || imageSize.height !== 100) {
-            throw new Error("E-sign must be exactly 300x100 pixels.");
-          }
-
-          return {
-            name: file.name,
-            type,
-            size: file.size,
-            width: imageSize.width,
-            height: imageSize.height,
-            dataUrl,
-          };
-        }
-
-        async function savePendingLetterhead() {
-          if (!pendingLetterhead) {
-            return { ok: true };
-          }
-
-          letterheadUploadButton.disabled = true;
-          setLetterheadStatus("Uploading letterhead...", "");
-
-          const result = await window.BanikAuth.saveLetterhead(pendingLetterhead);
-
-          if (!result.ok) {
-            setLetterheadStatus(result.message, "error");
-            letterheadUploadButton.disabled = false;
-            return result;
-          }
-
-          savedLetterhead = result.letterhead;
-          pendingLetterhead = null;
-          letterheadInput.value = "";
-          renderLetterheadPreview(savedLetterhead, "saved");
-          setLetterheadStatus("Letterhead saved successfully.", "success");
-          return result;
-        }
-
-        async function savePendingESign() {
-          if (!pendingESign) {
-            return { ok: true };
-          }
-
-          eSignUploadButton.disabled = true;
-          setESignStatus("Uploading e-sign...", "");
-
-          const result = await window.BanikAuth.saveESign(pendingESign);
-
-          if (!result.ok) {
-            setESignStatus(result.message, "error");
-            eSignUploadButton.disabled = false;
-            return result;
-          }
-
-          savedESign = result.eSign;
-          pendingESign = null;
-          eSignInput.value = "";
-          renderESignPreview(savedESign, "saved");
-          setESignStatus("E-sign saved successfully.", "success");
-          return result;
-        }
-
-        if (!currentUser) {
-          status.textContent = "Please log in before completing your profile.";
-          status.className = "auth-form-status auth-form-status--error";
-          form.querySelectorAll("input, select, button").forEach((control) => {
-            control.disabled = true;
-          });
-          return;
-        }
-
-        document.getElementById("profileFullName").value = currentUser.fullName || "";
-        document.getElementById("profileEmail").value = currentUser.email || "";
-        document.getElementById("profileMobileNumber").value = currentUser.mobileNumber || "";
-        document.getElementById("profileBusinessType").value =
-          currentUser.businessType || "Trading business";
-        document.getElementById("profileCurrency").value =
-          currentUser.currency || "BDT - Bangladeshi Taka";
-        document.getElementById("profileCompanyAddress").value = currentUser.companyAddress || "";
-        document.getElementById("profileFiscalYearStart").value = currentUser.fiscalYearStart || "";
-        document.getElementById("profilePreferredPlan").value =
-          currentUser.preferredPlan || "Start Free";
-
-        if (window.BanikAuth.getLetterhead) {
-          const letterheadResult = await window.BanikAuth.getLetterhead();
-
-          if (letterheadResult.ok && letterheadResult.letterhead) {
-            savedLetterhead = letterheadResult.letterhead;
-            renderLetterheadPreview(savedLetterhead, "saved");
-            setLetterheadStatus("A letterhead is already saved for this workspace.", "success");
-          } else {
-            renderLetterheadPreview(null);
-          }
-        }
-
-        if (window.BanikAuth.getESign) {
-          const eSignResult = await window.BanikAuth.getESign();
-
-          if (eSignResult.ok && eSignResult.eSign) {
-            savedESign = eSignResult.eSign;
-            renderESignPreview(savedESign, "saved");
-            setESignStatus("An e-sign is already saved for this workspace.", "success");
-          } else {
-            renderESignPreview(null);
-          }
-        }
-
-        letterheadInput.addEventListener("change", async (event) => {
-          const file = event.target.files && event.target.files[0];
-
-          if (!file) {
-            return;
-          }
-
-          try {
-            setLetterheadStatus("Checking letterhead file...", "");
-            pendingLetterhead = await createLetterheadPayload(file);
-            renderLetterheadPreview(pendingLetterhead, "pending");
-            setLetterheadStatus("Ready to upload. Click Upload letterhead or Save profile.", "success");
-          } catch (error) {
-            pendingLetterhead = null;
-            letterheadInput.value = "";
-            renderLetterheadPreview(savedLetterhead, savedLetterhead ? "saved" : "pending");
-            setLetterheadStatus(error.message, "error");
-          }
-        });
-
-        letterheadUploadButton.addEventListener("click", async () => {
-          if (!pendingLetterhead) {
-            setLetterheadStatus("Choose a letterhead file first.", "error");
-            return;
-          }
-
-          await savePendingLetterhead();
-        });
-
-        eSignInput.addEventListener("change", async (event) => {
-          const file = event.target.files && event.target.files[0];
-
-          if (!file) {
-            return;
-          }
-
-          try {
-            setESignStatus("Checking e-sign image...", "");
-            pendingESign = await createESignPayload(file);
-            renderESignPreview(pendingESign, "pending");
-            setESignStatus("Ready to upload. Click Upload e-sign or Save profile.", "success");
-          } catch (error) {
-            pendingESign = null;
-            eSignInput.value = "";
-            renderESignPreview(savedESign, savedESign ? "saved" : "pending");
-            setESignStatus(error.message, "error");
-          }
-        });
-
-        eSignUploadButton.addEventListener("click", async () => {
-          if (!pendingESign) {
-            setESignStatus("Choose a 300x100 e-sign image first.", "error");
-            return;
-          }
-
-          await savePendingESign();
-        });
-
-        letterheadRemoveButton.addEventListener("click", async () => {
-          if (pendingLetterhead) {
-            pendingLetterhead = null;
-            letterheadInput.value = "";
-            renderLetterheadPreview(savedLetterhead, savedLetterhead ? "saved" : "pending");
-            setLetterheadStatus(savedLetterhead ? "Pending upload cleared." : "No letterhead selected.", "");
-            return;
-          }
-
-          if (!savedLetterhead) {
-            setLetterheadStatus("No saved letterhead to remove.", "");
-            return;
-          }
-
-          letterheadRemoveButton.disabled = true;
-          setLetterheadStatus("Removing letterhead...", "");
-          const result = await window.BanikAuth.removeLetterhead();
-
-          if (!result.ok) {
-            setLetterheadStatus(result.message, "error");
-            letterheadRemoveButton.disabled = false;
-            return;
-          }
-
-          savedLetterhead = null;
-          renderLetterheadPreview(null);
-          setLetterheadStatus("Letterhead removed.", "success");
-        });
-
-        eSignRemoveButton.addEventListener("click", async () => {
-          if (pendingESign) {
-            pendingESign = null;
-            eSignInput.value = "";
-            renderESignPreview(savedESign, savedESign ? "saved" : "pending");
-            setESignStatus(savedESign ? "Pending upload cleared." : "No e-sign selected.", "");
-            return;
-          }
-
-          if (!savedESign) {
-            setESignStatus("No saved e-sign to remove.", "");
-            return;
-          }
-
-          eSignRemoveButton.disabled = true;
-          setESignStatus("Removing e-sign...", "");
-          const result = await window.BanikAuth.removeESign();
-
-          if (!result.ok) {
-            setESignStatus(result.message, "error");
-            eSignRemoveButton.disabled = false;
-            return;
-          }
-
-          savedESign = null;
-          renderESignPreview(null);
-          setESignStatus("E-sign removed.", "success");
-        });
-
-        form.addEventListener("submit", async (event) => {
-          event.preventDefault();
-          submitButton.disabled = true;
-          status.textContent =
-            pendingLetterhead || pendingESign
-              ? "Saving profile attachments..."
-              : "Saving profile...";
-          status.className = "auth-form-status";
-
-          const result = await window.BanikAuth.updateProfile({
-            fullName: document.getElementById("profileFullName").value,
-            mobileNumber: document.getElementById("profileMobileNumber").value,
-            businessType: document.getElementById("profileBusinessType").value,
-            currency: document.getElementById("profileCurrency").value,
-            companyAddress: document.getElementById("profileCompanyAddress").value,
-            fiscalYearStart: document.getElementById("profileFiscalYearStart").value,
-            preferredPlan: document.getElementById("profilePreferredPlan").value,
-          });
-
-          if (!result.ok) {
-            status.textContent = result.message;
-            status.className = "auth-form-status auth-form-status--error";
-            submitButton.disabled = false;
-            return;
-          }
-
-          if (pendingLetterhead) {
-            const letterheadResult = await savePendingLetterhead();
-
-            if (!letterheadResult.ok) {
-              status.textContent = letterheadResult.message;
-              status.className = "auth-form-status auth-form-status--error";
-              submitButton.disabled = false;
-              return;
-            }
-          }
-
-          if (pendingESign) {
-            const eSignResult = await savePendingESign();
-
-            if (!eSignResult.ok) {
-              status.textContent = eSignResult.message;
-              status.className = "auth-form-status auth-form-status--error";
-              submitButton.disabled = false;
-              return;
-            }
-          }
-
-          status.textContent = "Profile saved. Opening workspace...";
-          status.className = "auth-form-status auth-form-status--success";
-          window.location.href = result.user.role === "admin" ? "./admin.html" : "./workspace.html";
-        });
-      });
-    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="./js/pages/signup.js"></script>
   </body>
 </html>

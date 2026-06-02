@@ -7,14 +7,7 @@
     <title>Workspace | BANIK Books</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
-      rel="stylesheet"
-    />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@500;700&display=swap"
-      rel="stylesheet"
-    />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="./styles.css" />
     <script src="./js/config/app-config.js" defer></script>
     <script src="./js/core/auth.js" type="module"></script>
@@ -36,12 +29,9 @@
 
       <main class="workspace-layout">
         <section class="workspace-hero">
-          <span class="eyebrow">BANIK Books Workspace</span>
-          <h1>Your accounting workspace is ready</h1>
-          <p class="lead">
-            Use the main modules below to enter transactions, manage accounts,
-            and open the financial reports your company needs.
-          </p>
+          <div class="workspace-hero__copy">
+            <span class="eyebrow">BANIK Books Workspace</span>
+          </div>
         </section>
 
         <section class="workspace-panel">
@@ -61,6 +51,11 @@
               <span class="workspace-button__meta">View and organize your account structure</span>
             </a>
 
+            <a class="workspace-button" href="./party-management.html">
+              <span class="workspace-button__title">Party Management</span>
+              <span class="workspace-button__meta">Maintain customers, suppliers, combined parties, and employees</span>
+            </a>
+
             <a class="workspace-button" href="./necessary-tools.html">
               <span class="workspace-button__title">Necessary Tools</span>
               <span class="workspace-button__meta">
@@ -68,24 +63,10 @@
               </span>
             </a>
 
-            <div class="workspace-menu">
-              <a class="workspace-button workspace-button--reports" href="./reports.html">
-                <span class="workspace-button__title">Reports</span>
-                <span class="workspace-button__meta">Open financial statements and schedules</span>
-              </a>
-
-              <div class="reports-dropdown">
-                <a href="./general-ledger.html">General Ledger</a>
-                <a href="./trial-balance.html">Trial Balance</a>
-                <a href="./statement-of-financial-position.html">Statement of Financial Position</a>
-                <a href="./statement-of-profit-loss-and-oci.html">
-                  Statement of Profit &amp; Loss and Other Comprehensive Income
-                </a>
-                <a href="./statement-of-changes-in-equity.html">Statement of Changes in Equity</a>
-                <a href="./statement-of-cash-flows.html">Statement of Cash Flows</a>
-                <a href="./notes-to-the-accounts.html">Notes to the Accounts</a>
-              </div>
-            </div>
+            <a class="workspace-button workspace-button--reports" href="./reports.html">
+              <span class="workspace-button__title">Reports</span>
+              <span class="workspace-button__meta">Open financial statements and schedules</span>
+            </a>
           </div>
         </section>
       </main>

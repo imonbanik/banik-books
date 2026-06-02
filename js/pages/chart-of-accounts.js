@@ -8,7 +8,7 @@ const DEFAULT_CHART_VERSION = "banik-default-chart-2026-05-24-v5";
 const DEFAULT_CHART_ITEMS = Object.freeze([
   {
     type: "group",
-    name: "ASSETS",
+    name: "Assets",
     classification: "Asset",
     children: [
       {
@@ -80,7 +80,7 @@ const DEFAULT_CHART_ITEMS = Object.freeze([
   },
   {
     type: "group",
-    name: "EQUITY & LIABILITIES",
+    name: "Equity & Liabilities",
     classification: "Equity",
     children: [
       {
@@ -151,13 +151,13 @@ const DEFAULT_CHART_ITEMS = Object.freeze([
   },
   {
     type: "group",
-    name: "INCOME",
+    name: "Income",
     classification: "Income",
     children: [{ type: "ledger", name: "Service Revenue", classification: "Income" }],
   },
   {
     type: "group",
-    name: "EXPENSE",
+    name: "Expense",
     classification: "Expense",
     children: [
       {
@@ -250,6 +250,9 @@ const ledgerNameInput = document.querySelector("#coaLedgerName");
 const ledgerCodeInput = document.querySelector("#coaLedgerCode");
 const ledgerClassificationSelect = document.querySelector("#coaLedgerClassification");
 const ledgerParentSelect = document.querySelector("#coaLedgerParent");
+const ledgerBalanceDateInput = document.querySelector("#coaLedgerBalanceDate");
+const ledgerBalanceAmountInput = document.querySelector("#coaLedgerBalanceAmount");
+const ledgerBalanceSideSelect = document.querySelector("#coaLedgerBalanceSide");
 const ledgerNameHistory = document.querySelector("#coaLedgerNameHistory");
 const ledgerCodeHistory = document.querySelector("#coaLedgerCodeHistory");
 const ledgerNameSuggestions = document.querySelector("#coaLedgerNameSuggestions");
@@ -262,6 +265,13 @@ const defaultButton = document.querySelector("#coaDefaultButton");
 const successToast = document.querySelector("#coaSuccessToast");
 const editModal = document.querySelector("#coaEditModal");
 const editNameInput = document.querySelector("#coaEditNameInput");
+const editCodeInput = document.querySelector("#coaEditCodeInput");
+const editClassificationSelect = document.querySelector("#coaEditClassification");
+const editParentSelect = document.querySelector("#coaEditParent");
+const editBalanceFields = document.querySelector("#coaEditBalanceFields");
+const editBalanceDateInput = document.querySelector("#coaEditBalanceDate");
+const editBalanceAmountInput = document.querySelector("#coaEditBalanceAmount");
+const editBalanceSideSelect = document.querySelector("#coaEditBalanceSide");
 const editCancelButton = document.querySelector("#coaEditCancel");
 const editSaveButton = document.querySelector("#coaEditSave");
 const deleteModal = document.querySelector("#coaDeleteModal");
@@ -278,6 +288,7 @@ let collapsedGroupIds = new Set(safeParseArray(localStorage.getItem(COLLAPSED_GR
 let pendingEditNodeId = "";
 let pendingDeleteNodeId = "";
 let canManageDefaultTemplate = false;
+let profileNumberFormat = "1,23,456.78";
 let activeNameSuggestion = {
   input: null,
   panel: null,
@@ -311,6 +322,88 @@ function safeParseObject(value) {
   }
 }
 
+function parseAmount(value) {
+  return Number.parseFloat(String(value || "").replace(/,/g, "").replace(/[^\d.-]/g, "")) || 0;
+}
+
+function getNumberLocale() {
+  return profileNumberFormat === "123,456.78" ? "en-US" : "en-IN";
+}
+
+function formatProfileAmount(value) {
+  const amount = Math.abs(parseAmount(value));
+
+  if (amount < 0.005) {
+    return "";
+  }
+
+  return new Intl.NumberFormat(getNumberLocale(), {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(amount);
+}
+
+function formatRawAmountForEdit(value) {
+  const amount = Math.abs(parseAmount(value));
+  return amount < 0.005 ? "" : amount.toFixed(2);
+}
+
+async function loadProfileNumberFormat() {
+  if (!window.BanikAuth || typeof window.BanikAuth.getCurrentUser !== "function") {
+    return;
+  }
+
+  try {
+    const user = await window.BanikAuth.getCurrentUser();
+    profileNumberFormat = user && user.numberFormat === "123,456.78" ? "123,456.78" : "1,23,456.78";
+    formatBalanceInput(ledgerBalanceAmountInput);
+    formatBalanceInput(editBalanceAmountInput);
+  } catch {
+    profileNumberFormat = "1,23,456.78";
+  }
+}
+
+function formatBalanceInput(input) {
+  if (!input) {
+    return;
+  }
+
+  input.value = formatProfileAmount(input.value);
+}
+
+function unformatBalanceInput(input) {
+  if (!input) {
+    return;
+  }
+
+  input.value = formatRawAmountForEdit(input.value);
+  input.select();
+}
+
+function normalizeBalanceSide(value) {
+  return String(value || "").toLowerCase() === "credit" ? "credit" : "debit";
+}
+
+function getSignedOpeningBalance(amount, side) {
+  const absoluteAmount = Math.abs(parseAmount(amount));
+  return normalizeBalanceSide(side) === "credit" ? -absoluteAmount : absoluteAmount;
+}
+
+function getBalanceSideFromAmount(amount, fallbackSide = "debit") {
+  const parsedAmount = parseAmount(amount);
+  if (parsedAmount < 0) {
+    return "credit";
+  }
+  if (parsedAmount > 0) {
+    return "debit";
+  }
+  return normalizeBalanceSide(fallbackSide);
+}
+
+function getBalanceAmountForInput(amount) {
+  return formatProfileAmount(amount);
+}
+
 function normalizeNode(node) {
   const type = node && node.type === "ledger" ? "ledger" : "group";
   const normalizedNode = {
@@ -323,6 +416,14 @@ function normalizeNode(node) {
 
   if (type === "group") {
     normalizedNode.children = normalizeTree((node && node.children) || []);
+  } else {
+    const openingBalance = parseAmount(node && node.openingBalance);
+    normalizedNode.openingBalance = openingBalance;
+    normalizedNode.openingBalanceDate = String((node && node.openingBalanceDate) || "").trim();
+    normalizedNode.openingBalanceSide = getBalanceSideFromAmount(
+      openingBalance,
+      node && node.openingBalanceSide
+    );
   }
 
   return normalizedNode;
@@ -580,6 +681,9 @@ function flattenLedgers(items, path = [], ledgers = []) {
         ledgerName: item.name,
         code: item.code,
         classification: item.classification || "",
+        openingBalance: parseAmount(item.openingBalance),
+        openingBalanceDate: item.openingBalanceDate || "",
+        openingBalanceSide: getBalanceSideFromAmount(item.openingBalance, item.openingBalanceSide),
         groupPath: path.join(" > "),
       });
       return;
@@ -664,6 +768,23 @@ function findNode(items, nodeId) {
   return null;
 }
 
+function findParentId(items, nodeId, parentId = "") {
+  for (const item of items) {
+    if (item.id === nodeId) {
+      return parentId;
+    }
+
+    if (item.type === "group") {
+      const foundParentId = findParentId(item.children || [], nodeId, item.id);
+      if (foundParentId !== null) {
+        return foundParentId;
+      }
+    }
+  }
+
+  return null;
+}
+
 function removeNode(items, nodeId) {
   for (let index = 0; index < items.length; index += 1) {
     const item = items[index];
@@ -689,6 +810,18 @@ function containsNode(node, nodeId) {
   }
 
   return (node.children || []).some((child) => child.id === nodeId || containsNode(child, nodeId));
+}
+
+function isGroupOptionAllowed(group, editingNode) {
+  if (!editingNode) {
+    return true;
+  }
+
+  if (group.id === editingNode.id) {
+    return false;
+  }
+
+  return !containsNode(editingNode, group.id);
 }
 
 function hasDuplicateName(name, excludeId = "") {
@@ -1062,6 +1195,9 @@ function getFormDraft() {
       code: String((draft.ledger && draft.ledger.code) || ""),
       classification: String((draft.ledger && draft.ledger.classification) || ""),
       parentId: String((draft.ledger && draft.ledger.parentId) || ""),
+      openingBalanceDate: String((draft.ledger && draft.ledger.openingBalanceDate) || ""),
+      openingBalanceAmount: String((draft.ledger && draft.ledger.openingBalanceAmount) || ""),
+      openingBalanceSide: normalizeBalanceSide(draft.ledger && draft.ledger.openingBalanceSide),
     },
   };
 }
@@ -1079,6 +1215,9 @@ function persistFormDraft() {
       code: ledgerCodeInput.value,
       classification: ledgerClassificationSelect.value,
       parentId: ledgerParentSelect.value,
+      openingBalanceDate: ledgerBalanceDateInput.value,
+      openingBalanceAmount: ledgerBalanceAmountInput.value,
+      openingBalanceSide: ledgerBalanceSideSelect.value,
     },
   };
 
@@ -1105,6 +1244,10 @@ function restoreFormDraft() {
   ledgerCodeInput.value = draft.ledger.code;
   setSelectIfOptionExists(ledgerClassificationSelect, draft.ledger.classification);
   setSelectIfOptionExists(ledgerParentSelect, draft.ledger.parentId);
+  ledgerBalanceDateInput.value = draft.ledger.openingBalanceDate;
+  ledgerBalanceAmountInput.value = draft.ledger.openingBalanceAmount;
+  ledgerBalanceSideSelect.value = draft.ledger.openingBalanceSide;
+  formatBalanceInput(ledgerBalanceAmountInput);
   didRestoreFormDraft = true;
 }
 
@@ -1211,6 +1354,20 @@ function updateParentSelects() {
   });
 }
 
+function populateParentSelect(select, selectedValue = "", editingNode = null) {
+  const groups = flattenGroups(chartItems).filter((group) => isGroupOptionAllowed(group, editingNode));
+
+  select.innerHTML = "";
+  select.append(new Option("Top level", ""));
+  groups.forEach((group) => {
+    const indent = " ".repeat(group.level * 4);
+    const label = `${indent}${group.code ? `${group.code} - ` : ""}${group.name}`;
+    select.append(new Option(label, group.id));
+  });
+
+  select.value = groups.some((group) => group.id === selectedValue) ? selectedValue : "";
+}
+
 function createNodeMeta(node, level) {
   const metaParts = [node.type === "group" ? "Group" : "Ledger"];
 
@@ -1224,6 +1381,11 @@ function createNodeMeta(node, level) {
 
   if (level > 0) {
     metaParts.push(`Layer ${level + 1}`);
+  }
+
+  if (node.type === "ledger" && Math.abs(parseAmount(node.openingBalance)) >= 0.005) {
+    const side = getBalanceSideFromAmount(node.openingBalance, node.openingBalanceSide) === "credit" ? "Cr" : "Dr";
+    metaParts.push(`Opening ${Math.abs(parseAmount(node.openingBalance)).toLocaleString("en-BD")} ${side}`);
   }
 
   return metaParts.join(" / ");
@@ -1433,7 +1595,7 @@ function addGroup(event) {
   }
 
   if (hasDuplicateName(name)) {
-    setStatus("This group or ledger name already exists.", "error");
+    setStatus("Duplicate can't create. This group or ledger name already exists.", "error");
     groupNameInput.focus();
     return;
   }
@@ -1468,6 +1630,10 @@ function addLedger(event) {
   const name = ledgerNameInput.value.trim();
   const code = ledgerCodeInput.value.trim();
   const classification = ledgerClassificationSelect.value.trim();
+  const openingBalance = getSignedOpeningBalance(
+    ledgerBalanceAmountInput.value,
+    ledgerBalanceSideSelect.value
+  );
 
   if (!name) {
     setStatus("Ledger name is required.", "error");
@@ -1476,7 +1642,7 @@ function addLedger(event) {
   }
 
   if (hasDuplicateName(name)) {
-    setStatus("This group or ledger name already exists.", "error");
+    setStatus("Duplicate can't create. This group or ledger name already exists.", "error");
     ledgerNameInput.focus();
     return;
   }
@@ -1488,6 +1654,9 @@ function addLedger(event) {
       name,
       code,
       classification,
+      openingBalance,
+      openingBalanceDate: ledgerBalanceDateInput.value,
+      openingBalanceSide: getBalanceSideFromAmount(openingBalance, ledgerBalanceSideSelect.value),
     },
     ledgerParentSelect.value
   );
@@ -1513,6 +1682,22 @@ function openEditModal(nodeId) {
 
   pendingEditNodeId = nodeId;
   editNameInput.value = node.name;
+  editCodeInput.value = node.code || "";
+  setSelectIfOptionExists(editClassificationSelect, node.classification || "");
+  populateParentSelect(editParentSelect, findParentId(chartItems, nodeId) || "", node);
+
+  if (node.type === "ledger") {
+    editBalanceFields.hidden = false;
+    editBalanceDateInput.value = node.openingBalanceDate || "";
+    editBalanceAmountInput.value = getBalanceAmountForInput(node.openingBalance);
+    editBalanceSideSelect.value = getBalanceSideFromAmount(node.openingBalance, node.openingBalanceSide);
+  } else {
+    editBalanceFields.hidden = true;
+    editBalanceDateInput.value = "";
+    editBalanceAmountInput.value = "";
+    editBalanceSideSelect.value = "debit";
+  }
+
   editModal.hidden = false;
   document.body.classList.add("modal-open");
   window.setTimeout(() => {
@@ -1536,6 +1721,9 @@ function saveEditModal() {
   }
 
   const trimmedName = editNameInput.value.trim();
+  const code = editCodeInput.value.trim();
+  const classification = editClassificationSelect.value.trim();
+  const parentId = editParentSelect.value;
 
   if (!trimmedName) {
     setStatus("Name cannot be blank.", "error");
@@ -1544,15 +1732,41 @@ function saveEditModal() {
   }
 
   if (hasDuplicateName(trimmedName, node.id)) {
-    setStatus("This group or ledger name already exists.", "error");
+    setStatus("Duplicate can't create. This group or ledger name already exists.", "error");
     editNameInput.focus();
     return;
   }
 
   node.name = trimmedName;
+  node.code = code;
+  node.classification = classification;
+
+  if (node.type === "ledger") {
+    const openingBalance = getSignedOpeningBalance(
+      editBalanceAmountInput.value,
+      editBalanceSideSelect.value
+    );
+    node.openingBalance = openingBalance;
+    node.openingBalanceDate = editBalanceDateInput.value;
+    node.openingBalanceSide = getBalanceSideFromAmount(openingBalance, editBalanceSideSelect.value);
+  }
+
+  const currentParentId = findParentId(chartItems, node.id) || "";
+
+  if (parentId !== currentParentId) {
+    const movingNode = removeNode(chartItems, node.id);
+    if (movingNode) {
+      const inserted = insertUnderParent(movingNode, parentId);
+      if (!inserted) {
+        chartItems.push(movingNode);
+      }
+    }
+  }
+
   closeEditModal();
   renderTree();
   saveChart();
+  showSuccessToast("Updated");
 }
 
 function openDeleteModal(nodeId) {
@@ -1674,6 +1888,7 @@ function handleDrop(event) {
 }
 
 async function loadChart() {
+  await loadProfileNumberFormat();
   const localItems = readLocalTree();
   chartItems = localItems.length ? localItems : createDefaultChartItems();
   renderTree();
@@ -1754,14 +1969,25 @@ function waitForBanikData() {
 
 groupForm.addEventListener("submit", addGroup);
 ledgerForm.addEventListener("submit", addLedger);
-[groupNameInput, groupCodeInput, ledgerNameInput, ledgerCodeInput].forEach((input) => {
+[groupNameInput, groupCodeInput, ledgerNameInput, ledgerCodeInput, ledgerBalanceDateInput, ledgerBalanceAmountInput].forEach((input) => {
   input.addEventListener("input", persistFormDraft);
 });
-[groupClassificationSelect, groupParentSelect, ledgerClassificationSelect, ledgerParentSelect].forEach((select) => {
+[
+  groupClassificationSelect,
+  groupParentSelect,
+  ledgerClassificationSelect,
+  ledgerParentSelect,
+  ledgerBalanceSideSelect,
+].forEach((select) => {
   select.addEventListener("change", persistFormDraft);
 });
 setupNameSuggestions(groupNameInput, groupNameSuggestions, "group");
 setupNameSuggestions(ledgerNameInput, ledgerNameSuggestions, "ledger");
+[ledgerBalanceAmountInput, editBalanceAmountInput].forEach((input) => {
+  input.classList.add("coa-balance-amount");
+  input.addEventListener("focus", () => unformatBalanceInput(input));
+  input.addEventListener("blur", () => formatBalanceInput(input));
+});
 treeElement.addEventListener("click", handleTreeClick);
 treeElement.addEventListener("dragstart", handleDragStart);
 treeElement.addEventListener("dragend", handleDragEnd);

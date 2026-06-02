@@ -25,7 +25,6 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 import { BANIK_FOUNDER_ADMIN_EMAIL, firebaseConfig } from "../config/firebase-config.js";
 
-const LETTERHEAD_MAX_BYTES = 4 * 1024 * 1024;
 const LETTERHEAD_CHUNK_SIZE = 500000;
 const LETTERHEAD_ALLOWED_TYPES = new Set([
   "image/png",
@@ -37,10 +36,13 @@ const ESIGN_MAX_BYTES = 512 * 1024;
 const ESIGN_ALLOWED_TYPES = new Set(["image/png", "image/jpeg", "image/jpg"]);
 const ESIGN_REQUIRED_WIDTH = 300;
 const ESIGN_REQUIRED_HEIGHT = 100;
+const PROFILE_IMAGE_MAX_BYTES = 700 * 1024;
+const PROFILE_IMAGE_ALLOWED_TYPES = new Set(["image/png", "image/jpeg", "image/jpg"]);
 
 const BANIK_MODULES = Object.freeze([
   { key: "journal-entry", label: "Journal Entry", pages: ["journal-entry.html"] },
   { key: "chart-of-accounts", label: "Chart of Accounts", pages: ["chart-of-accounts.html"] },
+  { key: "party-management", label: "Party Management", pages: ["party-management.html"] },
   { key: "necessary-tools", label: "Necessary Tools", pages: ["necessary-tools.html"] },
   { key: "cheque-printer", label: "Cheque Printer", pages: ["cheque-printer.html", "Imon-Cheque.html"] },
   { key: "challan-management", label: "Challan Management", pages: ["challan-management.html"] },
@@ -75,6 +77,7 @@ const BANIK_MODULES = Object.freeze([
     pages: [
       "reports.html",
       "general-ledger.html",
+      "party-wise-transaction.html",
       "trial-balance.html",
       "statement-of-financial-position.html",
       "statement-of-profit-loss-and-oci.html",
@@ -175,6 +178,10 @@ function normalizeUserDoc(id, data) {
     companyAddress: data.companyAddress || "",
     fiscalYearStart: data.fiscalYearStart || "",
     preferredPlan: data.preferredPlan || "Start Free",
+    tinNumber: data.tinNumber || "",
+    binNumber: data.binNumber || "",
+    dateFormat: data.dateFormat || "DD/MM/YYYY",
+    numberFormat: data.numberFormat || "1,23,456.78",
     role,
     profileCompleted,
     permissions: {
@@ -186,6 +193,8 @@ function normalizeUserDoc(id, data) {
     lastLoginAt: normalizeTimestamp(data.lastLoginAt),
     letterheadMeta: data.letterheadMeta || null,
     eSignMeta: data.eSignMeta || null,
+    profilePhotoMeta: data.profilePhotoMeta || null,
+    companyLogoMeta: data.companyLogoMeta || null,
   };
 }
 
@@ -198,6 +207,12 @@ function getLetterheadRefs(userId) {
 function getESignRefs(userId) {
   const metaRef = doc(db, "userData", userId, "profile", "eSign");
   const chunksRef = collection(db, "userData", userId, "profile", "eSign", "chunks");
+  return { metaRef, chunksRef };
+}
+
+function getProfileImageRefs(userId, assetKey) {
+  const metaRef = doc(db, "userData", userId, "profile", assetKey);
+  const chunksRef = collection(db, "userData", userId, "profile", assetKey, "chunks");
   return { metaRef, chunksRef };
 }
 
@@ -218,6 +233,9 @@ function normalizeLetterheadPayload(payload) {
   const rawType = String(payload && payload.type ? payload.type : "").trim().toLowerCase();
   const type = rawType === "image/jpg" ? "image/jpeg" : rawType;
   const size = Number(payload && payload.size ? payload.size : 0);
+  const width = Number(payload && payload.width ? payload.width : 0);
+  const height = Number(payload && payload.height ? payload.height : 0);
+  const aspectRatio = Number(payload && payload.aspectRatio ? payload.aspectRatio : 0);
   const dataUrl = String(payload && payload.dataUrl ? payload.dataUrl : "");
 
   if (!LETTERHEAD_ALLOWED_TYPES.has(type)) {
@@ -227,10 +245,10 @@ function normalizeLetterheadPayload(payload) {
     };
   }
 
-  if (!size || size > LETTERHEAD_MAX_BYTES) {
+  if (!size) {
     return {
       ok: false,
-      message: "Letterhead file must be 4 MB or smaller.",
+      message: "Could not read the selected letterhead file.",
     };
   }
 
@@ -252,6 +270,9 @@ function normalizeLetterheadPayload(payload) {
       name,
       type,
       size,
+      width,
+      height,
+      aspectRatio,
       extension: getLetterheadExtension(type),
       dataUrl,
     },
@@ -270,21 +291,21 @@ function normalizeESignPayload(payload) {
   if (!ESIGN_ALLOWED_TYPES.has(type)) {
     return {
       ok: false,
-      message: "Upload PNG or JPG e-sign only.",
+      message: "Upload PNG or JPG e-signature only.",
     };
   }
 
   if (!size || size > ESIGN_MAX_BYTES) {
     return {
       ok: false,
-      message: "E-sign file must be 512 KB or smaller.",
+      message: "Optimized e-signature must be 512 KB or smaller.",
     };
   }
 
   if (width !== ESIGN_REQUIRED_WIDTH || height !== ESIGN_REQUIRED_HEIGHT) {
     return {
       ok: false,
-      message: "E-sign must be exactly 300x100 pixels.",
+      message: "E-signature must be exactly 300x100 pixels.",
     };
   }
 
@@ -296,13 +317,57 @@ function normalizeESignPayload(payload) {
   if (dataUrlType !== type) {
     return {
       ok: false,
-      message: "Could not read the selected e-sign file.",
+      message: "Could not read the selected e-signature file.",
     };
   }
 
   return {
     ok: true,
     eSign: {
+      name,
+      type,
+      size,
+      width,
+      height,
+      extension: getLetterheadExtension(type),
+      dataUrl,
+    },
+  };
+}
+
+function normalizeProfileImagePayload(payload, fallbackName = "profile-image") {
+  const name = String(payload && payload.name ? payload.name : fallbackName).trim();
+  const rawType = String(payload && payload.type ? payload.type : "").trim().toLowerCase();
+  const type = rawType === "image/jpg" ? "image/jpeg" : rawType;
+  const size = Number(payload && payload.size ? payload.size : 0);
+  const width = Number(payload && payload.width ? payload.width : 0);
+  const height = Number(payload && payload.height ? payload.height : 0);
+  const dataUrl = String(payload && payload.dataUrl ? payload.dataUrl : "");
+
+  if (!PROFILE_IMAGE_ALLOWED_TYPES.has(type)) {
+    return { ok: false, message: "Upload PNG or JPG image only." };
+  }
+
+  if (!size || size > PROFILE_IMAGE_MAX_BYTES) {
+    return { ok: false, message: "Image must be 700 KB or smaller after optimization." };
+  }
+
+  if (!width || !height) {
+    return { ok: false, message: "Could not verify image size." };
+  }
+
+  const dataUrlTypeMatch = dataUrl.match(/^data:([^;]+);base64,/);
+  const dataUrlType = dataUrlTypeMatch
+    ? (dataUrlTypeMatch[1] === "image/jpg" ? "image/jpeg" : dataUrlTypeMatch[1])
+    : "";
+
+  if (dataUrlType !== type) {
+    return { ok: false, message: "Could not read the selected image." };
+  }
+
+  return {
+    ok: true,
+    image: {
       name,
       type,
       size,
@@ -525,8 +590,13 @@ async function updateCurrentUserProfile(profile) {
     currency: String(profile.currency || "BDT - Bangladeshi Taka").trim(),
     companyAddress: String(profile.companyAddress || "").trim(),
     fiscalYearStart: String(profile.fiscalYearStart || "").trim(),
-    preferredPlan: String(profile.preferredPlan || "Start Free").trim(),
+    preferredPlan: String(profile.preferredPlan || user.preferredPlan || "Start Free").trim(),
+    tinNumber: String(profile.tinNumber || "").trim(),
+    binNumber: String(profile.binNumber || "").trim(),
+    dateFormat: String(profile.dateFormat || user.dateFormat || "DD/MM/YYYY").trim(),
+    numberFormat: String(profile.numberFormat || user.numberFormat || "1,23,456.78").trim(),
   };
+  const companyName = String(profile.businessName || profile.companyName || user.companyName || "").trim();
 
   if (!profileData.fullName) {
     return { ok: false, message: "Full name is required." };
@@ -540,7 +610,21 @@ async function updateCurrentUserProfile(profile) {
     return { ok: false, message: "Company address is required." };
   }
 
-  const companyName = profileData.fullName;
+  if (!companyName) {
+    return { ok: false, message: "Business name is required." };
+  }
+
+  if (!profileData.businessType) {
+    return { ok: false, message: "Business type is required." };
+  }
+
+  if (!profileData.currency) {
+    return { ok: false, message: "Currency is required." };
+  }
+
+  if (!profileData.fiscalYearStart) {
+    return { ok: false, message: "Fiscal year start date is required." };
+  }
 
   try {
     if (auth.currentUser) {
@@ -601,6 +685,9 @@ async function saveCurrentUserLetterhead(payload) {
     name: normalized.letterhead.name,
     type: normalized.letterhead.type,
     size: normalized.letterhead.size,
+    width: normalized.letterhead.width,
+    height: normalized.letterhead.height,
+    aspectRatio: normalized.letterhead.aspectRatio,
     extension: normalized.letterhead.extension,
     chunkCount: chunks.length,
     dataLength: normalized.letterhead.dataUrl.length,
@@ -686,6 +773,9 @@ async function getCurrentUserLetterhead() {
         name: meta.name || "organization-letterhead",
         type: meta.type || "",
         size: Number(meta.size || 0),
+        width: Number(meta.width || 0),
+        height: Number(meta.height || 0),
+        aspectRatio: Number(meta.aspectRatio || 0),
         extension: meta.extension || "",
         chunkCount: Number(meta.chunkCount || chunkSnapshot.docs.length),
         dataLength: Number(meta.dataLength || dataUrl.length),
@@ -913,6 +1003,203 @@ async function removeCurrentUserESign() {
   }
 }
 
+async function saveProfileImageAsset(assetKey, payload, metaField, fallbackName) {
+  const configStatus = assertFirebaseConfigured();
+
+  if (!configStatus.ok) {
+    return configStatus;
+  }
+
+  const user = await getCurrentBanikUser();
+
+  if (!user) {
+    return { ok: false, message: "Please log in first." };
+  }
+
+  const normalized = normalizeProfileImagePayload(payload, fallbackName);
+
+  if (!normalized.ok) {
+    return normalized;
+  }
+
+  const { metaRef, chunksRef } = getProfileImageRefs(user.id, assetKey);
+  const existingChunks = await getDocs(chunksRef);
+  const uploadedAtIso = new Date().toISOString();
+  const chunks = [];
+
+  for (let index = 0; index < normalized.image.dataUrl.length; index += LETTERHEAD_CHUNK_SIZE) {
+    chunks.push(normalized.image.dataUrl.slice(index, index + LETTERHEAD_CHUNK_SIZE));
+  }
+
+  const imageMeta = {
+    name: normalized.image.name,
+    type: normalized.image.type,
+    size: normalized.image.size,
+    width: normalized.image.width,
+    height: normalized.image.height,
+    extension: normalized.image.extension,
+    chunkCount: chunks.length,
+    dataLength: normalized.image.dataUrl.length,
+    uploadedAtIso,
+  };
+
+  try {
+    const batch = writeBatch(db);
+
+    existingChunks.docs.forEach((chunkDoc) => {
+      batch.delete(chunkDoc.ref);
+    });
+
+    batch.set(metaRef, {
+      ...imageMeta,
+      uploadedAt: serverTimestamp(),
+    });
+
+    chunks.forEach((chunk, index) => {
+      batch.set(doc(chunksRef, String(index).padStart(4, "0")), {
+        order: index,
+        data: chunk,
+      });
+    });
+
+    await batch.commit();
+    await updateDoc(doc(db, "users", user.id), {
+      [metaField]: imageMeta,
+      updatedAt: serverTimestamp(),
+    });
+
+    cachedCurrentUser = {
+      ...user,
+      [metaField]: imageMeta,
+    };
+
+    return {
+      ok: true,
+      image: {
+        ...imageMeta,
+        dataUrl: normalized.image.dataUrl,
+      },
+      user: cachedCurrentUser,
+    };
+  } catch {
+    return { ok: false, message: "Could not save image. Check Firestore rules and try again." };
+  }
+}
+
+async function getProfileImageAsset(assetKey, fallbackName) {
+  const configStatus = assertFirebaseConfigured();
+
+  if (!configStatus.ok) {
+    return configStatus;
+  }
+
+  const user = await getCurrentBanikUser();
+
+  if (!user) {
+    return { ok: false, message: "Please log in first." };
+  }
+
+  try {
+    const { metaRef, chunksRef } = getProfileImageRefs(user.id, assetKey);
+    const metaSnapshot = await getDoc(metaRef);
+
+    if (!metaSnapshot.exists()) {
+      return { ok: true, image: null };
+    }
+
+    const meta = metaSnapshot.data() || {};
+    const chunkSnapshot = await getDocs(chunksRef);
+    const dataUrl = chunkSnapshot.docs
+      .map((chunkDoc) => chunkDoc.data() || {})
+      .sort((left, right) => Number(left.order || 0) - Number(right.order || 0))
+      .map((chunk) => String(chunk.data || ""))
+      .join("");
+
+    return {
+      ok: true,
+      image: {
+        name: meta.name || fallbackName,
+        type: meta.type || "",
+        size: Number(meta.size || 0),
+        width: Number(meta.width || 0),
+        height: Number(meta.height || 0),
+        extension: meta.extension || "",
+        chunkCount: Number(meta.chunkCount || chunkSnapshot.docs.length),
+        dataLength: Number(meta.dataLength || dataUrl.length),
+        uploadedAt: normalizeTimestamp(meta.uploadedAt) || meta.uploadedAtIso || "",
+        uploadedAtIso: meta.uploadedAtIso || "",
+        dataUrl,
+      },
+    };
+  } catch {
+    return { ok: false, message: "Could not load image." };
+  }
+}
+
+async function removeProfileImageAsset(assetKey, metaField) {
+  const configStatus = assertFirebaseConfigured();
+
+  if (!configStatus.ok) {
+    return configStatus;
+  }
+
+  const user = await getCurrentBanikUser();
+
+  if (!user) {
+    return { ok: false, message: "Please log in first." };
+  }
+
+  try {
+    const { metaRef, chunksRef } = getProfileImageRefs(user.id, assetKey);
+    const chunkSnapshot = await getDocs(chunksRef);
+    const batch = writeBatch(db);
+
+    chunkSnapshot.docs.forEach((chunkDoc) => {
+      batch.delete(chunkDoc.ref);
+    });
+    batch.delete(metaRef);
+
+    await batch.commit();
+    await updateDoc(doc(db, "users", user.id), {
+      [metaField]: null,
+      updatedAt: serverTimestamp(),
+    });
+
+    cachedCurrentUser = {
+      ...user,
+      [metaField]: null,
+    };
+
+    return { ok: true, user: cachedCurrentUser };
+  } catch {
+    return { ok: false, message: "Could not remove image. Check Firestore rules and try again." };
+  }
+}
+
+function saveCurrentUserProfilePhoto(payload) {
+  return saveProfileImageAsset("profilePhoto", payload, "profilePhotoMeta", "profile-photo");
+}
+
+function getCurrentUserProfilePhoto() {
+  return getProfileImageAsset("profilePhoto", "profile-photo");
+}
+
+function removeCurrentUserProfilePhoto() {
+  return removeProfileImageAsset("profilePhoto", "profilePhotoMeta");
+}
+
+function saveCurrentUserCompanyLogo(payload) {
+  return saveProfileImageAsset("companyLogo", payload, "companyLogoMeta", "company-logo");
+}
+
+function getCurrentUserCompanyLogo() {
+  return getProfileImageAsset("companyLogo", "company-logo");
+}
+
+function removeCurrentUserCompanyLogo() {
+  return removeProfileImageAsset("companyLogo", "companyLogoMeta");
+}
+
 function getCurrentPageName() {
   const pageName = window.location.pathname.split("/").pop();
   return pageName || "index.html";
@@ -959,7 +1246,7 @@ function renderSetupMissing() {
           <span class="brand-mark" aria-hidden="true"><img src="./assets/banik-logo.svg" alt="" /></span>
           <span class="brand-copy">
             <span class="brand-copy__title">BANIK Books</span>
-            <span class="brand-copy__tag">Firebase setup</span>
+            <span class="brand-copy__tag">Simple accounting for growing businesses</span>
           </span>
         </a>
       </header>
@@ -980,7 +1267,7 @@ function renderAccessDenied(pageName) {
           <span class="brand-mark" aria-hidden="true"><img src="./assets/banik-logo.svg" alt="" /></span>
           <span class="brand-copy">
             <span class="brand-copy__title">BANIK Books</span>
-            <span class="brand-copy__tag">Access control</span>
+            <span class="brand-copy__tag">Simple accounting for growing businesses</span>
           </span>
         </a>
       </header>
@@ -1035,10 +1322,14 @@ function renderAuthControls(user) {
       return;
     }
 
+    const logoutButton = target.hasAttribute("data-auth-hide-logout")
+      ? ""
+      : '<button class="auth-logout-button" type="button" data-auth-logout>Sign Out</button>';
+
     target.innerHTML = `
       <span class="auth-user-chip">${user.role === "admin" ? "Admin" : user.companyName}</span>
       ${user.role === "admin" ? '<a class="auth-link" href="/admin.html">Admin Panel</a>' : ""}
-      <button class="auth-logout-button" type="button" data-auth-logout>Sign Out</button>
+      ${logoutButton}
     `;
   });
 }
@@ -1066,8 +1357,49 @@ function applyWorkspacePermissions(user) {
   });
 }
 
+function setupSmartDateInputs() {
+  const dateInputs = document.querySelectorAll('input[type="date"]');
+
+  dateInputs.forEach((input) => {
+    if (input.dataset.smartCalendarReady === "true") {
+      return;
+    }
+
+    input.dataset.smartCalendarReady = "true";
+
+    const openNativeCalendar = () => {
+      if (input.disabled || input.readOnly) {
+        return;
+      }
+
+      input.classList.remove("is-calendar-opening");
+      void input.offsetWidth;
+      input.classList.add("is-calendar-opening");
+      window.setTimeout(() => input.classList.remove("is-calendar-opening"), 280);
+
+      if (typeof input.showPicker === "function") {
+        try {
+          input.showPicker();
+        } catch {
+          // Some browsers only allow showPicker during direct pointer/keyboard activation.
+        }
+      }
+    };
+
+    input.addEventListener("pointerdown", openNativeCalendar);
+
+    input.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" || event.key === " ") {
+        openNativeCalendar();
+      }
+    });
+  });
+}
+
 document.addEventListener("DOMContentLoaded", async () => {
+  setupSmartDateInputs();
   const user = await protectBanikPage();
+  setupSmartDateInputs();
   renderAuthControls(user || cachedCurrentUser);
   applyWorkspacePermissions(user || cachedCurrentUser);
 
@@ -1093,6 +1425,12 @@ window.BanikAuth = {
   saveESign: saveCurrentUserESign,
   getESign: getCurrentUserESign,
   removeESign: removeCurrentUserESign,
+  saveProfilePhoto: saveCurrentUserProfilePhoto,
+  getProfilePhoto: getCurrentUserProfilePhoto,
+  removeProfilePhoto: removeCurrentUserProfilePhoto,
+  saveCompanyLogo: saveCurrentUserCompanyLogo,
+  getCompanyLogo: getCurrentUserCompanyLogo,
+  removeCompanyLogo: removeCurrentUserCompanyLogo,
   createPermissionMap,
   isConfigured: isFirebaseConfigured,
 };
