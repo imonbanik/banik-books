@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <base href="/" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Trial Balance | BANIK Books</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="./styles.css" />
+    <script src="./js/config/app-config.js" defer></script>
+    <script src="./js/core/auth.js" type="module"></script>
+    <script src="./js/core/accounting-preferences.js" defer></script>
+    <script src="./js/pages/trial-balance.js" defer></script>
+  </head>
+  <body>
+    <div class="page-shell general-ledger-page trial-balance-page">
+      <header class="topbar">
+        <a class="brand" href="./workspace.html">
+          <span class="brand-mark" aria-hidden="true">
+            <img src="./assets/banik-logo.svg" alt="" />
+          </span>
+          <span class="brand-copy">
+            <span class="brand-copy__title">BANIK Books</span>
+            <span class="brand-copy__tag">Simple accounting for growing businesses</span>
+          </span>
+        </a>
+        <a class="topbar-back-button" href="./reports.html">Back</a>
+      </header>
+
+      <main class="general-ledger-layout">
+        <section class="general-ledger-hero">
+          <h1>Trial Balance</h1>
+          <div class="general-ledger-filters trial-balance-filters">
+            <label>
+              <span>From</span>
+              <input id="trial-balance-from" type="date" />
+            </label>
+            <label>
+              <span>To</span>
+              <input id="trial-balance-to" type="date" />
+            </label>
+          </div>
+        </section>
+
+        <section class="general-ledger-card" aria-label="Trial balance table">
+          <div class="trial-balance-table">
+            <div class="trial-balance-grid trial-balance-grid--head">
+              <div>SL</div>
+              <div>Accounts</div>
+              <div>Debit</div>
+              <div>Credit</div>
+            </div>
+            <div id="trial-balance-rows"></div>
+            <div class="trial-balance-grid trial-balance-grid--total">
+              <div></div>
+              <div>Total</div>
+              <div id="trial-balance-total-debit">0.00</div>
+              <div id="trial-balance-total-credit">0.00</div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <base href="/" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Statement of Profit &amp; Loss and OCI | BANIK Books</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="./styles.css" />
+    <script src="./js/config/app-config.js" defer></script>
+    <script src="./js/core/auth.js" type="module"></script>
+    <script src="./js/core/accounting-preferences.js" defer></script>
+    <script src="./js/pages/statement-of-profit-loss-and-oci.js" defer></script>
+  </head>
+  <body>
+    <div class="page-shell general-ledger-page profit-loss-page">
+      <header class="topbar">
+        <a class="brand" href="./workspace.html">
+          <span class="brand-mark" aria-hidden="true">
+            <img src="./assets/banik-logo.svg" alt="" />
+          </span>
+          <span class="brand-copy">
+            <span class="brand-copy__title">BANIK Books</span>
+            <span class="brand-copy__tag">Simple accounting for growing businesses</span>
+          </span>
+        </a>
+        <a class="topbar-back-button" href="./reports.html">Back</a>
+      </header>
+
+      <main class="general-ledger-layout">
+        <section class="general-ledger-hero">
+          <h1>Statement of Profit &amp; Loss and Other Comprehensive Income</h1>
+          <div class="general-ledger-filters profit-loss-filters">
+            <label>
+              <span>From</span>
+              <input id="profit-loss-from" type="date" />
+            </label>
+            <label>
+              <span>To</span>
+              <input id="profit-loss-to" type="date" />
+            </label>
+          </div>
+        </section>
+
+        <section class="profit-loss-card" aria-label="Statement of profit and loss">
+          <div class="profit-loss-statement">
+            <section class="profit-loss-section">
+              <h2>Revenue</h2>
+              <div id="profit-loss-revenue"></div>
+              <div class="profit-loss-line profit-loss-line--total">
+                <div>Total Revenue</div>
+                <div id="profit-loss-total-revenue">0.00</div>
+              </div>
+            </section>
+
+            <section class="profit-loss-section">
+              <h2>Less: Cost of Service</h2>
+              <div id="profit-loss-cost-service"></div>
+              <div class="profit-loss-line profit-loss-line--total">
+                <div>Total Cost of Service</div>
+                <div id="profit-loss-total-cost-service">0.00</div>
+              </div>
+            </section>
+
+            <div class="profit-loss-line profit-loss-line--result">
+              <div>Gross Profit</div>
+              <div id="profit-loss-gross-profit">0.00</div>
+            </div>
+
+            <section class="profit-loss-section">
+              <h2>Less: Selling &amp; Marketing Expenses</h2>
+              <div id="profit-loss-selling-marketing"></div>
+              <div class="profit-loss-line profit-loss-line--total">
+                <div>Total Selling &amp; Marketing Expenses</div>
+                <div id="profit-loss-total-selling-marketing">0.00</div>
+              </div>
+            </section>
+
+            <section class="profit-loss-section">
+              <h2>Less: General &amp; Administrative Expenses</h2>
+              <div id="profit-loss-general-admin"></div>
+              <div class="profit-loss-line profit-loss-line--total">
+                <div>Total General &amp; Administrative Expenses</div>
+                <div id="profit-loss-total-general-admin">0.00</div>
+              </div>
+            </section>
+
+            <div class="profit-loss-line profit-loss-line--result">
+              <div>Operating Profit</div>
+              <div id="profit-loss-operating-profit">0.00</div>
+            </div>
+
+            <section class="profit-loss-section">
+              <h2>Add: Non-Operating Income</h2>
+              <div id="profit-loss-non-operating-income"></div>
+              <div class="profit-loss-line profit-loss-line--total">
+                <div>Total Non-Operating Income</div>
+                <div id="profit-loss-total-non-operating-income">0.00</div>
+              </div>
+            </section>
+
+            <div class="profit-loss-line profit-loss-line--result">
+              <div>Net Profit Before Tax</div>
+              <div id="profit-loss-before-tax">0.00</div>
+            </div>
+
+            <section class="profit-loss-section">
+              <h2>Less: Income Tax Expense</h2>
+              <div id="profit-loss-income-tax"></div>
+              <div class="profit-loss-line profit-loss-line--total">
+                <div>Total Income Tax Expense</div>
+                <div id="profit-loss-total-income-tax">0.00</div>
+              </div>
+            </section>
+
+            <div class="profit-loss-line profit-loss-line--result profit-loss-line--net">
+              <div>Net Profit</div>
+              <div id="profit-loss-net-profit">0.00</div>
+            </div>
+
+            <section class="profit-loss-section" id="profit-loss-review-section" hidden>
+              <h2>Needs Classification Review</h2>
+              <div id="profit-loss-review"></div>
+            </section>
+          </div>
+        </section>
+      </main>
+    </div>
+  </body>
+</html>

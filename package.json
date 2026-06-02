@@ -1,0 +1,13 @@
+{
+  "name": "banik-books",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Browser-based accounting and business tools app.",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "./local-server.sh",
+    "check": "npm run check:js && npm run check:smoke",
+    "check:js": "node scripts/check-js.mjs",
+    "check:smoke": "node scripts/smoke-check.mjs"
+  }
+}

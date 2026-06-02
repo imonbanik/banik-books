@@ -1,0 +1,357 @@
+/* Tool and calculator responsive overrides */
+@media (max-width: 1024px) {
+  .invoice-generator-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .invoice-preview-card {
+    position: static;
+  }
+
+  .invoice-preview-stage {
+    max-height: none;
+  }
+
+  .rate-toolbar,
+  .rate-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .rate-table-card,
+  .rate-detail-card {
+    grid-column: auto;
+  }
+
+  .rate-overview {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .rate-detail-card {
+    position: static;
+  }
+
+  .rate-detail-grid {
+    max-height: none;
+  }
+
+  .emi-input-grid,
+  .emi-result-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .payroll-grid,
+  .payroll-results-grid,
+  .payroll-context-panel,
+  .payroll-board {
+    grid-template-columns: 1fr;
+  }
+
+  .payroll-visual-card {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .invoice-generator-page {
+    width: min(100% - 24px, 1500px);
+  }
+
+  .invoice-generator-shell {
+    padding-top: 24px;
+  }
+
+  .invoice-form-card {
+    padding: 16px;
+    border-radius: 24px;
+  }
+
+  .invoice-field-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .invoice-preview-toolbar {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .invoice-print-actions,
+  .invoice-print-actions button,
+  .invoice-form-actions button {
+    width: 100%;
+  }
+
+  .invoice-preview-stage {
+    padding: 14px;
+  }
+
+  .rate-finder-page {
+    width: min(100% - 24px, 1440px);
+  }
+
+  .rate-finder-panel {
+    padding: 16px;
+    border-radius: 24px;
+  }
+
+  .rate-tabs,
+  .rate-overview {
+    grid-template-columns: 1fr;
+  }
+
+  .rate-tab,
+  .rate-refresh-button,
+  .rate-clear-button {
+    width: 100%;
+  }
+
+  .rate-status {
+    justify-content: flex-start;
+    white-space: normal;
+  }
+
+  .rate-table-scroll {
+    min-height: 440px;
+    max-height: calc(100vh - 320px);
+  }
+
+  .emi-page {
+    width: min(100% - 24px, 1180px);
+  }
+
+  .emi-panel {
+    padding: 16px;
+    border-radius: 24px;
+  }
+
+  .emi-hero h1 {
+    white-space: normal;
+  }
+
+  .emi-schedule-head {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .emi-table-scroll {
+    min-height: 300px;
+    max-height: calc(100vh - 360px);
+  }
+
+  .payroll-page {
+    width: min(100% - 24px, 1320px);
+  }
+
+  .payroll-calculator-shell {
+    margin-top: 18px;
+    padding-top: 0;
+  }
+
+  .payroll-hero {
+    align-items: flex-start;
+    flex-direction: column;
+    padding: 22px 18px;
+    border-radius: 24px;
+  }
+
+  .payroll-rule-chip {
+    align-items: flex-start;
+  }
+
+  .payroll-context-panel {
+    padding: 18px;
+    border-radius: 24px;
+  }
+
+  .payroll-context-panel button {
+    width: 100%;
+  }
+
+  .payroll-board {
+    width: 100%;
+    padding: 14px;
+    border-radius: 24px;
+  }
+
+  .payroll-donut-grid {
+    grid-template-columns: 1fr;
+    justify-items: center;
+  }
+
+  .payroll-legend {
+    width: 100%;
+  }
+
+  .payroll-benefit-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .vat-tax-page {
+    width: min(100% - 24px, 1180px);
+  }
+
+  .vat-tax-shell {
+    margin-top: 18px;
+    padding-top: 0;
+  }
+
+  .vat-tax-hero {
+    border-radius: 24px;
+  }
+
+  .vat-sheet-row {
+    grid-template-columns: minmax(150px, 1fr) minmax(86px, 0.42fr) minmax(112px, 0.5fr);
+  }
+
+  .vat-sheet-row--single-input,
+  .vat-sheet-row--computed {
+    grid-template-columns: minmax(150px, 1fr) minmax(112px, 0.5fr);
+  }
+
+  .vat-sheet-row--single-input label,
+  .vat-sheet-row--computed span {
+    grid-column: 1 / 2;
+  }
+
+  .vat-sheet-row--single-input input,
+  .vat-sheet-row--computed output {
+    grid-column: 2 / 3;
+  }
+
+  .payroll-calculator-card,
+  .payroll-visual-card,
+  .payroll-result-card {
+    border-radius: 24px;
+  }
+
+  .payroll-calculator-card,
+  .payroll-visual-card {
+    padding: 18px;
+  }
+
+  .payroll-input-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .payroll-orbit {
+    min-height: 220px;
+  }
+
+  .payroll-snapshot div,
+  .payroll-monthly-pill {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .challan-register-input-row {
+    grid-template-columns: 1fr;
+  }
+
+  .challan-register-actions {
+    width: 100%;
+  }
+
+  .challan-register-actions .small-tool-button {
+    flex: 1 1 100%;
+  }
+
+  .challan-management-page {
+    width: min(100% - 24px, 1380px);
+  }
+
+  .challan-management-topbar {
+    align-items: flex-start;
+  }
+
+  .challan-back-button {
+    min-width: 92px;
+    min-height: 46px;
+    padding: 0 18px;
+    border-radius: 16px;
+  }
+
+  .challan-page-hero {
+    padding: 22px 20px;
+    border-radius: 24px;
+  }
+
+  .challan-page-hero h1 {
+    font-size: clamp(1.7rem, 7vw, 2.35rem);
+  }
+
+  .challan-tool-section {
+    padding: 18px;
+    border-radius: 24px;
+  }
+
+  .challan-tool-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .challan-verification-panel {
+    padding: 16px;
+  }
+
+  .challan-verification-row {
+    grid-template-columns: 1fr;
+  }
+
+  .challan-table-cell-action {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .challan-entry-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .challan-entry-field--full {
+    grid-column: auto;
+  }
+
+  .challan-entry-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .record-form-stack {
+    width: 100%;
+  }
+
+  .record-form-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .challan-register-filters {
+    grid-template-columns: 1fr;
+  }
+
+  .challan-save-button {
+    width: 100%;
+  }
+
+  .challan-register-modal-head {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .challan-toast {
+    top: 16px;
+    right: 16px;
+    left: 16px;
+    max-width: none;
+  }
+
+  .challan-modal {
+    padding: 14px;
+  }
+
+  .challan-modal__dialog {
+    max-height: calc(100vh - 28px);
+    padding: 22px 16px;
+    border-radius: 24px;
+  }
+
+  .challan-download-button {
+    width: 100%;
+  }
+}

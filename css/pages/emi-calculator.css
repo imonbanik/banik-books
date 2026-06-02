@@ -1,0 +1,190 @@
+/* EMI Calculator page */
+.emi-page {
+  width: min(1180px, calc(100% - 40px));
+  padding-bottom: 56px;
+}
+
+.emi-shell {
+  display: grid;
+  gap: 18px;
+  margin-top: 18px;
+}
+
+.emi-hero h1 {
+  white-space: nowrap;
+}
+
+.emi-panel {
+  display: grid;
+  gap: 16px;
+  padding: 22px;
+  border-radius: 30px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(255, 248, 247, 0.92)),
+    radial-gradient(circle at top right, rgba(239, 68, 68, 0.09), transparent 30%);
+  border: 1px solid rgba(185, 28, 28, 0.12);
+  box-shadow: var(--shadow);
+}
+
+.emi-input-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.emi-field {
+  display: grid;
+  gap: 8px;
+  padding: 16px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(127, 29, 29, 0.12);
+}
+
+.emi-field span,
+.emi-result-card span {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 900;
+  text-transform: none;
+}
+
+.emi-field input {
+  width: 100%;
+  min-height: 46px;
+  border: 1px solid rgba(127, 29, 29, 0.16);
+  border-radius: 14px;
+  background: #ffffff;
+  padding: 0 14px;
+  color: var(--text);
+  font: inherit;
+  font-size: 1.08rem;
+  font-weight: 800;
+  outline: none;
+  text-align: right;
+}
+
+.emi-field input:focus {
+  border-color: rgba(185, 28, 28, 0.44);
+  box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.1);
+}
+
+.emi-result-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.emi-result-card {
+  min-height: 94px;
+  display: grid;
+  align-content: center;
+  gap: 10px;
+  padding: 18px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid rgba(127, 29, 29, 0.12);
+  box-shadow: 0 18px 36px rgba(127, 16, 16, 0.08);
+}
+
+.emi-result-card strong {
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: clamp(1.35rem, 2.4vw, 2rem);
+  line-height: 1;
+}
+
+.emi-schedule-card {
+  overflow: hidden;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(127, 29, 29, 0.12);
+  box-shadow: 0 22px 44px rgba(127, 16, 16, 0.1);
+}
+
+.emi-schedule-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 16px 18px;
+  border-bottom: 1px solid rgba(127, 29, 29, 0.12);
+  background: #fff7f6;
+}
+
+.emi-schedule-title {
+  display: grid;
+  gap: 10px;
+}
+
+.emi-schedule-head h2 {
+  margin: 0;
+  color: var(--text);
+  font-size: 1.15rem;
+}
+
+.emi-schedule-head span {
+  color: var(--red-900);
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+
+.emi-excel-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.42;
+}
+
+.emi-excel-button:disabled:hover {
+  background: rgba(241, 255, 248, 0.98);
+}
+
+.emi-table-scroll {
+  max-height: calc(100vh - 430px);
+  min-height: 260px;
+  overflow: auto;
+}
+
+.emi-table {
+  width: 100%;
+  min-width: 880px;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.emi-table th,
+.emi-table td {
+  padding: 12px 14px;
+  border-right: 1px solid rgba(127, 29, 29, 0.1);
+  border-bottom: 1px solid rgba(127, 29, 29, 0.1);
+  color: var(--text);
+  font-size: 0.9rem;
+  text-align: right;
+  vertical-align: middle;
+}
+
+.emi-table th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: #fff7f6;
+  color: var(--red-900);
+  font-weight: 900;
+  text-align: center;
+  text-transform: none;
+}
+
+.emi-table th:first-child,
+.emi-table td:first-child {
+  text-align: center;
+}
+
+.emi-table tbody tr:nth-child(even) td {
+  background: rgba(255, 250, 249, 0.64);
+}
+
+.emi-empty-cell {
+  height: 150px;
+  color: var(--muted) !important;
+  font-weight: 800;
+  text-align: center !important;
+}

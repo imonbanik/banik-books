@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <base href="/" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Withholding VAT/Tax Calculator | BANIK Books</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="./styles.css" />
+    <script src="./js/config/app-config.js" defer></script>
+    <script src="./js/core/auth.js" type="module"></script>
+  </head>
+  <body>
+    <div class="page-shell vat-tax-page">
+      <header class="topbar">
+        <a class="brand" href="./workspace.html">
+          <span class="brand-mark" aria-hidden="true">
+            <img src="./assets/banik-logo.svg" alt="" />
+          </span>
+          <span class="brand-copy">
+            <span class="brand-copy__title">BANIK Books</span>
+            <span class="brand-copy__tag">Simple accounting for growing businesses</span>
+          </span>
+        </a>
+        <a class="topbar-back-button" href="./necessary-tools.html">Back</a>
+      </header>
+
+      <main class="vat-tax-shell">
+        <section class="vat-tax-hero">
+          <h1>Withholding VAT/Tax Calculator</h1>
+        </section>
+
+        <section class="vat-tax-calculator" aria-label="VAT and tax calculation sheets">
+          <article class="vat-sheet vat-sheet--deduction">
+            <h2>Deduction of VAT &amp; Tax (Inclusive) from Suppliers' Invoice</h2>
+            <div class="vat-sheet-row vat-sheet-row--single-input">
+              <label for="supplierInvoiceAmount">Total Invoice Amount</label>
+              <input id="supplierInvoiceAmount" type="text" inputmode="decimal" value="0.00" />
+            </div>
+            <div class="vat-sheet-row">
+              <label for="supplierVatRate">% of VAT Rate</label>
+              <input id="supplierVatRate" type="text" inputmode="decimal" value="0.00" />
+              <output id="supplierVatAmount" class="vat-output vat-output--highlight">0.00</output>
+            </div>
+            <div class="vat-sheet-row vat-sheet-row--computed">
+              <span>Amount including Tax but excluding VAT</span>
+              <output id="supplierExcludingVat" class="vat-output">0.00</output>
+            </div>
+            <div class="vat-sheet-row">
+              <label for="supplierTaxRate">% of Tax Rate</label>
+              <input id="supplierTaxRate" type="text" inputmode="decimal" value="0.00" />
+              <output id="supplierTaxAmount" class="vat-output vat-output--highlight">0.00</output>
+            </div>
+            <div class="vat-sheet-row vat-sheet-row--computed">
+              <span>Amount excluding Tax &amp; VAT (Net Payable)</span>
+              <output id="supplierNetPayable" class="vat-output">0.00</output>
+            </div>
+          </article>
+
+          <article class="vat-sheet vat-sheet--addition">
+            <h2>Addition of Tax &amp; VAT (Exclusive) with Customers' Invoice</h2>
+            <div class="vat-sheet-row vat-sheet-row--single-input">
+              <label for="customerNetReceivable">Amount excluding Tax &amp; VAT (Net Receivable)</label>
+              <input id="customerNetReceivable" type="text" inputmode="decimal" value="0.00" />
+            </div>
+            <div class="vat-sheet-row">
+              <label for="customerTaxRate">% of Tax Rate</label>
+              <input id="customerTaxRate" type="text" inputmode="decimal" value="0.00" />
+              <output id="customerTaxAmount" class="vat-output vat-output--highlight">0.00</output>
+            </div>
+            <div class="vat-sheet-row vat-sheet-row--computed">
+              <span>Amount including Tax but excluding VAT</span>
+              <output id="customerExcludingVat" class="vat-output">0.00</output>
+            </div>
+            <div class="vat-sheet-row">
+              <label for="customerVatRate">% of VAT Rate</label>
+              <input id="customerVatRate" type="text" inputmode="decimal" value="0.00" />
+              <output id="customerVatAmount" class="vat-output vat-output--highlight">0.00</output>
+            </div>
+            <div class="vat-sheet-row vat-sheet-row--computed">
+              <span>Total Invoice Amount</span>
+              <output id="customerTotalInvoice" class="vat-output">0.00</output>
+            </div>
+          </article>
+        </section>
+      </main>
+    </div>
+
+    <script src="./js/tools/withholding-vat-tax-calculator.js"></script>
+  </body>
+</html>

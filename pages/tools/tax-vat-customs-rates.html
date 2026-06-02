@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <base href="/" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tax, VAT & Customs Rates | BANIK Books</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="./styles.css" />
+    <script src="./js/config/app-config.js" defer></script>
+    <script src="./js/core/auth.js" type="module"></script>
+  </head>
+  <body>
+    <div class="page-shell rate-finder-page">
+      <header class="topbar challan-management-topbar">
+        <a class="brand" href="./workspace.html">
+          <span class="brand-mark" aria-hidden="true">
+            <img src="./assets/banik-logo.svg" alt="" />
+          </span>
+          <span class="brand-copy">
+            <span class="brand-copy__title">BANIK Books</span>
+            <span class="brand-copy__tag">Simple accounting for growing businesses</span>
+          </span>
+        </a>
+        <a class="challan-back-button" href="./necessary-tools.html">Back</a>
+      </header>
+
+      <main class="rate-finder-workspace">
+        <section class="challan-page-hero rate-finder-hero">
+          <h1>Tax, VAT &amp; Customs Rates</h1>
+        </section>
+
+        <section class="rate-finder-panel" aria-label="Tax, VAT and customs rate finder">
+          <div class="rate-tabs" id="rateTabs" role="tablist" aria-label="Rate categories">
+            <button class="rate-tab is-active" type="button" data-rate-tab="tax">
+              <span>Tax</span>
+              <strong>0</strong>
+            </button>
+            <button class="rate-tab" type="button" data-rate-tab="vat">
+              <span>VAT</span>
+              <strong>0</strong>
+            </button>
+            <button class="rate-tab" type="button" data-rate-tab="customs">
+              <span>Customs</span>
+              <strong>0</strong>
+            </button>
+          </div>
+
+          <div class="rate-toolbar">
+            <label class="rate-search-field" for="rateSearchInput">
+              <span>Search</span>
+              <input id="rateSearchInput" type="search" autocomplete="off" placeholder="Search" />
+            </label>
+            <div class="rate-status" id="rateStatus">Loading rates...</div>
+            <button class="rate-refresh-button" id="rateRefreshButton" type="button">
+              Refresh
+            </button>
+          </div>
+
+          <div class="rate-overview" id="rateOverview" aria-live="polite"></div>
+
+          <div class="rate-layout">
+            <article class="rate-table-card">
+              <div class="rate-table-scroll">
+                <table class="rate-table" id="rateTable">
+                  <thead id="rateTableHead"></thead>
+                  <tbody id="rateTableBody"></tbody>
+                </table>
+              </div>
+            </article>
+
+            <aside class="rate-detail-card" id="rateDetailCard" aria-live="polite">
+              <div class="rate-detail-empty">No row selected</div>
+            </aside>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="./js/tools/tax-vat-customs-rates.js"></script>
+  </body>
+</html>

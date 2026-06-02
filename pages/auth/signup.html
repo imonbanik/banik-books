@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <base href="/" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Profile Setup | BANIK Books</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="./styles.css" />
+    <script src="./js/config/app-config.js" defer></script>
+    <script src="./js/core/auth.js" type="module"></script>
+  </head>
+  <body>
+    <div class="page-shell signup-page">
+      <header class="topbar">
+        <a class="brand" href="./index.html">
+          <span class="brand-mark" aria-hidden="true">
+            <img src="./assets/banik-logo.svg" alt="" />
+          </span>
+          <span class="brand-copy">
+            <span class="brand-copy__title">BANIK Books</span>
+            <span class="brand-copy__tag">Simple accounting for growing businesses</span>
+          </span>
+        </a>
+        <div class="auth-controls" data-auth-controls data-auth-hide-logout></div>
+        <a class="topbar-back-button profile-topbar-back-button" href="./workspace.html">Back</a>
+      </header>
+
+      <main class="profile-page-layout">
+        <section class="profile-page-heading">
+          <h1>BANIK Books Profile</h1>
+          <p class="lead">Manage your account, workspace details, and preferences.</p>
+          <p class="profile-required-note">Mandatory fields are marked with <strong>**</strong> marks.</p>
+        </section>
+
+        <section class="signup-sheet profile-sheet">
+          <form class="account-form profile-form" id="profile-setup-form">
+            <section class="profile-section profile-section--personal">
+              <div class="profile-section__head">
+                <div>
+                  <p class="sheet-header__eyebrow">Section 1</p>
+                  <h2>Personal Profile</h2>
+                </div>
+              </div>
+
+              <div class="letterhead-upload-card profile-photo-card">
+                <div class="letterhead-upload-card__head">
+                  <div>
+                    <h3>Profile Photo</h3>
+                  </div>
+                </div>
+                <label class="letterhead-dropzone" for="profilePhoto">
+                  <input id="profilePhoto" type="file" accept="image/png,image/jpeg" />
+                  <strong>Choose PNG or JPG photo</strong>
+                  <small>Crop will save a clean square profile photo.</small>
+                </label>
+                <div class="letterhead-preview profile-photo-preview">
+                  <div class="profile-image-preview profile-image-preview--square" id="profilePhotoPreview">
+                    <span>No photo</span>
+                  </div>
+                  <div class="letterhead-preview__copy">
+                    <span>Profile Photo</span>
+                    <strong>Photo preview</strong>
+                    <small>Square 1:1 image</small>
+                  </div>
+                </div>
+                <div class="letterhead-actions">
+                  <button class="secondary-button" id="profilePhotoRemoveButton" type="button" hidden>Remove</button>
+                </div>
+                <p class="letterhead-status" id="profilePhotoStatus" aria-live="polite"></p>
+              </div>
+
+              <div class="field-grid">
+                <label class="stacked-field">
+                  <span>Full Name <strong class="required-mark">**</strong></span>
+                  <input id="profileFullName" type="text" placeholder="Your full name" required />
+                </label>
+                <label class="stacked-field">
+                  <span>Email <strong class="required-mark">**</strong></span>
+                  <input id="profileEmail" type="email" placeholder="accounts@company.com" readonly required />
+                </label>
+                <label class="stacked-field">
+                  <span>Mobile Number <strong class="required-mark">**</strong></span>
+                  <input id="profileMobileNumber" type="tel" placeholder="+8801XXXXXXXXX" required />
+                </label>
+              </div>
+            </section>
+
+            <section class="profile-section profile-section--workspace">
+              <div class="profile-section__head">
+                <div>
+                  <p class="sheet-header__eyebrow">Section 2</p>
+                  <h2>Workspace / Business Setup</h2>
+                </div>
+              </div>
+
+              <div class="field-grid workspace-field-grid">
+                <label class="stacked-field">
+                  <span>Business Name <strong class="required-mark">**</strong></span>
+                  <input id="profileBusinessName" type="text" placeholder="Your business name" required />
+                </label>
+                <label class="stacked-field">
+                  <span>Business Type <strong class="required-mark">**</strong></span>
+                  <select id="profileBusinessType" required>
+                    <option>Trading business</option>
+                    <option>Retail shop</option>
+                    <option>Service company</option>
+                    <option>Manufacturing</option>
+                    <option>Other</option>
+                  </select>
+                </label>
+                <label class="stacked-field">
+                  <span>Currency <strong class="required-mark">**</strong></span>
+                  <select id="profileCurrency" required>
+                    <option value="BDT - Bangladeshi Taka">BDT</option>
+                    <option value="USD - US Dollar">USD</option>
+                  </select>
+                </label>
+                <label class="stacked-field">
+                  <span>Fiscal Year Start Date <strong class="required-mark">**</strong></span>
+                  <input id="profileFiscalYearStart" type="date" required />
+                </label>
+                <label class="stacked-field workspace-field--address">
+                  <span>Business Address <strong class="required-mark">**</strong></span>
+                  <input id="profileCompanyAddress" type="text" placeholder="House, Road, Area, City" required />
+                </label>
+                <label class="stacked-field">
+                  <span>TIN Number <small>Optional</small></span>
+                  <input id="profileTinNumber" type="text" autocomplete="off" />
+                </label>
+                <label class="stacked-field">
+                  <span>BIN Number <small>Optional</small></span>
+                  <input id="profileBinNumber" type="text" autocomplete="off" />
+                </label>
+              </div>
+
+              <div class="profile-assets-grid">
+                <div class="letterhead-upload-card">
+                  <div class="letterhead-upload-card__head">
+                    <div>
+                      <h3>Business Letterhead</h3>
+                    </div>
+                  </div>
+                  <label class="letterhead-dropzone" for="profileLetterhead">
+                    <input id="profileLetterhead" type="file" accept="image/png,image/jpeg,application/pdf" />
+                    <strong>Choose PDF, PNG or JPG</strong>
+                  </label>
+                  <div class="letterhead-preview" id="profileLetterheadPreview" hidden></div>
+                  <div class="letterhead-actions">
+                    <button class="secondary-button" id="profileLetterheadRemoveButton" type="button" hidden>Remove</button>
+                  </div>
+                  <p class="letterhead-status" id="profileLetterheadStatus" aria-live="polite"></p>
+                </div>
+
+                <div class="letterhead-upload-card">
+                  <div class="letterhead-upload-card__head">
+                    <div>
+                      <h3>E-Signature</h3>
+                    </div>
+                  </div>
+                  <label class="letterhead-dropzone" for="profileESign">
+                    <input id="profileESign" type="file" accept="image/png,image/jpeg" />
+                    <strong>Choose PNG or JPG</strong>
+                  </label>
+                  <div class="letterhead-preview e-sign-preview" id="profileESignPreview" hidden></div>
+                  <div class="letterhead-actions">
+                    <button class="secondary-button" id="profileESignRemoveButton" type="button" hidden>Remove</button>
+                  </div>
+                  <p class="letterhead-status" id="profileESignStatus" aria-live="polite"></p>
+                </div>
+
+                <div class="letterhead-upload-card">
+                  <div class="letterhead-upload-card__head">
+                    <div>
+                      <h3>Business Logo</h3>
+                    </div>
+                  </div>
+                  <label class="letterhead-dropzone" for="companyLogo">
+                    <input id="companyLogo" type="file" accept="image/png,image/jpeg" />
+                    <strong>Choose PNG or JPG</strong>
+                  </label>
+                  <div class="letterhead-preview company-logo-preview" id="companyLogoPreviewCard" hidden>
+                    <div class="letterhead-preview__media business-logo-preview__media" id="companyLogoPreview">
+                      <span>No logo</span>
+                    </div>
+                    <div class="letterhead-preview__copy">
+                      <span>Business Logo</span>
+                      <strong id="companyLogoPreviewName">Logo preview</strong>
+                      <small id="companyLogoPreviewMeta">300x200px · Ratio 3:2</small>
+                    </div>
+                  </div>
+                  <div class="letterhead-actions">
+                    <button class="secondary-button" id="companyLogoRemoveButton" type="button" hidden>Remove</button>
+                  </div>
+                  <p class="letterhead-status" id="companyLogoStatus" aria-live="polite"></p>
+                </div>
+              </div>
+            </section>
+
+            <section class="profile-section profile-section--preferences">
+              <div class="profile-section__head">
+                <div>
+                  <p class="sheet-header__eyebrow">Section 3</p>
+                  <h2>Preferences</h2>
+                </div>
+              </div>
+              <div class="field-grid">
+                <label class="stacked-field">
+                  <span>Date Format <strong class="required-mark">**</strong></span>
+                  <select id="profileDateFormat" required>
+                    <option>DD/MM/YYYY</option>
+                    <option>DD-MM-YYYY</option>
+                    <option>DD-MMM-YYYY</option>
+                  </select>
+                </label>
+                <label class="stacked-field">
+                  <span>Number Format <strong class="required-mark">**</strong></span>
+                  <select id="profileNumberFormat" required>
+                    <option>1,23,456.78</option>
+                    <option>123,456.78</option>
+                  </select>
+                </label>
+              </div>
+            </section>
+
+            <div class="profile-save-bar">
+              <div class="profile-save-bar__meta">
+                <label class="checkbox-row profile-agreement">
+                  <input id="profileAgreement" type="checkbox" required />
+                  <span>I agree to save this profile for my BANIK Books workspace.</span>
+                </label>
+                <p class="auth-form-status" id="profileSetupStatus" aria-live="polite"></p>
+              </div>
+
+              <div class="form-actions">
+                <a class="secondary-button" href="./workspace.html">Cancel</a>
+                <button id="profileSubmitButton" type="submit" disabled>Save Profile</button>
+              </div>
+            </div>
+          </form>
+        </section>
+      </main>
+      <div class="image-crop-modal" id="imageCropModal" hidden>
+        <div class="image-crop-modal__dialog" role="dialog" aria-modal="true" aria-label="Crop image">
+          <h2 id="imageCropTitle">Crop image</h2>
+          <div class="image-cropper" id="imageCropper">
+            <img id="imageCropSource" alt="" />
+            <div class="image-cropper__frame" id="imageCropFrame"></div>
+          </div>
+          <label class="stacked-field">
+            <span>Zoom</span>
+            <input id="imageCropZoom" type="range" min="1" max="3" step="0.01" value="1" />
+          </label>
+          <div class="form-actions">
+            <button class="secondary-button" id="imageCropCancel" type="button">Cancel</button>
+            <button id="imageCropApply" type="button">Use Cropped Image</button>
+          </div>
+        </div>
+      </div>
+      <div class="profile-confirm-modal" id="profileAttachmentConfirm" hidden>
+        <div class="profile-confirm-modal__dialog" role="alertdialog" aria-modal="true" aria-labelledby="profileAttachmentConfirmTitle">
+          <h2 id="profileAttachmentConfirmTitle">Remove Attachment</h2>
+          <p id="profileAttachmentConfirmMessage">Are you sure you want to remove this attachment?</p>
+          <div class="profile-confirm-modal__actions">
+            <button class="journal-button journal-button--danger" id="profileAttachmentConfirmYes" type="button">Yes, Remove</button>
+            <button class="journal-button journal-button--ghost" id="profileAttachmentConfirmNo" type="button">No</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="./js/pages/signup.js"></script>
+  </body>
+</html>

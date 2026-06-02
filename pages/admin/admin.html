@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <base href="/" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Panel | BANIK Books</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="./styles.css" />
+    <script src="./js/config/app-config.js" defer></script>
+    <script src="./js/core/auth.js" type="module"></script>
+  </head>
+  <body>
+    <div class="page-shell admin-page">
+      <header class="topbar">
+        <a class="brand" href="./workspace.html">
+          <span class="brand-mark" aria-hidden="true">
+            <img src="./assets/banik-logo.svg" alt="" />
+          </span>
+          <span class="brand-copy">
+            <span class="brand-copy__title">BANIK Books</span>
+            <span class="brand-copy__tag">Simple accounting for growing businesses</span>
+          </span>
+        </a>
+        <a class="topbar-back-button" href="./workspace.html">Back</a>
+        <div class="auth-controls" data-auth-controls></div>
+      </header>
+
+      <main class="admin-layout">
+        <section class="admin-hero">
+          <div>
+            <p class="sheet-header__eyebrow">Admin Panel</p>
+            <h1>User and access control</h1>
+            <p class="lead">
+              Review signed-up users and choose which BANIK Books pages each account can open.
+            </p>
+          </div>
+          <a class="secondary-button" href="./workspace.html">Back to workspace</a>
+        </section>
+
+        <section class="admin-summary-grid" id="adminSummary"></section>
+
+        <section class="admin-panel">
+          <div class="sheet-header">
+            <div>
+              <p class="sheet-header__eyebrow">Users</p>
+              <h2>Access Matrix</h2>
+            </div>
+          </div>
+
+          <div class="admin-table-wrap">
+            <table class="admin-table">
+              <thead id="adminTableHead"></thead>
+              <tbody id="adminTableBody"></tbody>
+            </table>
+          </div>
+          <p class="admin-note">
+            Access changes save instantly in the backend database. New users start with workspace access only.
+          </p>
+        </section>
+      </main>
+    </div>
+
+    <script src="./js/pages/admin.js"></script>
+  </body>
+</html>

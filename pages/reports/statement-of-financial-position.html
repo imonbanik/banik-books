@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <base href="/" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Statement of Financial Position | BANIK Books</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="./styles.css" />
+    <script src="./js/config/app-config.js" defer></script>
+    <script src="./js/core/auth.js" type="module"></script>
+    <script src="./js/core/accounting-preferences.js" defer></script>
+    <script src="./js/pages/statement-of-financial-position.js" defer></script>
+  </head>
+  <body>
+    <div class="page-shell general-ledger-page financial-position-page">
+      <header class="topbar">
+        <a class="brand" href="./workspace.html">
+          <span class="brand-mark" aria-hidden="true">
+            <img src="./assets/banik-logo.svg" alt="" />
+          </span>
+          <span class="brand-copy">
+            <span class="brand-copy__title">BANIK Books</span>
+            <span class="brand-copy__tag">Simple accounting for growing businesses</span>
+          </span>
+        </a>
+        <a class="topbar-back-button" href="./reports.html">Back</a>
+      </header>
+
+      <main class="general-ledger-layout">
+        <section class="general-ledger-hero">
+          <h1>Statement of Financial Position</h1>
+          <div class="general-ledger-filters financial-position-filters">
+            <label>
+              <span>From</span>
+              <input id="financial-position-from" type="date" />
+            </label>
+            <label>
+              <span>To</span>
+              <input id="financial-position-to" type="date" />
+            </label>
+          </div>
+        </section>
+
+        <section class="financial-position-card" aria-label="Statement of financial position">
+          <div class="financial-position-statement">
+            <section class="financial-position-section">
+              <h2>Assets</h2>
+              <div id="financial-position-assets"></div>
+              <div class="financial-position-line financial-position-line--total">
+                <div>Total Assets</div>
+                <div id="financial-position-total-assets">0.00</div>
+              </div>
+            </section>
+
+            <section class="financial-position-section">
+              <h2>Equity and Liabilities</h2>
+              <h3>Equity</h3>
+              <div id="financial-position-equity"></div>
+              <div class="financial-position-line financial-position-line--subtotal">
+                <div>Total Equity</div>
+                <div id="financial-position-total-equity">0.00</div>
+              </div>
+              <h3>Liabilities</h3>
+              <div id="financial-position-liabilities"></div>
+              <div class="financial-position-line financial-position-line--subtotal">
+                <div>Total Liabilities</div>
+                <div id="financial-position-total-liabilities">0.00</div>
+              </div>
+              <div class="financial-position-line financial-position-line--total">
+                <div>Total Equity and Liabilities</div>
+                <div id="financial-position-total-equity-liabilities">0.00</div>
+              </div>
+            </section>
+
+            <section class="financial-position-section" id="financial-position-review-section" hidden>
+              <h2>Needs Classification Review</h2>
+              <div id="financial-position-review"></div>
+            </section>
+          </div>
+        </section>
+      </main>
+    </div>
+  </body>
+</html>

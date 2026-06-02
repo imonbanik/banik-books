@@ -1,0 +1,88 @@
+/* Trial Balance report page */
+.trial-balance-page {
+  width: min(1180px, calc(100% - 16px));
+}
+
+.trial-balance-filters {
+  grid-template-columns: 180px 180px;
+  justify-content: start;
+}
+
+.trial-balance-table {
+  width: min(100%, 980px);
+  border: 1px solid rgba(185, 28, 28, 0.12);
+  background: #ffffff;
+}
+
+.trial-balance-grid {
+  display: grid;
+  grid-template-columns: 72px minmax(320px, 1fr) 160px 160px;
+}
+
+.trial-balance-grid > div {
+  min-height: 42px;
+  border-right: 1px dashed rgba(127, 16, 16, 0.16);
+  border-bottom: 1px solid rgba(185, 28, 28, 0.12);
+  padding: 8px 10px;
+  display: flex;
+  align-items: center;
+  color: #111111;
+  font-size: 0.94rem;
+}
+
+.trial-balance-grid > div:last-child {
+  border-right: 0;
+}
+
+.trial-balance-grid > div:nth-child(1),
+.trial-balance-grid--head > div {
+  justify-content: center;
+  text-align: center;
+}
+
+.trial-balance-grid > div:nth-child(3),
+.trial-balance-grid > div:nth-child(4),
+.trial-balance-grid--total > div:nth-child(3),
+.trial-balance-grid--total > div:nth-child(4) {
+  justify-content: flex-end;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.trial-balance-grid--head > div,
+.trial-balance-grid--total > div {
+  background: rgba(255, 245, 244, 0.92);
+  color: var(--red-900);
+  font-weight: 900;
+  text-transform: none;
+}
+
+.trial-balance-grid--total > div {
+  background: rgba(245, 238, 238, 0.86);
+  text-transform: none;
+}
+
+.trial-balance-grid--empty {
+  grid-template-columns: 1fr;
+}
+
+.trial-balance-grid--empty > div {
+  justify-content: center;
+  padding: 16px;
+  color: var(--muted);
+  font-weight: 800;
+}
+
+@media (max-width: 760px) {
+  .trial-balance-filters {
+    grid-template-columns: 1fr;
+  }
+
+  .trial-balance-table {
+    overflow: auto;
+  }
+
+  .trial-balance-grid {
+    min-width: 720px;
+  }
+}

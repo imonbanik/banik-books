@@ -1,0 +1,17 @@
+/* Admin responsive overrides */
+@media (max-width: 1024px) {
+  .admin-summary-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .admin-hero {
+    flex-direction: column;
+  }
+
+  .admin-panel {
+    padding: 20px 14px;
+    border-radius: 24px;
+  }
+}

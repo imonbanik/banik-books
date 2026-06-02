@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <base href="/" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Invoice Generator | BANIK Books</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="./styles.css" />
+    <script src="./js/config/app-config.js" defer></script>
+    <script src="./js/core/auth.js" type="module"></script>
+    <script src="./js/core/accounting-preferences.js" defer></script>
+  </head>
+  <body>
+    <div class="page-shell invoice-generator-page">
+      <header class="topbar">
+        <a class="brand" href="./workspace.html">
+          <span class="brand-mark" aria-hidden="true">
+            <img src="./assets/banik-logo.svg" alt="" />
+          </span>
+          <span class="brand-copy">
+            <span class="brand-copy__title">BANIK Books</span>
+            <span class="brand-copy__tag">Simple accounting for growing businesses</span>
+          </span>
+        </a>
+        <a class="topbar-back-button" href="./necessary-tools.html">Back</a>
+      </header>
+
+      <main class="invoice-generator-shell">
+        <section class="vat-tax-hero invoice-generator-hero">
+          <h1>Invoice Generator</h1>
+        </section>
+
+        <section class="invoice-generator-grid">
+          <form class="invoice-form-card" id="invoiceForm">
+            <div class="invoice-form-section">
+              <h2>Client Details</h2>
+              <div class="invoice-field-grid">
+                <label class="invoice-field invoice-field--full">
+                  <span>Client name</span>
+                  <input id="clientName" type="text" value="Save the Children" />
+                </label>
+                <label class="invoice-field invoice-field--full">
+                  <span>Client address</span>
+                  <textarea id="clientAddress">Middle Nuniyar Chora, Airport Road,
+Cox's Bazar, Bangladesh</textarea>
+                </label>
+              </div>
+            </div>
+
+            <div class="invoice-form-section">
+              <h2>Invoice Details</h2>
+              <div class="invoice-field-grid">
+                <label class="invoice-field">
+                  <span>Invoice no.</span>
+                  <input id="invoiceNo" type="text" value="1044" />
+                </label>
+                <label class="invoice-field">
+                  <span>Issue date</span>
+                  <input id="issueDate" type="date" value="2025-12-24" />
+                </label>
+                <label class="invoice-field">
+                  <span>Due date</span>
+                  <input id="dueDate" type="date" value="2025-12-31" />
+                </label>
+                <label class="invoice-field">
+                  <span>Currency</span>
+                  <input id="invoiceCurrency" type="text" value="BDT" />
+                </label>
+                <label class="invoice-field invoice-field--full">
+                  <span>Project name</span>
+                  <textarea id="projectName">Consultancy Service for Capacity Building of the Staff &amp; Master Trainers in Burmese Language</textarea>
+                </label>
+                <label class="invoice-field invoice-field--full">
+                  <span>Contract reference</span>
+                  <input id="contractReference" type="text" value="SCI/CXB/FY-24/0001 (ADDENDUM)" />
+                </label>
+              </div>
+            </div>
+
+            <div class="invoice-form-section">
+              <div class="invoice-form-section__head">
+                <h2>Service Details</h2>
+                <button class="secondary-button invoice-mini-button" id="addInvoiceItem" type="button">
+                  Add row
+                </button>
+              </div>
+              <div class="invoice-items-editor">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Description of Service</th>
+                      <th>Amount</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody id="invoiceItemsBody"></tbody>
+                </table>
+              </div>
+              <label class="invoice-field invoice-field--compact">
+                <span>VAT rate (%)</span>
+                <input id="vatRate" type="text" inputmode="decimal" value="15.00" />
+              </label>
+            </div>
+
+            <div class="invoice-form-section">
+              <h2>Bank Account Details</h2>
+              <div class="invoice-field-grid">
+                <label class="invoice-field">
+                  <span>Account name</span>
+                  <input id="bankAccountName" type="text" value="Zabai Bangladesh Limited" />
+                </label>
+                <label class="invoice-field">
+                  <span>Account number</span>
+                  <input id="bankAccountNumber" type="text" value="01336693602" />
+                </label>
+                <label class="invoice-field">
+                  <span>Account currency</span>
+                  <input id="bankCurrency" type="text" value="BDT" />
+                </label>
+                <label class="invoice-field">
+                  <span>Name of the bank</span>
+                  <input id="bankName" type="text" value="Standard Chartered Bangladesh" />
+                </label>
+                <label class="invoice-field">
+                  <span>Branch name</span>
+                  <input id="bankBranch" type="text" value="Gulshan" />
+                </label>
+                <label class="invoice-field">
+                  <span>SWIFT code</span>
+                  <input id="swiftCode" type="text" value="SCBLBDDX" />
+                </label>
+                <label class="invoice-field invoice-field--full">
+                  <span>Bank address</span>
+                  <input id="bankAddress" type="text" value="67 Gulshan Avenue, Dhaka-1212" />
+                </label>
+                <label class="invoice-field">
+                  <span>Routing number</span>
+                  <input id="routingNumber" type="text" value="215261726" />
+                </label>
+              </div>
+            </div>
+
+            <div class="invoice-form-section">
+              <h2>Submission</h2>
+              <div class="invoice-field-grid">
+                <label class="invoice-field">
+                  <span>Submitted by name</span>
+                  <input id="submittedName" type="text" value="Imon Chandra Banik" />
+                </label>
+                <label class="invoice-field">
+                  <span>Designation</span>
+                  <input id="submittedDesignation" type="text" value="Country Director" />
+                </label>
+                <label class="invoice-field invoice-field--full">
+                  <span>Organization</span>
+                  <input id="submittedOrganization" type="text" value="Zabai Bangladesh Limited" />
+                </label>
+              </div>
+              <label class="invoice-checkbox">
+                <input id="useESign" type="checkbox" checked />
+                <span>Use saved e-signature if available</span>
+              </label>
+            </div>
+
+            <div class="invoice-form-actions">
+              <button id="refreshInvoicePreview" type="button">Generate Preview</button>
+            </div>
+          </form>
+
+          <section class="invoice-preview-card">
+            <div class="invoice-preview-toolbar">
+              <div>
+                <span id="invoiceAssetStatus">Loading profile attachments...</span>
+                <strong id="invoiceTotalSummary">BDT 0.00</strong>
+              </div>
+              <div class="invoice-print-actions">
+                <button id="printWithLetterhead" type="button">Print with LetterHead</button>
+                <button id="printWithoutLetterhead" type="button">Print without LetterHead</button>
+              </div>
+            </div>
+
+            <div class="invoice-preview-stage">
+              <article class="invoice-document" id="invoiceDocument">
+                <div class="invoice-letterhead-layer" id="invoiceLetterheadLayer" hidden></div>
+                <div class="invoice-document-content" id="invoiceDocumentContent"></div>
+              </article>
+            </div>
+          </section>
+        </section>
+      </main>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="./js/tools/invoice-generator.js"></script>
+  </body>
+</html>

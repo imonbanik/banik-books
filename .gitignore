@@ -1,0 +1,7 @@
+data/
+outputs/
+runtime/*.pid
+runtime/*.log
+*.pid
+*.log
+.DS_Store

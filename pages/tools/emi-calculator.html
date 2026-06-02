@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <base href="/" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>EMI Calculator | BANIK Books</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="./styles.css" />
+    <script src="./js/config/app-config.js" defer></script>
+    <script src="./js/core/auth.js" type="module"></script>
+    <script src="./js/core/accounting-preferences.js" defer></script>
+  </head>
+  <body>
+    <div class="page-shell emi-page">
+      <header class="topbar">
+        <a class="brand" href="./workspace.html">
+          <span class="brand-mark" aria-hidden="true">
+            <img src="./assets/banik-logo.svg" alt="" />
+          </span>
+          <span class="brand-copy">
+            <span class="brand-copy__title">BANIK Books</span>
+            <span class="brand-copy__tag">Simple accounting for growing businesses</span>
+          </span>
+        </a>
+        <a class="topbar-back-button" href="./necessary-tools.html">Back</a>
+      </header>
+
+      <main class="emi-shell">
+        <section class="vat-tax-hero emi-hero">
+          <h1>EMI Calculator</h1>
+        </section>
+
+        <section class="emi-panel" aria-label="EMI calculation inputs and results">
+          <div class="emi-input-grid">
+            <label class="emi-field" for="emiPrincipal">
+              <span>Principal Amount</span>
+              <input id="emiPrincipal" type="text" inputmode="decimal" />
+            </label>
+            <label class="emi-field" for="emiInterestRate">
+              <span>Interest Rate (%)</span>
+              <input id="emiInterestRate" type="text" inputmode="decimal" />
+            </label>
+            <label class="emi-field" for="emiTenure">
+              <span>Tenure in Months</span>
+              <input id="emiTenure" type="text" inputmode="numeric" />
+            </label>
+          </div>
+
+          <div class="emi-result-grid">
+            <article class="emi-result-card">
+              <span>Monthly Instalment</span>
+              <strong id="monthlyInstalment">BDT 0.00</strong>
+            </article>
+            <article class="emi-result-card">
+              <span>Total Payment</span>
+              <strong id="totalPayment">BDT 0.00</strong>
+            </article>
+            <article class="emi-result-card">
+              <span>Total Interest</span>
+              <strong id="totalInterest">BDT 0.00</strong>
+            </article>
+          </div>
+
+          <article class="emi-schedule-card">
+            <div class="emi-schedule-head">
+              <div class="emi-schedule-title">
+                <h2>Repayment Schedule</h2>
+                <button
+                  id="downloadEmiExcel"
+                  class="excel-export-button emi-excel-button"
+                  type="button"
+                  title="Download repayment schedule as Excel"
+                  aria-label="Download repayment schedule as Excel"
+                  disabled
+                >
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M5 3h9l5 5v13H5z" />
+                    <path d="M14 3v5h5M8 10l4 6m0-6-4 6" />
+                  </svg>
+                </button>
+              </div>
+              <span id="emiScheduleSummary">No schedule yet</span>
+            </div>
+            <div class="emi-table-scroll">
+              <table class="emi-table">
+                <thead>
+                  <tr>
+                    <th>Month</th>
+                    <th>Opening Balance</th>
+                    <th>Monthly Instalment</th>
+                    <th>Principal</th>
+                    <th>Interest</th>
+                    <th>Closing Balance</th>
+                  </tr>
+                </thead>
+                <tbody id="emiScheduleBody">
+                  <tr>
+                    <td colspan="6" class="emi-empty-cell">Enter amount, rate, and tenure to see schedule.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </article>
+        </section>
+      </main>
+    </div>
+
+    <script src="./js/tools/emi-calculator.js"></script>
+  </body>
+</html>

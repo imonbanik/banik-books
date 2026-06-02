@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <base href="/" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Statement of Cash Flows | BANIK Books</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="./styles.css" />
+    <script src="./js/config/app-config.js" defer></script>
+    <script src="./js/core/auth.js" type="module"></script>
+    <script src="./js/core/accounting-preferences.js" defer></script>
+    <script src="./js/pages/statement-of-cash-flows.js" defer></script>
+  </head>
+  <body>
+    <div class="page-shell general-ledger-page cash-flows-page">
+      <header class="topbar">
+        <a class="brand" href="./workspace.html">
+          <span class="brand-mark" aria-hidden="true">
+            <img src="./assets/banik-logo.svg" alt="" />
+          </span>
+          <span class="brand-copy">
+            <span class="brand-copy__title">BANIK Books</span>
+            <span class="brand-copy__tag">Simple accounting for growing businesses</span>
+          </span>
+        </a>
+        <a class="topbar-back-button" href="./reports.html">Back</a>
+      </header>
+
+      <main class="general-ledger-layout">
+        <section class="general-ledger-hero">
+          <h1>Statement of Cash Flows</h1>
+          <div class="general-ledger-filters cash-flows-filters">
+            <label>
+              <span>From</span>
+              <input id="cash-flows-from" type="date" />
+            </label>
+            <label>
+              <span>To</span>
+              <input id="cash-flows-to" type="date" />
+            </label>
+          </div>
+          <div class="general-ledger-actions cash-flows-actions">
+            <button
+              class="excel-export-button"
+              id="cash-flows-excel"
+              type="button"
+              title="Download Statement of Cash Flows as Excel"
+              aria-label="Download Statement of Cash Flows as Excel"
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M5 3h9l5 5v13H5z" />
+                <path d="M14 3v5h5M8 10l4 6m0-6-4 6" />
+              </svg>
+            </button>
+            <button class="general-ledger-print-button" id="cash-flows-print" type="button">Print / PDF</button>
+          </div>
+        </section>
+
+        <section class="cash-flows-card" aria-label="Statement of cash flows">
+          <div class="cash-flows-report">
+            <header class="cash-flows-heading">
+              <h2 id="cash-flows-company-name">BANIK Books</h2>
+              <p>Statement of Cash Flows</p>
+              <span id="cash-flows-period-label">For the selected period</span>
+            </header>
+
+            <div class="cash-flows-table">
+              <div class="cash-flows-amount-title" id="cash-flows-currency-title">Amount in BDT</div>
+              <div class="cash-flows-column-heads">
+                <div></div>
+                <div id="cash-flows-current-label">Current</div>
+                <div id="cash-flows-previous-label">Previous</div>
+              </div>
+
+              <section class="cash-flows-section">
+                <h2>Cash flow from operating activities:</h2>
+                <div id="cash-flows-operating"></div>
+              </section>
+
+              <section class="cash-flows-section">
+                <h2>Cash flow from investing activities:</h2>
+                <div id="cash-flows-investing"></div>
+              </section>
+
+              <section class="cash-flows-section">
+                <h2>Cash flow from financing activities:</h2>
+                <div id="cash-flows-financing"></div>
+              </section>
+
+              <section class="cash-flows-section cash-flows-section--summary">
+                <div id="cash-flows-summary"></div>
+              </section>
+
+              <section class="cash-flows-section cash-flows-section--validation">
+                <h2>Validation checks</h2>
+                <div id="cash-flows-validation"></div>
+              </section>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </body>
+</html>
