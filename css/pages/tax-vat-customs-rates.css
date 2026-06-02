@@ -169,12 +169,12 @@
   color: var(--muted);
   font-size: 0.72rem;
   font-weight: 800;
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 .rate-metric-card strong {
   color: var(--text);
-  font-family: "Ubuntu", sans-serif;
+  font-family: var(--font-sans);
   font-size: clamp(1rem, 1.45vw, 1.22rem);
   line-height: 1;
   white-space: nowrap;
@@ -369,11 +369,11 @@
   font-size: 0.8rem;
   font-weight: 900;
   letter-spacing: 0.04em;
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 .rate-detail-head strong {
-  font-family: "Ubuntu", sans-serif;
+  font-family: var(--font-sans);
   font-size: 1.25rem;
 }
 
@@ -398,7 +398,7 @@
   color: var(--muted);
   font-size: 0.76rem;
   font-weight: 800;
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 .rate-detail-item strong {

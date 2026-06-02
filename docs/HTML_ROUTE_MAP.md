@@ -47,6 +47,7 @@ pages/
 | Root URL shim | Active page | Notes |
 | --- | --- | --- |
 | `workspace.html` | `pages/workspace/workspace.html` | Main authenticated workspace and navigation hub. |
+| `party-management.html` | `pages/workspace/party-management.html` | Party Management register for customers, suppliers, both parties, and employees. |
 | `necessary-tools.html` | `pages/workspace/necessary-tools.html` | Tools menu/detail page. |
 | `reports.html` | `pages/workspace/reports.html` | Reports menu/detail page. |
 
@@ -61,12 +62,14 @@ pages/
 
 | Root URL shim | Active page | Notes |
 | --- | --- | --- |
-| `general-ledger.html` | `pages/reports/general-ledger.html` | Placeholder/report shell page. |
-| `trial-balance.html` | `pages/reports/trial-balance.html` | Placeholder/report shell page. |
-| `statement-of-financial-position.html` | `pages/reports/statement-of-financial-position.html` | Placeholder/report shell page. |
-| `statement-of-profit-loss-and-oci.html` | `pages/reports/statement-of-profit-loss-and-oci.html` | Placeholder/report shell page. |
-| `statement-of-changes-in-equity.html` | `pages/reports/statement-of-changes-in-equity.html` | Placeholder/report shell page. |
-| `statement-of-cash-flows.html` | `pages/reports/statement-of-cash-flows.html` | Placeholder/report shell page. |
+| `general-ledger.html` | `pages/reports/general-ledger.html` | General Ledger report with ledger-wise debit, credit, and balance summary. |
+| `party-wise-transaction.html` | `pages/reports/party-wise-transaction.html` | Party Wise Transaction report with party-wise transaction details and running balances. |
+| `journal-register.html` | `pages/reports/journal-register.html` | Journal Register report with date range filter and local journal drilldown. |
+| `trial-balance.html` | `pages/reports/trial-balance.html` | Trial Balance report with compact date-range ledger debit and credit balances. |
+| `statement-of-financial-position.html` | `pages/reports/statement-of-financial-position.html` | Vertical Statement of Financial Position with date-range assets, equity, and liabilities. |
+| `statement-of-profit-loss-and-oci.html` | `pages/reports/statement-of-profit-loss-and-oci.html` | Statement of Profit & Loss and OCI with CoA-layered revenue, expense, tax, and profit sections. |
+| `statement-of-changes-in-equity.html` | `pages/reports/statement-of-changes-in-equity.html` | Statement of Changes in Equity with CoA equity columns, additions, adjustments, net profit, and closing balances. |
+| `statement-of-cash-flows.html` | `pages/reports/statement-of-cash-flows.html` | Statement of Cash Flows with operating, investing, financing, and cash reconciliation sections. |
 | `notes-to-the-accounts.html` | `pages/reports/notes-to-the-accounts.html` | Placeholder/report shell page. |
 
 ### Tools
@@ -115,6 +118,8 @@ Page-specific external files currently include:
 
 ```html
 <script src="./js/pages/journal-entry.js" defer></script>
+<script src="./js/pages/journal-register.js" defer></script>
+<script src="./js/pages/general-ledger.js" defer></script>
 <script src="./js/pages/chart-of-accounts.js" defer></script>
 ```
 

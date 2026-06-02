@@ -1,8 +1,8 @@
 # BANIK Books JavaScript Dependency Map
 
-This map documents the current JavaScript files after the safe folder move. The
-HTML pages still remain at the project root, but browser JavaScript now lives
-under `js/`.
+This map documents the current JavaScript files after the safe folder move.
+Active HTML pages live under `pages/`, compatibility shims live under
+`routes/compat/`, and browser JavaScript lives under `js/`.
 
 ## Current Rule
 
@@ -11,7 +11,8 @@ under `js/`.
 - `js/pages/journal-entry.js` and `js/pages/chart-of-accounts.js` are loaded as
   deferred classic scripts and currently communicate through `window` globals
   and localStorage.
-- Many tool pages still contain large inline scripts inside their HTML files.
+- Large active page/tool scripts have been extracted from HTML into `js/pages/`
+  and `js/tools/`. Small redirect shim scripts remain inline by design.
 
 ## Active Folders
 
@@ -35,7 +36,26 @@ js/
 | `js/core/auth.js` | ES module | Firebase Auth, user profile, admin access, page protection, and `window.BanikAuth`. Imports `../config/firebase-config.js`. |
 | `js/services/data-service.js` | ES module | User-scoped Firestore helper and `window.BanikData`. Imports `../config/firebase-config.js`. |
 | `js/pages/journal-entry.js` | classic script | Journal Entry behavior, localStorage journals/ledgers, attachment UI, and quick ledger modal. |
+| `js/pages/journal-register.js` | classic script | Journal Register report behavior, localStorage journal register rows, date filtering, totals, and Journal Entry drilldown links. |
+| `js/pages/general-ledger.js` | classic script | General Ledger report behavior, localStorage ledger aggregation, date/search filtering, debit/credit/balance totals. |
+| `js/pages/party-wise-transaction.js` | classic script | Party Wise Transaction report behavior, localStorage party aggregation, date/search filtering, debit/credit/balance totals, and Journal Entry drilldown links. |
+| `js/pages/trial-balance.js` | classic script | Trial Balance report behavior, localStorage ledger balance aggregation, date filtering, and debit/credit totals. |
+| `js/pages/statement-of-financial-position.js` | classic script | Statement of Financial Position behavior, localStorage ledger balance aggregation, chart classification mapping, date filtering, and vertical assets/equity/liabilities totals. |
+| `js/pages/statement-of-profit-loss-and-oci.js` | classic script | Statement of Profit & Loss and OCI behavior, localStorage income/expense aggregation, chart hierarchy mapping, date filtering, and profit subtotals. |
+| `js/pages/statement-of-changes-in-equity.js` | classic script | Statement of Changes in Equity behavior, localStorage equity movement aggregation, CoA equity column mapping, date filtering, and net profit allocation to retained earnings. |
+| `js/pages/statement-of-cash-flows.js` | classic script | Statement of Cash Flows behavior, localStorage journal aggregation, CoA cash/non-cash classification, comparative period cash flow sections, and cash reconciliation. |
+| `js/pages/party-management.js` | classic script | Party Management behavior, localStorage party register, dynamic party form, and edit/delete actions. |
 | `js/pages/chart-of-accounts.js` | classic script | Chart of Accounts behavior, default chart data, localStorage sync, and optional `window.BanikData` sync. |
+| `js/pages/index.js` | classic script | Sign-in/register landing page behavior. |
+| `js/pages/signup.js` | classic script | Signup/profile setup, letterhead, and e-signature behavior. |
+| `js/pages/admin.js` | classic script | Admin user/module permission table behavior. |
+| `js/tools/challan-management.js` | classic script | Challan Management modal, register, cloud sync, and export behavior. |
+| `js/tools/cheque-printer.js` | classic script | Cheque Printer layout, formatting, and print behavior. |
+| `js/tools/emi-calculator.js` | classic script | EMI calculation and amortization schedule behavior. |
+| `js/tools/invoice-generator.js` | classic script | Invoice form, preview, letterhead/e-signature, PDF rendering, and print behavior. |
+| `js/tools/payroll-tax-calculator.js` | classic script | Payroll tax calculator behavior. |
+| `js/tools/tax-vat-customs-rates.js` | classic script | Tax, VAT, and Customs Rates data browser behavior. |
+| `js/tools/withholding-vat-tax-calculator.js` | classic script | Withholding VAT/Tax Calculator behavior. |
 | `server.js` | Node script | Local static server and `/rate-finder-csv` proxy. Keep root unless npm/local scripts are updated. |
 | `scripts/*.mjs` | Node scripts | Utility scripts for rate data extraction/inspection. Already organized. |
 
@@ -60,6 +80,30 @@ Journal Entry loads:
 <script src="./js/pages/journal-entry.js" defer></script>
 ```
 
+Journal Register loads:
+
+```html
+<script src="./js/pages/journal-register.js" defer></script>
+```
+
+General Ledger loads:
+
+```html
+<script src="./js/pages/general-ledger.js" defer></script>
+```
+
+Party Wise Transaction loads:
+
+```html
+<script src="./js/pages/party-wise-transaction.js" defer></script>
+```
+
+Party Management loads:
+
+```html
+<script src="./js/pages/party-management.js" defer></script>
+```
+
 Chart of Accounts loads:
 
 ```html
@@ -72,12 +116,11 @@ Invoice Generator additionally loads PDF.js from CDN:
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 ```
 
-## Inline Script Inventory
+## Extracted Page/Tool Scripts
 
-These pages currently contain substantial inline JavaScript and are candidates
-for later page-specific extraction:
+These active pages now load page-specific JavaScript from separate files:
 
-| Page | Future JS target |
+| Page | JS file |
 | --- | --- |
 | `index.html` | `js/pages/index.js` |
 | `signup.html` | `js/pages/signup.js` |
@@ -89,6 +132,9 @@ for later page-specific extraction:
 | `tax-vat-customs-rates.html` | `js/tools/tax-vat-customs-rates.js` |
 | `emi-calculator.html` | `js/tools/emi-calculator.js` |
 | `invoice-generator.html` | `js/tools/invoice-generator.js` |
+
+Compatibility shims under `routes/compat/` and legacy redirect pages under
+`pages/redirects/` keep tiny inline redirect scripts intentionally.
 
 ## Dependency Notes
 
@@ -126,5 +172,6 @@ Step 18 completed the root JS move:
 5. `journal-entry.js` moved to `js/pages/journal-entry.js`.
 6. `chart-of-accounts.js` moved to `js/pages/chart-of-accounts.js`.
 
-Next JS cleanup should extract inline scripts page by page after each page is
-stable.
+The next JS cleanup should focus on shared helpers inside the extracted files,
+for example money/date formatting or modal utilities, only when duplication
+becomes painful.

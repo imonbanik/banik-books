@@ -82,7 +82,7 @@
   color: var(--muted);
   font-size: 0.78rem;
   font-weight: 900;
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 .invoice-field input,
@@ -135,7 +135,7 @@
   font-size: 0.78rem;
   font-weight: 900;
   text-align: left;
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 .invoice-item-description,
@@ -252,7 +252,7 @@
 
 .invoice-preview-toolbar strong {
   color: var(--text);
-  font-family: "Ubuntu", sans-serif;
+  font-family: var(--font-sans);
   font-size: 1.15rem;
 }
 
@@ -301,7 +301,8 @@
 
 .invoice-letterhead-layer img {
   border: 0;
-  object-fit: cover;
+  object-fit: contain;
+  object-position: center center;
 }
 
 .invoice-document-content {
@@ -327,7 +328,7 @@
 .invoice-paper-head h2 {
   margin: 0;
   color: var(--text);
-  font-family: "Ubuntu", sans-serif;
+  font-family: var(--font-sans);
   font-size: 24pt;
   letter-spacing: 0.02em;
 }

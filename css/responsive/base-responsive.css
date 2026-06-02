@@ -1,0 +1,224 @@
+/* Shared responsive overrides */
+@media (max-width: 1024px) {
+  .hero {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+
+  .signup-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .profile-assets-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .profile-section--personal {
+    grid-template-columns: 1fr;
+  }
+
+  .profile-section--personal .field-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .profile-section--preferences .field-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .workspace-field-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .workspace-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-copy {
+    padding-right: 0;
+  }
+
+  h1 {
+    max-width: none;
+  }
+
+  .feature-list {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .signup-panel {
+    max-width: 520px;
+    width: 100%;
+    margin: 0;
+  }
+
+  .signup-sheet {
+    max-width: 820px;
+    margin: 0 auto;
+  }
+
+  .workspace-panel,
+  .detail-card {
+    max-width: 820px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
+@media (max-width: 640px) {
+  .page-shell {
+    width: min(100% - 24px, 1200px);
+    padding-top: 18px;
+  }
+
+  .topbar {
+    flex-wrap: wrap;
+  }
+
+  .topbar-back-button {
+    min-width: 88px;
+    min-height: 42px;
+    padding: 0 16px;
+    border-radius: 14px;
+  }
+
+  .auth-controls {
+    width: 100%;
+    justify-content: flex-start;
+    margin-left: 0;
+  }
+
+  .auth-user-chip {
+    max-width: 100%;
+  }
+
+  .hero {
+    padding-top: 28px;
+  }
+
+  h1 {
+    font-size: clamp(1.42rem, 6vw, 1.9rem);
+    max-width: none;
+  }
+
+  .lead {
+    font-size: 1rem;
+  }
+
+  .hero-copy {
+    gap: 18px;
+  }
+
+  .feature-list {
+    grid-template-columns: 1fr;
+  }
+
+  .signup-panel {
+    padding: 26px 18px 22px;
+    border-radius: 24px;
+  }
+
+  .signup-layout {
+    padding-top: 28px;
+  }
+
+  .workspace-layout {
+    padding-top: 28px;
+  }
+
+  .signup-sheet {
+    padding: 22px 16px;
+    border-radius: 24px;
+  }
+
+  .profile-page-layout {
+    padding-top: 20px;
+  }
+
+  .profile-page-heading {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .profile-page-heading .lead {
+    grid-column: auto;
+  }
+
+  .profile-sheet {
+    padding: 14px;
+    border-radius: 18px;
+  }
+
+  .profile-section {
+    padding: 14px;
+  }
+
+  .profile-assets-grid,
+  .profile-section--personal .field-grid,
+  .profile-section--preferences .field-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .workspace-field-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .workspace-field-grid .workspace-field--address {
+    grid-column: auto;
+  }
+
+  .profile-save-bar {
+    grid-template-columns: 1fr;
+    padding: 13px;
+  }
+
+  .workspace-panel,
+  .detail-card {
+    padding: 22px 16px;
+    border-radius: 24px;
+  }
+
+  .sheet-header {
+    flex-direction: column;
+    margin-bottom: 18px;
+  }
+
+  .field-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .form-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .secondary-button {
+    width: 100%;
+  }
+
+  .profile-form .form-actions .secondary-button,
+  .profile-form .form-actions button {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .signup-panel__logo {
+    width: 88px;
+    height: 88px;
+    margin-top: 20px;
+    font-size: 1.65rem;
+  }
+
+  .field input {
+    padding: 20px 18px;
+    font-size: 1rem;
+  }
+
+  button {
+    font-size: 1.15rem;
+    padding: 18px 20px;
+  }
+
+  .signup-links {
+    gap: 12px 24px;
+  }
+}

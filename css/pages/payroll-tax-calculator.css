@@ -78,7 +78,7 @@
   color: #7f4b4b;
   font-size: 0.82rem;
   font-weight: 800;
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 .payroll-context-panel input,
@@ -151,7 +151,7 @@
   color: #7f4b4b;
   font-size: 0.82rem;
   font-weight: 800;
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 .payroll-display strong {
@@ -377,7 +377,7 @@
 .payroll-table th {
   color: var(--red-900);
   font-size: 0.82rem;
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 .payroll-table td:not(:first-child),

@@ -17,8 +17,28 @@ http://127.0.0.1:4103
 Quick page check:
 
 ```bash
+npm run check
 curl -I http://127.0.0.1:4103/journal-entry.html
 ```
+
+## Root File Convention
+
+- Keep the root folder small and limited to app entry/support files.
+- See `README.md` for the quick folder overview.
+- See `docs/ROOT_SUPPORT_FILES.md` before moving any remaining root file.
+- See `docs/DATA_RUNTIME_POLICY.md` before changing `data/`, `runtime/`, or
+  `outputs/`.
+- Root files that should stay put for now include `server.js`,
+  `local-server.sh`, `package.json`, `styles.css`, and `firestore.rules`.
+
+## Data And Runtime Convention
+
+- `data/` is ignored local development data. Do not commit local database
+  snapshots.
+- `runtime/` is ignored local pid/log state.
+- `outputs/` is ignored generated output. Recreate outputs from `scripts/`
+  unless a sanitized artifact is intentionally moved to a tracked docs/source
+  location.
 
 ## CSS Convention
 
@@ -30,7 +50,7 @@ Use this order:
 1. Shared/base styles.
 2. Extracted page styles in their original cascade position.
 3. Remaining legacy/component/layout styles.
-4. App-wide responsive overrides.
+4. Focused responsive overrides.
 5. Final page overrides last.
 
 For a new page CSS file:
@@ -63,14 +83,21 @@ For a new page CSS file:
   at the same time.
 - Support scripts live in `scripts/`; local runtime pid/log files live in
   `runtime/`.
-- Extract inline page scripts only one page at a time and verify that page after
-  each extraction.
+- Active page/tool scripts have been extracted into `js/pages/` and `js/tools/`.
+- Keep tiny redirect shim scripts inline in `routes/compat/` and
+  `pages/redirects/`.
+- Run `npm run check:js` before handoff after JavaScript changes.
 
 ## Responsive CSS Convention
 
-- App-wide responsive rules live in `css/responsive/app-responsive.css`.
-- Keep `css/responsive/app-responsive.css` imported after `css/legacy.css` and
-  before final Journal overrides.
+- Responsive rules live in focused files under `css/responsive/`.
+- Keep responsive imports after `css/legacy.css` and before final Journal
+  overrides.
+- Current responsive groups:
+  - `css/responsive/base-responsive.css`
+  - `css/responsive/tools-responsive.css`
+  - `css/responsive/accounting-responsive.css`
+  - `css/responsive/admin-responsive.css`
 - When a responsive rule clearly belongs to one page, move it into that page CSS
   only after checking the page at mobile and desktop widths.
 
@@ -97,7 +124,7 @@ For a new page CSS file:
 
 - EMI Calculator keeps root URL `/emi-calculator.html`.
 - EMI-specific CSS lives in `css/pages/emi-calculator.css`.
-- Responsive EMI adjustments live in `css/responsive/app-responsive.css` until
+- Responsive EMI adjustments live in `css/responsive/tools-responsive.css` until
   they are safely moved into the EMI page module.
 
 ## Tax/VAT/Customs Rates Notes
@@ -106,14 +133,14 @@ For a new page CSS file:
 - Its page-specific CSS lives in `css/pages/tax-vat-customs-rates.css`.
 - The page reuses some `challan-*` shell classes, so
   `css/pages/challan-management.css` must load before the rates module.
-- Responsive rate finder adjustments live in `css/responsive/app-responsive.css`
+- Responsive rate finder adjustments live in `css/responsive/tools-responsive.css`
   until they are safely moved into the rates page module.
 
 ## Workspace Notes
 
 - Workspace keeps root URL `/workspace.html`.
 - Workspace-specific CSS lives in `css/pages/workspace.css`.
-- Its import is intentionally before `css/responsive/app-responsive.css` because
+- Its import is intentionally before `css/responsive/base-responsive.css` because
   responsive rules still adjust Workspace layout there.
 
 ## Detail Page Notes
@@ -122,13 +149,13 @@ For a new page CSS file:
   and `detail-card` classes.
 - Their base CSS lives in `css/pages/detail-pages.css`.
 - Responsive adjustments for `detail-card` live in
-  `css/responsive/app-responsive.css` until they are safely moved.
+  `css/responsive/base-responsive.css` until they are safely moved.
 
 ## Payroll Notes
 
 - Payroll Tax Calculator keeps root URL `/payroll-tax-calculator.html`.
 - Payroll-specific base CSS lives in `css/pages/payroll-tax-calculator.css`.
-- Responsive Payroll adjustments live in `css/responsive/app-responsive.css`
+- Responsive Payroll adjustments live in `css/responsive/tools-responsive.css`
   until they are safely moved into the Payroll page module.
 
 ## VAT/Tax Calculator Notes
@@ -136,7 +163,7 @@ For a new page CSS file:
 - Withholding VAT/Tax Calculator keeps root URL
   `/withholding-vat-tax-calculator.html`.
 - Its base CSS lives in `css/pages/withholding-vat-tax-calculator.css`.
-- Responsive VAT/Tax adjustments live in `css/responsive/app-responsive.css`
+- Responsive VAT/Tax adjustments live in `css/responsive/tools-responsive.css`
   until they are safely moved into the VAT/Tax page module.
 
 ## Admin Notes
@@ -153,7 +180,7 @@ For a new page CSS file:
 - Some `challan-*` shell classes are reused by related tools such as Tax, VAT &
   Customs Rates; keep those selectors in the Challan module until a shared tools
   shell module is created.
-- Responsive Challan adjustments live in `css/responsive/app-responsive.css`
+- Responsive Challan adjustments live in `css/responsive/tools-responsive.css`
   until they are safely moved into the Challan page module.
 
 ## Invoice Generator Notes
@@ -162,7 +189,7 @@ For a new page CSS file:
 - Invoice-specific CSS lives in `css/pages/invoice-generator.css`.
 - Invoice print rules moved with the page module because they only apply to
   Invoice Generator print mode.
-- Responsive invoice adjustments live in `css/responsive/app-responsive.css`
+- Responsive invoice adjustments live in `css/responsive/tools-responsive.css`
   until they are safely moved into the Invoice page module.
 
 ## Verification Checklist
@@ -170,10 +197,7 @@ For a new page CSS file:
 After frontend changes, run:
 
 ```bash
-node --check js/pages/journal-entry.js
-curl -I http://127.0.0.1:4103/journal-entry.html
-curl -I http://127.0.0.1:4103/pages/accounting/journal-entry.html
-curl -I http://127.0.0.1:4103/styles.css
+npm run check
 ```
 
 For broader CSS changes, also check:

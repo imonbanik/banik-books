@@ -1,0 +1,209 @@
+/* General Ledger report page */
+.general-ledger-page {
+  width: min(1700px, calc(100% - 16px));
+  padding-bottom: 28px;
+  font-family: var(--font-sans);
+}
+
+.general-ledger-layout {
+  display: grid;
+  gap: 16px;
+  padding: 12px 0 18px;
+}
+
+.general-ledger-hero {
+  display: grid;
+  gap: 12px;
+}
+
+.general-ledger-hero h1 {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: clamp(2rem, 3vw, 3.2rem);
+  line-height: 1;
+}
+
+.general-ledger-filters {
+  display: grid;
+  grid-template-columns: 180px 180px minmax(260px, 1fr);
+  gap: 12px;
+  align-items: end;
+}
+
+.general-ledger-filters label {
+  display: grid;
+  gap: 5px;
+}
+
+.general-ledger-filters span {
+  color: var(--red-900);
+  font-size: 0.88rem;
+  font-weight: 900;
+  text-transform: none;
+}
+
+.general-ledger-filters input {
+  min-height: 38px;
+  border: 1px solid rgba(86, 30, 30, 0.18);
+  border-radius: 0;
+  padding: 8px 10px;
+  font: inherit;
+}
+
+.general-ledger-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  align-items: center;
+}
+
+.general-ledger-print-button {
+  min-height: 38px;
+  border: 1px solid #7f1d1d;
+  border-radius: 0;
+  background: #7f1d1d;
+  padding: 8px 18px;
+  color: #ffffff;
+  font: inherit;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.general-ledger-print-button:hover {
+  background: #991b1b;
+}
+
+.general-ledger-card {
+  display: grid;
+  gap: 16px;
+}
+
+.general-ledger-group {
+  padding: 14px;
+  border: 1px solid rgba(185, 28, 28, 0.12);
+  border-radius: 0;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 18px 42px rgba(127, 16, 16, 0.08);
+}
+
+.general-ledger-group + .general-ledger-group {
+  margin-top: 16px;
+}
+
+.general-ledger-group__head {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.general-ledger-group__head h2 {
+  margin: 0;
+  color: var(--red-900);
+  font-family: var(--font-sans);
+  font-size: 1.08rem;
+  font-weight: 900;
+}
+
+.general-ledger-scroll {
+  overflow: auto;
+}
+
+.general-ledger-table {
+  min-width: 1340px;
+  border: 1px solid rgba(185, 28, 28, 0.12);
+  background: #ffffff;
+}
+
+.general-ledger-grid {
+  display: grid;
+  grid-template-columns:
+    116px 160px minmax(260px, 1.1fr) 148px 132px 132px 150px minmax(160px, 0.8fr);
+}
+
+.general-ledger-grid > div {
+  min-height: 46px;
+  border-right: 1px dashed rgba(127, 16, 16, 0.16);
+  border-bottom: 1px solid rgba(185, 28, 28, 0.12);
+  padding: 8px 10px;
+  display: flex;
+  align-items: center;
+  color: #111111;
+  font-size: 0.94rem;
+}
+
+.general-ledger-grid > div:last-child {
+  border-right: 0;
+}
+
+.general-ledger-grid--head > div,
+.general-ledger-grid--total > div {
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  background: rgba(255, 245, 244, 0.92);
+  color: var(--red-900);
+  font-weight: 900;
+  text-transform: none;
+}
+
+.general-ledger-grid--total > div {
+  background: rgba(245, 238, 238, 0.86);
+  text-transform: none;
+}
+
+.general-ledger-grid > div:nth-child(4),
+.general-ledger-grid > div:nth-child(5),
+.general-ledger-grid > div:nth-child(6),
+.general-ledger-grid > div:nth-child(7),
+.general-ledger-grid--total > div:nth-child(4),
+.general-ledger-grid--total > div:nth-child(5),
+.general-ledger-grid--total > div:nth-child(6),
+.general-ledger-grid--total > div:nth-child(7) {
+  justify-content: flex-end;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.general-ledger-link {
+  color: #15803d;
+  font-weight: 900;
+  text-decoration: none;
+}
+
+.general-ledger-link:hover {
+  text-decoration: underline;
+}
+
+.general-ledger-balance--debit {
+  color: #15803d !important;
+  font-weight: 900;
+}
+
+.general-ledger-balance--credit {
+  color: #b91c1c !important;
+  font-weight: 900;
+}
+
+.general-ledger-grid--empty-row {
+  grid-template-columns: 1fr;
+}
+
+.general-ledger-grid--empty-row > div,
+.general-ledger-empty {
+  justify-content: center;
+  padding: 16px;
+  color: var(--muted) !important;
+  font-weight: 800;
+}
+
+@media (max-width: 860px) {
+  .general-ledger-page {
+    width: min(100% - 16px, 1700px);
+  }
+
+  .general-ledger-filters,
+  .general-ledger-card {
+    grid-template-columns: 1fr;
+  }
+}

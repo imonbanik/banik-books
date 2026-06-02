@@ -33,7 +33,7 @@
 }
 
 .journal-balance-chip strong {
-  font-family: "Ubuntu", sans-serif;
+  font-family: var(--font-sans);
   color: var(--red-900);
   font-size: 1.02rem;
 }

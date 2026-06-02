@@ -1,0 +1,58 @@
+/* Party Wise Transaction report page */
+.party-wise-transaction-table {
+  min-width: 1380px;
+}
+
+.party-wise-transaction-selector {
+  width: min(100%, 560px);
+}
+
+.party-wise-transaction-selector label {
+  display: grid;
+  gap: 5px;
+}
+
+.party-wise-transaction-selector span {
+  color: var(--red-900);
+  font-size: 0.88rem;
+  font-weight: 900;
+  text-transform: none;
+}
+
+.party-wise-transaction-selector select {
+  min-height: 38px;
+  border: 1px solid rgba(86, 30, 30, 0.18);
+  border-radius: 0;
+  background: #ffffff;
+  padding: 8px 10px;
+  color: #111111;
+  font: inherit;
+}
+
+.party-wise-transaction-grid {
+  grid-template-columns:
+    116px 160px minmax(220px, 0.85fr) minmax(260px, 1.1fr) 148px 132px 132px 150px;
+}
+
+.party-wise-transaction-grid > div:nth-child(4) {
+  justify-content: flex-start;
+  text-align: left;
+  white-space: normal;
+}
+
+.party-wise-transaction-grid > div:nth-child(5),
+.party-wise-transaction-grid > div:nth-child(6),
+.party-wise-transaction-grid > div:nth-child(7),
+.party-wise-transaction-grid > div:nth-child(8),
+.party-wise-transaction-grid.general-ledger-grid--total > div:nth-child(5),
+.party-wise-transaction-grid.general-ledger-grid--total > div:nth-child(6),
+.party-wise-transaction-grid.general-ledger-grid--total > div:nth-child(7),
+.party-wise-transaction-grid.general-ledger-grid--total > div:nth-child(8) {
+  justify-content: flex-end;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.party-wise-transaction-grid--empty-row {
+  grid-template-columns: 1fr;
+}

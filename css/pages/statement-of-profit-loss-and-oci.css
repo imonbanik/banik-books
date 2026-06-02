@@ -1,0 +1,119 @@
+/* Statement of Profit & Loss and OCI report page */
+.profit-loss-page {
+  width: min(1180px, calc(100% - 16px));
+}
+
+.profit-loss-filters {
+  grid-template-columns: 180px 180px;
+  justify-content: start;
+}
+
+.profit-loss-card {
+  width: min(100%, 980px);
+}
+
+.profit-loss-statement {
+  display: grid;
+  gap: 14px;
+}
+
+.profit-loss-section {
+  border: 1px solid rgba(185, 28, 28, 0.12);
+  background: #ffffff;
+}
+
+.profit-loss-section h2 {
+  margin: 0;
+  border-bottom: 1px solid rgba(185, 28, 28, 0.12);
+  background: rgba(255, 245, 244, 0.92);
+  padding: 10px 12px;
+  color: var(--red-900);
+  font-family: var(--font-sans);
+  font-size: 1.02rem;
+  font-weight: 900;
+  text-transform: none;
+}
+
+.profit-loss-line {
+  display: grid;
+  grid-template-columns: minmax(320px, 1fr) 180px;
+}
+
+.profit-loss-line > div {
+  min-height: 40px;
+  border-right: 1px dashed rgba(127, 16, 16, 0.16);
+  border-bottom: 1px solid rgba(185, 28, 28, 0.12);
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  color: #111111;
+  font-size: 0.94rem;
+}
+
+.profit-loss-line > div:last-child {
+  justify-content: flex-end;
+  border-right: 0;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.profit-loss-line--group > div {
+  background: rgba(255, 250, 250, 0.9);
+  color: var(--red-900);
+  font-weight: 900;
+}
+
+.profit-loss-line--total > div,
+.profit-loss-line--result > div {
+  background: rgba(245, 238, 238, 0.86);
+  color: var(--red-900);
+  font-weight: 900;
+}
+
+.profit-loss-line--result > div {
+  text-transform: none;
+}
+
+.profit-loss-line--net > div {
+  background: rgba(127, 29, 29, 0.1);
+}
+
+.profit-loss-line--level-1 > div:first-child {
+  padding-left: 26px;
+}
+
+.profit-loss-line--level-2 > div:first-child {
+  padding-left: 42px;
+}
+
+.profit-loss-line--level-3 > div:first-child {
+  padding-left: 58px;
+}
+
+.profit-loss-line--level-4 > div:first-child {
+  padding-left: 74px;
+}
+
+.profit-loss-line--empty {
+  grid-template-columns: 1fr;
+}
+
+.profit-loss-line--empty > div {
+  justify-content: center;
+  color: var(--muted);
+  font-weight: 800;
+}
+
+@media (max-width: 760px) {
+  .profit-loss-filters {
+    grid-template-columns: 1fr;
+  }
+
+  .profit-loss-card {
+    overflow: auto;
+  }
+
+  .profit-loss-statement {
+    min-width: 680px;
+  }
+}

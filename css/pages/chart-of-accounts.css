@@ -44,7 +44,6 @@
 
 .coa-form-card {
   display: grid;
-  grid-template-rows: auto repeat(4, auto) 48px;
   gap: 10px;
   min-height: 0;
   padding: 18px 20px;
@@ -55,7 +54,7 @@
 .coa-tree-head h2 {
   margin: 0;
   color: var(--text);
-  font-family: "Ubuntu", sans-serif;
+  font-family: var(--font-sans);
   letter-spacing: 0;
 }
 
@@ -70,12 +69,20 @@
   font-size: 0.72rem;
   font-weight: 900;
   letter-spacing: 0.04em;
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 .coa-form-card label {
   display: grid;
   gap: 6px;
+  min-width: 0;
+}
+
+.coa-balance-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr) minmax(92px, 0.7fr);
+  gap: 10px;
+  align-items: end;
 }
 
 .coa-suggest-field {
@@ -91,12 +98,14 @@
   color: #7f4b4b;
   font-size: 0.76rem;
   font-weight: 900;
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 .coa-form-card input,
 .coa-form-card select {
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
   min-height: 42px;
   border: 1px solid rgba(127, 29, 29, 0.16);
   border-radius: 13px;
@@ -107,6 +116,11 @@
   font-size: 0.92rem;
   font-weight: 700;
   outline: none;
+}
+
+.coa-balance-amount {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
 }
 
 .coa-form-card input:focus,
@@ -166,7 +180,7 @@
 
 .coa-name-suggestions__option--main {
   color: var(--red-900);
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 .coa-name-suggestions__option--ledger {
@@ -318,7 +332,7 @@
 
 .coa-summary strong {
   color: var(--red-900);
-  font-family: "Ubuntu", sans-serif;
+  font-family: var(--font-sans);
   font-size: 1rem;
 }
 
@@ -469,7 +483,7 @@
   color: var(--muted);
   font-size: 0.7rem;
   font-weight: 900;
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 .coa-node-title strong {
@@ -495,7 +509,7 @@
 
 .coa-tree > .coa-node--group > .coa-node-bar .coa-node-title strong {
   color: var(--red-900);
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 .coa-node--ledger > .coa-node-bar .coa-node-title strong {
@@ -595,7 +609,7 @@
 .coa-modal__dialog {
   display: grid;
   gap: 16px;
-  width: min(440px, 100%);
+  width: min(620px, 100%);
   padding: 24px;
   border-radius: 24px;
   background:
@@ -607,7 +621,7 @@
 .coa-modal__dialog h2 {
   margin: 0;
   color: var(--text);
-  font-family: "Ubuntu", sans-serif;
+  font-family: var(--font-sans);
   font-size: 1.35rem;
 }
 
@@ -621,16 +635,47 @@
 .coa-modal__dialog label {
   display: grid;
   gap: 8px;
+  min-width: 0;
+}
+
+.coa-edit-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  min-width: 0;
+}
+
+.coa-edit-balance {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid rgba(127, 29, 29, 0.12);
+  border-radius: 16px;
+  background: rgba(255, 248, 247, 0.62);
+}
+
+.coa-edit-balance[hidden] {
+  display: none;
+}
+
+.coa-edit-balance__title {
+  color: var(--red-900);
+  font-size: 0.86rem;
+  font-weight: 900;
 }
 
 .coa-modal__dialog label span {
   color: #7f4b4b;
   font-size: 0.8rem;
   font-weight: 900;
-  text-transform: uppercase;
+  text-transform: none;
 }
 
-.coa-modal__dialog input {
+.coa-modal__dialog input,
+.coa-modal__dialog select {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   min-height: 52px;
   border: 1px solid rgba(127, 29, 29, 0.18);
   border-radius: 15px;
@@ -642,7 +687,13 @@
   outline: none;
 }
 
-.coa-modal__dialog input:focus {
+.coa-modal__dialog select {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.coa-modal__dialog input:focus,
+.coa-modal__dialog select:focus {
   border-color: rgba(185, 28, 28, 0.62);
   box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.1);
 }
@@ -688,4 +739,11 @@
 .coa-modal__button--yes {
   background: linear-gradient(135deg, var(--red-700), var(--red-500));
   color: #ffffff;
+}
+
+@media (max-width: 760px) {
+  .coa-balance-row,
+  .coa-edit-grid {
+    grid-template-columns: 1fr;
+  }
 }

@@ -438,7 +438,7 @@
   font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.04em;
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 .challan-field-preview {
@@ -554,7 +554,7 @@
 .challan-page-hero h1 {
   margin: 0;
   max-width: none;
-  font-family: "Ubuntu", sans-serif;
+  font-family: var(--font-sans);
   font-size: clamp(2.1rem, 4vw, 3.4rem);
   line-height: 1.02;
   letter-spacing: -0.05em;
@@ -676,7 +676,7 @@
 .record-modal-header h2,
 .register-modal-header h2 {
   margin: 0;
-  font-family: "Ubuntu", sans-serif;
+  font-family: var(--font-sans);
   font-size: 2rem;
   letter-spacing: 0;
 }

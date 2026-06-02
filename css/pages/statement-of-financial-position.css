@@ -1,0 +1,128 @@
+/* Statement of Financial Position report page */
+.financial-position-page {
+  width: min(1180px, calc(100% - 16px));
+}
+
+.financial-position-filters {
+  grid-template-columns: 180px 180px;
+  justify-content: start;
+}
+
+.financial-position-card {
+  width: min(100%, 980px);
+}
+
+.financial-position-statement {
+  display: grid;
+  gap: 14px;
+}
+
+.financial-position-section {
+  border: 1px solid rgba(185, 28, 28, 0.12);
+  background: #ffffff;
+}
+
+.financial-position-section h2,
+.financial-position-section h3 {
+  margin: 0;
+  border-bottom: 1px solid rgba(185, 28, 28, 0.12);
+  background: rgba(255, 245, 244, 0.92);
+  color: var(--red-900);
+  font-family: var(--font-sans);
+  font-weight: 900;
+}
+
+.financial-position-section h2 {
+  padding: 10px 12px;
+  font-size: 1.02rem;
+  text-transform: none;
+}
+
+.financial-position-section h3 {
+  padding: 8px 12px;
+  font-size: 0.94rem;
+}
+
+.financial-position-line {
+  display: grid;
+  grid-template-columns: minmax(320px, 1fr) 180px;
+}
+
+.financial-position-line > div {
+  min-height: 40px;
+  border-right: 1px dashed rgba(127, 16, 16, 0.16);
+  border-bottom: 1px solid rgba(185, 28, 28, 0.12);
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  color: #111111;
+  font-size: 0.94rem;
+}
+
+.financial-position-line > div:last-child {
+  justify-content: flex-end;
+  border-right: 0;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.financial-position-line--subtotal > div,
+.financial-position-line--total > div {
+  background: rgba(245, 238, 238, 0.86);
+  color: var(--red-900);
+  font-weight: 900;
+}
+
+.financial-position-line--group > div {
+  background: rgba(255, 250, 250, 0.9);
+  color: var(--red-900);
+  font-weight: 900;
+}
+
+.financial-position-line--ledger > div:first-child {
+  color: #111111;
+}
+
+.financial-position-line--level-1 > div:first-child {
+  padding-left: 26px;
+}
+
+.financial-position-line--level-2 > div:first-child {
+  padding-left: 42px;
+}
+
+.financial-position-line--level-3 > div:first-child {
+  padding-left: 58px;
+}
+
+.financial-position-line--level-4 > div:first-child {
+  padding-left: 74px;
+}
+
+.financial-position-line--total > div {
+  text-transform: none;
+}
+
+.financial-position-line--empty {
+  grid-template-columns: 1fr;
+}
+
+.financial-position-line--empty > div {
+  justify-content: center;
+  color: var(--muted);
+  font-weight: 800;
+}
+
+@media (max-width: 760px) {
+  .financial-position-filters {
+    grid-template-columns: 1fr;
+  }
+
+  .financial-position-card {
+    overflow: auto;
+  }
+
+  .financial-position-statement {
+    min-width: 680px;
+  }
+}

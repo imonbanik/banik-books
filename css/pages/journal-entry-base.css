@@ -186,7 +186,7 @@
   color: var(--red-900);
   font-size: 0.92rem;
   font-weight: 800;
-  text-transform: uppercase;
+  text-transform: none;
   letter-spacing: 0.04em;
 }
 
@@ -218,14 +218,14 @@
 
 .journal-total-label {
   justify-content: flex-end;
-  font-family: "Ubuntu", sans-serif;
+  font-family: var(--font-sans);
   font-size: 1.05rem;
   color: var(--red-900);
 }
 
 .journal-total-amount {
   justify-content: flex-end;
-  font-family: "Ubuntu", sans-serif;
+  font-family: var(--font-sans);
   font-size: 1.05rem;
   font-weight: 700;
   color: var(--red-900);

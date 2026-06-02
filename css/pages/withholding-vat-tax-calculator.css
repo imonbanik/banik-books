@@ -29,7 +29,7 @@
 .vat-tax-hero h1 {
   margin: 0;
   max-width: none;
-  font-family: "Ubuntu", sans-serif;
+  font-family: var(--font-sans);
   font-size: clamp(1.8rem, 3.6vw, 2.85rem);
   line-height: 1.02;
   letter-spacing: 0;

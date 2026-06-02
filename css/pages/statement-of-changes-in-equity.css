@@ -1,0 +1,79 @@
+/* Statement of Changes in Equity report page */
+.changes-equity-page {
+  width: min(1400px, calc(100% - 16px));
+}
+
+.changes-equity-filters {
+  grid-template-columns: 180px 180px;
+  justify-content: start;
+}
+
+.changes-equity-card {
+  overflow: auto;
+}
+
+.changes-equity-table {
+  min-width: 980px;
+  border: 2px solid #111111;
+  background: #ffffff;
+}
+
+.changes-equity-period {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 38px;
+  border-bottom: 2px solid #111111;
+  color: #111111;
+  font-weight: 900;
+  text-align: center;
+}
+
+.changes-equity-grid {
+  display: grid;
+  grid-template-columns: var(--changes-equity-columns, minmax(300px, 1.35fr) repeat(4, minmax(150px, 0.72fr)));
+}
+
+.changes-equity-grid > div {
+  min-height: 42px;
+  border-right: 2px solid #111111;
+  padding: 8px 10px;
+  display: flex;
+  align-items: center;
+  color: #111111;
+  font-size: 0.96rem;
+}
+
+.changes-equity-grid > div:last-child {
+  border-right: 0;
+}
+
+.changes-equity-grid > div:not(:first-child) {
+  justify-content: flex-end;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.changes-equity-grid--head > div {
+  justify-content: center;
+  border-bottom: 2px solid #111111;
+  color: #111111;
+  font-weight: 900;
+  text-align: center;
+  white-space: normal;
+}
+
+.changes-equity-grid--strong > div,
+.changes-equity-grid--total > div {
+  font-weight: 900;
+}
+
+.changes-equity-grid--total > div {
+  border-top: 2px solid #111111;
+}
+
+@media (max-width: 760px) {
+  .changes-equity-filters {
+    grid-template-columns: 1fr;
+  }
+}
