@@ -9,6 +9,8 @@ folders clean. For example, `/journal-entry.html` redirects to
 
 - `server.js` - local Node static server, backend API mount, frontend static
   aliases, and `/rate-finder-csv` proxy.
+- `vercel.json` - hosted routing config that sends Vercel requests to
+  `server.js`.
 - `local-server.sh` - starts the local app at `http://127.0.0.1:4103`.
 - `backend/page-routes.js` - compatibility redirect map for old root `*.html`
   links and bookmarks.

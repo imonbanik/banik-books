@@ -1,5 +1,24 @@
 # Release Notes
 
+## Version 1.1.2 - June 2026
+
+Release type: Hosted deployment routing patch.
+
+Deployment status: Prepared locally for GitHub push and Vercel redeploy.
+
+### Fixes
+
+- Added `vercel.json` so Vercel routes all hosted requests through `server.js`.
+- Updated `server.js` to export a request handler for Vercel while preserving
+  the existing local `./local-server.sh` startup behavior.
+- Added smoke coverage for `/` and `/index.html` to catch landing-page routing
+  regressions.
+- Updated landing page, package metadata, and release notes to version `1.1.2`.
+
+### Verification
+
+- `npm run commercial:audit`
+
 ## Version 1.1.1 - June 2026
 
 Release type: Commercial architecture readiness release.

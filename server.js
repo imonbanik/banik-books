@@ -144,7 +144,7 @@ function sendRateCsv(request, response) {
   sendRemoteCsv(sourceUrl, response);
 }
 
-const server = http.createServer(async (request, response) => {
+async function handleRequest(request, response) {
   const url = new URL(request.url, `http://${request.headers.host}`);
 
   if (await handleApi(request, response)) {
@@ -157,8 +157,15 @@ const server = http.createServer(async (request, response) => {
   }
 
   sendStatic(request, response);
-});
+}
 
-server.listen(PORT, HOST, () => {
-  console.log(`BANIK Books Firebase app running at http://${HOST}:${PORT}`);
-});
+if (require.main === module) {
+  const server = http.createServer(handleRequest);
+
+  server.listen(PORT, HOST, () => {
+    console.log(`BANIK Books Firebase app running at http://${HOST}:${PORT}`);
+  });
+}
+
+module.exports = handleRequest;
+module.exports.handleRequest = handleRequest;

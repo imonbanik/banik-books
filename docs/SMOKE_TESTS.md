@@ -20,6 +20,8 @@ npm run check:smoke
 
 ## Covered Paths
 
+- `/`
+- `/index.html`
 - `/journal-entry.html`
 - `/pages/accounting/journal-entry.html`
 - `/workspace.html`

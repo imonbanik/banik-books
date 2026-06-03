@@ -2,11 +2,11 @@
 
 ## Repository Status
 
-Current version: 1.1.1
+Current version: 1.1.2
 Current release: June 2026
 
-The local codebase architecture migration is complete. GitHub push is pending
-owner review.
+The local codebase architecture migration is complete. Version 1.1.2 adds the
+Vercel deployment routing needed for the hosted landing page.
 
 Completed inside the repository:
 

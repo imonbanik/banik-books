@@ -6,6 +6,7 @@ const REQUIRED_PATHS = [
   ".env.example",
   ".env.production.example",
   ".env.staging.example",
+  "vercel.json",
   "backend/api.js",
   "backend/adapters/file-adapter.js",
   "backend/adapters/firebase-admin-adapter.js",

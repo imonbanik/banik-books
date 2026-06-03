@@ -3,6 +3,8 @@ import https from "node:https";
 
 const BASE_URL = process.env.SMOKE_BASE_URL || "http://127.0.0.1:4103";
 const ROUTES = [
+  "/",
+  "/index.html",
   "/journal-entry.html",
   "/pages/accounting/journal-entry.html",
   "/workspace.html",

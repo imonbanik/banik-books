@@ -6,6 +6,7 @@ because tools and local scripts depend on stable paths.
 | File | Why it stays at root |
 | --- | --- |
 | `server.js` | Local static server and `/rate-finder-csv` proxy. `package.json` and local scripts start it directly. |
+| `vercel.json` | Vercel deployment routing config. It routes hosted requests through `server.js`. |
 | `local-server.sh` | Main local startup command used during development. |
 | `package.json` | npm script entry point. |
 | `firestore.rules` | Firebase rules file, commonly expected at project root. |

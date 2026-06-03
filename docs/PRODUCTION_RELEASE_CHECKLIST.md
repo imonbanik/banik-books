@@ -20,6 +20,7 @@ The audit must pass with:
 - Active page routes and static assets returning healthy responses.
 - HTTP API route tests passing.
 - Package version, landing page release metadata, and release notes synced.
+- `vercel.json` present when deploying on Vercel.
 
 ## Environment
 
@@ -51,6 +52,7 @@ workspace ids.
 ## Deployment Notes
 
 - Serve through HTTPS.
+- On Vercel, keep `vercel.json` routing requests to `server.js`.
 - Put a platform/WAF rate limiter in front of the app.
 - Configure Firebase Admin credentials on the host.
 - Install `firebase-admin` in the deployment package before enabling Firebase
