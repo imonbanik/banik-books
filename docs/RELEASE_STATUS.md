@@ -2,7 +2,11 @@
 
 ## Repository Status
 
-The local codebase architecture migration is complete.
+Current version: 1.1.1
+Current release: June 2026
+
+The local codebase architecture migration is complete. GitHub push is pending
+owner review.
 
 Completed inside the repository:
 

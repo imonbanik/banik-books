@@ -3,6 +3,9 @@
 Browser-based accounting and business tools app using Firebase Auth and
 Firestore.
 
+Current release: June 2026
+Current version: 1.1.1
+
 ## What This App Contains
 
 - Firebase Auth and user profile setup.
@@ -87,6 +90,7 @@ pages. It is served publicly as `/styles.css` and remains an import hub.
 
 - `docs/README.md`
 - `docs/COMMERCIAL_ARCHITECTURE.md`
+- `docs/RELEASE_NOTES.md`
 - `docs/PROJECT_STRUCTURE.md`
 - `docs/DEVELOPMENT_NOTES.md`
 - `docs/HTML_ROUTE_MAP.md`

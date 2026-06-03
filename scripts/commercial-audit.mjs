@@ -29,6 +29,7 @@ const REQUIRED_PATHS = [
   "frontend/styles.css",
   "scripts/migrate-file-to-adapter.mjs",
   "scripts/check-production-config.mjs",
+  "docs/RELEASE_NOTES.md",
   "docs/REMAINING_EXTERNAL_STEPS.md",
   "docs/RELEASE_STATUS.md",
 ];
@@ -232,6 +233,49 @@ async function assertBackendBackedStorageClean() {
   console.log("ok no direct backend-backed localStorage writes");
 }
 
+async function assertReleaseMetadataSynced() {
+  const packageJson = JSON.parse(await fs.readFile(path.join(ROOT_DIR, "package.json"), "utf8"));
+  const appConfig = await fs.readFile(
+    path.join(ROOT_DIR, "frontend/js/config/app-config.js"),
+    "utf8"
+  );
+  const indexPage = await fs.readFile(
+    path.join(ROOT_DIR, "frontend/pages/auth/index.html"),
+    "utf8"
+  );
+  const releaseNotes = await fs.readFile(
+    path.join(ROOT_DIR, "docs/RELEASE_NOTES.md"),
+    "utf8"
+  );
+  const versionMatch = appConfig.match(/version:\s*"([^"]+)"/);
+  const releaseMonthMatch = appConfig.match(/releaseMonthYear:\s*"([^"]+)"/);
+  const appVersion = versionMatch ? versionMatch[1] : "";
+  const releaseMonthYear = releaseMonthMatch ? releaseMonthMatch[1] : "";
+
+  if (!appVersion || !releaseMonthYear) {
+    throw new Error("Release metadata missing from frontend/js/config/app-config.js");
+  }
+
+  if (packageJson.version !== appVersion) {
+    throw new Error(
+      `Package version ${packageJson.version} does not match app release version ${appVersion}`
+    );
+  }
+
+  if (
+    !indexPage.includes("data-release-month-year") ||
+    !indexPage.includes("data-release-version")
+  ) {
+    throw new Error("Landing page release metadata placeholders are missing.");
+  }
+
+  if (!releaseNotes.includes(`## Version ${appVersion} - ${releaseMonthYear}`)) {
+    throw new Error(`Release notes missing Version ${appVersion} - ${releaseMonthYear}`);
+  }
+
+  console.log(`ok release metadata synced (${appVersion}, ${releaseMonthYear})`);
+}
+
 async function run() {
   await assertNoRootHtml();
   await assertNoCompatRoutes();
@@ -242,6 +286,7 @@ async function run() {
   await assertRequiredPaths();
   await assertActivePageInventory();
   await assertBackendBackedStorageClean();
+  await assertReleaseMetadataSynced();
   console.log("Commercial architecture audit passed.");
 }
 

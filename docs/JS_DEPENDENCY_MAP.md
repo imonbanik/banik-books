@@ -36,7 +36,7 @@ frontend/js/
 
 | Source file | Type | Notes |
 | --- | --- | --- |
-| `frontend/js/config/app-config.js` | classic script | Initializes fixed app settings and writes `window.BANIK_BOOKS_SETTINGS`. |
+| `frontend/js/config/app-config.js` | classic script | Initializes fixed app settings, release metadata, `window.BANIK_BOOKS_SETTINGS`, and `window.BANIK_BOOKS_RELEASE`. |
 | `frontend/js/config/firebase-config.js` | ES module | Exports Firebase config and founder admin email. |
 | `frontend/js/core/auth.js` | ES module | Firebase Auth, user profile, admin access, page protection, and `window.BanikAuth`. Imports `../config/firebase-config.js`. |
 | `frontend/js/services/api-client.js` | classic script | Backend API client exposed as `window.BanikApi`. |
@@ -107,7 +107,7 @@ Invoice Generator additionally loads PDF.js from CDN:
   `window.BanikData`; pages that depend on it should load the service before
   page scripts.
 - `frontend/js/config/app-config.js` must load before page scripts that read
-  `window.BANIK_BOOKS_SETTINGS`.
+  `window.BANIK_BOOKS_SETTINGS` or `window.BANIK_BOOKS_RELEASE`.
 
 ## Safe JS Change Checklist
 

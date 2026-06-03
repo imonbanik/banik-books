@@ -66,7 +66,8 @@ frontend/js/
 
 Important files:
 
-- `frontend/js/config/app-config.js` - app-level browser settings.
+- `frontend/js/config/app-config.js` - app-level browser settings and release
+  metadata.
 - `frontend/js/config/firebase-config.js` - Firebase browser configuration.
 - `frontend/js/core/auth.js` - Firebase Auth/session UI behavior.
 - `frontend/js/services/api-client.js` - backend API client used by browser

@@ -26,6 +26,8 @@ Use this folder as the handoff guide for future development.
 - `VISUAL_QA_CHECKLIST.md` - browser layout QA checklist.
 - `NO_VISUAL_REGRESSION_POLICY.md` - architecture refactor guardrails for
   preserving the current frontend design.
+- `RELEASE_NOTES.md` - versioned release notes and release metadata update
+  rule.
 - `PRODUCTION_RELEASE_CHECKLIST.md` - release verification and environment
   handoff checklist.
 - `REMAINING_EXTERNAL_STEPS.md` - deployment, credential, migration, and human

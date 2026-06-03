@@ -19,6 +19,7 @@ The audit must pass with:
 - No direct backend-backed `localStorage.setItem` writes.
 - Active page routes and static assets returning healthy responses.
 - HTTP API route tests passing.
+- Package version, landing page release metadata, and release notes synced.
 
 ## Environment
 
@@ -64,4 +65,6 @@ npm run check:production-config
   production credentials and `BANIK_STORAGE_ADAPTER=firebase`.
 - Run `npm run commercial:audit` after deployment against the hosted URL when a
   smoke-test target is available.
+- Update `docs/RELEASE_NOTES.md` and the landing page release metadata for
+  every shipped version.
 - Review `DEPENDENCY_AUDIT_NOTES.md` before release.

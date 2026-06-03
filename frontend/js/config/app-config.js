@@ -4,6 +4,10 @@ const BANIK_BOOKS_DEFAULT_SETTINGS = Object.freeze({
   accountingBasisDescription:
     "Income and expenses are recognized when earned or incurred, not only when cash is received or paid.",
 });
+const BANIK_BOOKS_RELEASE = Object.freeze({
+  version: "1.1.1",
+  releaseMonthYear: "June 2026",
+});
 
 function readStoredSettings() {
   try {
@@ -26,6 +30,7 @@ function initializeBanikBooksSettings() {
   };
 
   localStorage.setItem("banikBooksSettings", JSON.stringify(mergedSettings));
+  window.BANIK_BOOKS_RELEASE = BANIK_BOOKS_RELEASE;
   window.BANIK_BOOKS_DEFAULT_SETTINGS = BANIK_BOOKS_DEFAULT_SETTINGS;
   window.BANIK_BOOKS_SETTINGS = mergedSettings;
   document.documentElement.dataset.accountingBasis = mergedSettings.accountingBasis;
@@ -48,4 +53,11 @@ document.addEventListener("DOMContentLoaded", () => {
       element.textContent = activeBanikBooksSettings.accountingBasisDescription;
     });
 
+  document.querySelectorAll("[data-release-month-year]").forEach((element) => {
+    element.textContent = BANIK_BOOKS_RELEASE.releaseMonthYear;
+  });
+
+  document.querySelectorAll("[data-release-version]").forEach((element) => {
+    element.textContent = BANIK_BOOKS_RELEASE.version;
+  });
 });
