@@ -2,9 +2,9 @@
 
 ## Component Architecture
 
-- Page: `pages/reports/statement-of-cash-flows.html`
-- Renderer and service API: `js/pages/statement-of-cash-flows.js`
-- Styles and print layout: `css/pages/statement-of-cash-flows.css`
+- Page: `frontend/pages/reports/statement-of-cash-flows.html`
+- Renderer and service API: `frontend/js/pages/statement-of-cash-flows.js`
+- Styles and print layout: `frontend/css/pages/statement-of-cash-flows.css`
 - Public browser service:
   - `window.BanikCashFlowService.generateStatementOfCashFlows(options)`
 

@@ -8,9 +8,10 @@ sanitized and intentionally moved into source or docs.
 
 ## Firebase Web Config
 
-`js/config/firebase-config.js` contains Firebase browser configuration. Firebase
-web API keys are not treated like server secrets, but access must be protected
-by Firebase Auth, Firestore rules, and Firebase project restrictions.
+`frontend/js/config/firebase-config.js` contains Firebase browser
+configuration. Firebase web API keys are not treated like server secrets, but
+access must be protected by Firebase Auth, Firestore rules, and Firebase project
+restrictions.
 
 ## Firestore Rules
 

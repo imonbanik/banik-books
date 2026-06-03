@@ -7,6 +7,8 @@ The local codebase architecture migration is complete.
 Completed inside the repository:
 
 - Frontend and backend file boundaries are separated.
+- Active frontend source lives under `frontend/`; active backend source lives
+  under `backend/`.
 - Backend API is the source of truth for business data.
 - Local file storage and Firebase Admin/Firestore storage adapters are wired.
 - Backup export/import and migration scripts are available.

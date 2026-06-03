@@ -40,19 +40,20 @@ Use this folder as the handoff guide for future development.
 
 For a page style change:
 
-1. Edit the matching file in `../css/pages/`.
-2. If the change is responsive-only, check `../css/responsive/`.
-3. Verify `../styles.css` still imports files in the documented order.
+1. Edit the matching file in `../frontend/css/pages/`.
+2. If the change is responsive-only, check `../frontend/css/responsive/`.
+3. Verify `../frontend/styles.css` still imports files in the documented order.
 
 For a page behavior change:
 
-1. Edit the matching file in `../js/pages/` or `../js/tools/`.
+1. Edit the matching file in `../frontend/js/pages/` or
+   `../frontend/js/tools/`.
 2. Run `node --check` on the changed file.
 3. Verify the active page and old root URL with `curl -I`.
 
 For a route change:
 
-1. Update the active page under `../pages/`.
+1. Update the active page under `../frontend/pages/`.
 2. Keep or update the matching route in `../backend/page-routes.js`.
 3. Update `HTML_ROUTE_MAP.md`.
 4. Verify both URLs.

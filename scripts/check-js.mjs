@@ -4,7 +4,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const CHECK_DIRS = ["js", "scripts"];
+const CHECK_DIRS = ["frontend/js", "scripts"];
 const ROOT_FILES = ["server.js"];
 const EXTENSIONS = new Set([".js", ".mjs"]);
 

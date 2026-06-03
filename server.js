@@ -8,6 +8,8 @@ const { getPageRoute } = require("./backend/page-routes");
 const HOST = process.env.HOST || "127.0.0.1";
 const PORT = Number(process.env.PORT || 4104);
 const ROOT_DIR = __dirname;
+const FRONTEND_DIR = path.join(ROOT_DIR, "frontend");
+const FRONTEND_PUBLIC_PREFIXES = new Set(["assets", "css", "js", "pages"]);
 const RATE_CSV_SOURCES = Object.freeze({
   tax: "https://docs.google.com/spreadsheets/d/e/2PACX-1vSbvytUuGCejzOfJMRKS4xqk9p8PwZhataapcgCDcR1M_N7PNyMDv-gwBUdYEFcbqZNACMBxHxpkmsy/pub?gid=157320309&single=true&output=csv",
   vat: "https://docs.google.com/spreadsheets/d/e/2PACX-1vSbvytUuGCejzOfJMRKS4xqk9p8PwZhataapcgCDcR1M_N7PNyMDv-gwBUdYEFcbqZNACMBxHxpkmsy/pub?gid=1347947834&single=true&output=csv",
@@ -30,6 +32,25 @@ function getContentType(filePath) {
   return contentTypes[extension] || "application/octet-stream";
 }
 
+function resolveStaticFilePath(safePath) {
+  const pathParts = safePath.split(/[\\/]/).filter(Boolean);
+  const firstPart = pathParts[0] || "";
+  const frontendPath =
+    safePath === "styles.css" || FRONTEND_PUBLIC_PREFIXES.has(firstPart)
+      ? path.join(FRONTEND_DIR, safePath)
+      : "";
+  const rootPath = path.join(ROOT_DIR, safePath);
+  const candidates = frontendPath ? [frontendPath, rootPath] : [rootPath];
+
+  return candidates.find((candidatePath) => {
+    return (
+      candidatePath.startsWith(ROOT_DIR) &&
+      fs.existsSync(candidatePath) &&
+      !fs.statSync(candidatePath).isDirectory()
+    );
+  });
+}
+
 function sendStatic(request, response) {
   const url = new URL(request.url, `http://${request.headers.host}`);
   const routedPage = getPageRoute(url.pathname);
@@ -47,14 +68,9 @@ function sendStatic(request, response) {
   const requestedPath = decodeURIComponent(url.pathname);
   const pageName = requestedPath.replace(/^\/+/, "");
   const safePath = path.normalize(pageName).replace(/^(\.\.[/\\])+/, "");
-  const rootFilePath = path.join(ROOT_DIR, safePath);
-  const filePath = rootFilePath;
+  const filePath = resolveStaticFilePath(safePath);
 
-  if (
-    !filePath.startsWith(ROOT_DIR) ||
-    !fs.existsSync(filePath) ||
-    fs.statSync(filePath).isDirectory()
-  ) {
+  if (!filePath) {
     response.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" });
     response.end("Not found");
     return;

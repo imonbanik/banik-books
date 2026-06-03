@@ -19,7 +19,9 @@ Active API code now lives under `backend/`:
   adapter is `file`; future database adapters should attach here.
 - `backend/validators.js` - collection payload validation.
 
-The frontend talks to the backend through `js/services/api-client.js`.
+The frontend talks to the backend through
+`frontend/js/services/api-client.js`, served publicly as
+`/js/services/api-client.js`.
 
 ## Production Auth
 
@@ -121,11 +123,14 @@ customer links are intentionally migrated. Active implementation files should be
 edited in:
 
 - `backend/`
-- `pages/`
-- `js/`
-- `css/`
+- `frontend/pages/`
+- `frontend/js/`
+- `frontend/css/`
+- `frontend/assets/`
 
-Root `*.html` compatibility is served from `backend/page-routes.js`.
+Root `*.html` compatibility is served from `backend/page-routes.js`. Public
+frontend URLs such as `/pages/...`, `/js/...`, `/css/...`, `/assets/...`, and
+`/styles.css` are mapped to source files under `frontend/` by `server.js`.
 
 ## Database Migration Path
 

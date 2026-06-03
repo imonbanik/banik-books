@@ -1,7 +1,8 @@
 # Smoke Tests
 
 Smoke tests verify that the main local URLs and important static assets respond
-successfully.
+successfully. These are public browser paths; `server.js` maps frontend static
+paths to source files under `frontend/`.
 
 ## Run
 

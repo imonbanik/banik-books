@@ -20,12 +20,13 @@ const REQUIRED_PATHS = [
   "backend/rate-limit.js",
   "backend/storage-adapter.js",
   "backend/validators.js",
-  "js/services/api-client.js",
-  "js/services/report-data.js",
-  "pages/accounting/journal-entry.html",
-  "pages/accounting/chart-of-accounts.html",
-  "pages/admin/admin.html",
-  "styles.css",
+  "frontend/assets/banik-logo.svg",
+  "frontend/js/services/api-client.js",
+  "frontend/js/services/report-data.js",
+  "frontend/pages/accounting/journal-entry.html",
+  "frontend/pages/accounting/chart-of-accounts.html",
+  "frontend/pages/admin/admin.html",
+  "frontend/styles.css",
   "scripts/migrate-file-to-adapter.mjs",
   "scripts/check-production-config.mjs",
   "docs/REMAINING_EXTERNAL_STEPS.md",
@@ -41,15 +42,17 @@ const BACKEND_BACKED_STORAGE_KEYS = [
   "banikBooksChequePrinterPayees",
   "banikBooksChallanRegisterEntries",
 ];
-const REMOVED_EMPTY_DIRS = ["css/layout", "css/components", "css/base"];
+const REMOVED_EMPTY_DIRS = [
+  "frontend/css/layout",
+  "frontend/css/components",
+  "frontend/css/base",
+];
+const ROOT_FRONTEND_SOURCE_PATHS = ["assets", "css", "js", "pages", "styles.css"];
 const SOURCE_NOISE_DIRS = [
   ".",
-  "assets",
   "backend",
-  "css",
   "docs",
-  "js",
-  "pages",
+  "frontend",
   "scripts",
 ];
 
@@ -101,6 +104,22 @@ async function assertNoCompatRoutes() {
   console.log("ok no routes/compat duplicates");
 }
 
+async function assertNoRootFrontendSource() {
+  const rootSourcePaths = [];
+
+  for (const sourcePath of ROOT_FRONTEND_SOURCE_PATHS) {
+    if (await exists(sourcePath)) {
+      rootSourcePaths.push(sourcePath);
+    }
+  }
+
+  if (rootSourcePaths.length) {
+    throw new Error(`Root frontend source paths remain: ${rootSourcePaths.join(", ")}`);
+  }
+
+  console.log("ok frontend source lives under frontend/");
+}
+
 async function assertNoNoiseFiles() {
   const noiseGroups = await Promise.all(
     SOURCE_NOISE_DIRS.map(async (dir) => {
@@ -108,8 +127,15 @@ async function assertNoNoiseFiles() {
         return [];
       }
 
+      if (dir === ".") {
+        const entries = await fs.readdir(ROOT_DIR, { withFileTypes: true });
+        return entries
+          .filter((entry) => entry.isFile() && entry.name === ".DS_Store")
+          .map((entry) => entry.name);
+      }
+
       const entries = await listFiles(dir, (file) => path.basename(file) === ".DS_Store");
-      return dir === "." ? entries.filter((file) => !file.includes(path.sep)) : entries;
+      return entries;
     })
   );
   const noiseFiles = noiseGroups.flat();
@@ -123,7 +149,7 @@ async function assertNoNoiseFiles() {
 
 async function assertNoRedundantGitkeep() {
   const sourceGitkeepGroups = await Promise.all(
-    ["backend", "css", "docs", "js", "pages", "scripts"].map((dir) =>
+    ["backend", "docs", "frontend", "scripts"].map((dir) =>
       listFiles(dir, (file) => path.basename(file) === ".gitkeep")
     )
   );
@@ -169,7 +195,7 @@ async function assertRequiredPaths() {
 }
 
 async function assertActivePageInventory() {
-  const pageFiles = await listFiles("pages", (file) => file.endsWith(".html"));
+  const pageFiles = await listFiles("frontend/pages", (file) => file.endsWith(".html"));
 
   if (pageFiles.length < 20) {
     throw new Error(`Unexpectedly low active page count: ${pageFiles.length}`);
@@ -180,8 +206,8 @@ async function assertActivePageInventory() {
 
 async function assertBackendBackedStorageClean() {
   const sourceFiles = [
-    ...(await listFiles("js", (file) => file.endsWith(".js"))),
-    ...(await listFiles("pages", (file) => file.endsWith(".html"))),
+    ...(await listFiles("frontend/js", (file) => file.endsWith(".js"))),
+    ...(await listFiles("frontend/pages", (file) => file.endsWith(".html"))),
   ];
   const violations = [];
 
@@ -209,6 +235,7 @@ async function assertBackendBackedStorageClean() {
 async function run() {
   await assertNoRootHtml();
   await assertNoCompatRoutes();
+  await assertNoRootFrontendSource();
   await assertNoNoiseFiles();
   await assertNoRedundantGitkeep();
   await assertRemovedEmptyDirsStayRemoved();

@@ -2,7 +2,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 
 const ROOT_DIR = process.cwd();
-const SOURCE_DIRS = ["js", "pages"];
+const SOURCE_DIRS = ["frontend/js", "frontend/pages"];
 const BUSINESS_DATA_KEYS = [
   "banikBooksJournalEntries",
   "banikBooksParties",

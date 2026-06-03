@@ -43,21 +43,23 @@ Only app entry/support files should stay at the project root:
 - `server.js` - local static server and rate CSV proxy.
 - `local-server.sh` - starts the local app on port `4103`.
 - `package.json` - npm scripts.
-- `styles.css` - CSS import hub loaded by active pages.
 - `firestore.rules` - Firebase security rules.
 - `.gitignore` - local/generated file ignore rules.
 
 Root URL compatibility is handled dynamically by `backend/page-routes.js`.
-Active pages live in `pages/`.
+Active frontend source lives in `frontend/`. Public URLs such as `/pages/...`,
+`/js/...`, `/css/...`, `/assets/...`, and `/styles.css` stay unchanged through
+`server.js` static aliases.
 
 ## Main Folders
 
-- `pages/` - active HTML pages grouped by area.
+- `frontend/` - active HTML, CSS, JavaScript, and assets.
 - `backend/page-routes.js` - old root URL redirects mapped to active pages.
-- `js/` - browser JavaScript grouped by config, core, services, pages, and
-  tools.
-- `css/` - shared, page-specific, and responsive styles.
-- `assets/` - images and logo assets.
+- `frontend/pages/` - active HTML pages grouped by area.
+- `frontend/js/` - browser JavaScript grouped by config, core, services, pages,
+  and tools.
+- `frontend/css/` - shared, page-specific, and responsive styles.
+- `frontend/assets/` - images and logo assets.
 - `docs/` - project structure and development notes.
 - `scripts/` - support scripts.
 - `runtime/` - ignored local pid/log files.
@@ -66,18 +68,20 @@ Active pages live in `pages/`.
 
 ## Where To Edit
 
-- HTML page markup: `pages/`
+- HTML page markup: `frontend/pages/`
 - Root URL compatibility routes: `backend/page-routes.js`
-- Page/tool JavaScript: `js/pages/` and `js/tools/`
-- Shared Firebase/Auth/Data code: `js/core/`, `js/services/`, `js/config/`
-- Page CSS: `css/pages/`
-- Responsive CSS: `css/responsive/`
-- Shared CSS and remaining older styles: `css/base.css` and `css/legacy.css`
-- Static assets: `assets/`
+- Page/tool JavaScript: `frontend/js/pages/` and `frontend/js/tools/`
+- Shared Firebase/Auth/Data code: `frontend/js/core/`, `frontend/js/services/`,
+  `frontend/js/config/`
+- Page CSS: `frontend/css/pages/`
+- Responsive CSS: `frontend/css/responsive/`
+- Shared CSS and remaining older styles: `frontend/css/base.css` and
+  `frontend/css/legacy.css`
+- Static assets: `frontend/assets/`
 - Local helper scripts: `scripts/`
 
-Keep `styles.css` as the only stylesheet entry point linked by active pages.
-It is an import hub.
+Keep `frontend/styles.css` as the only stylesheet entry point linked by active
+pages. It is served publicly as `/styles.css` and remains an import hub.
 
 ## Key Docs
 
