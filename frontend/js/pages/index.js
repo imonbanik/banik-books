@@ -1,4 +1,6 @@
 document.addEventListener("DOMContentLoaded", () => {
+  const AUTH_READY_TIMEOUT_MS = 8000;
+  const AUTH_ACTION_TIMEOUT_MS = 25000;
   const form = document.getElementById("home-auth-form");
   const emailInput = document.getElementById("home-auth-email");
   const passwordInput = document.getElementById("home-auth-password");
@@ -28,6 +30,41 @@ document.addEventListener("DOMContentLoaded", () => {
     status.className = `auth-form-status ${isError ? "auth-form-status--error" : "auth-form-status--success"}`;
   }
 
+  function waitForBanikAuth() {
+    const startedAt = Date.now();
+
+    return new Promise((resolve, reject) => {
+      const checkAuthService = () => {
+        if (window.BanikAuth && typeof window.BanikAuth.login === "function") {
+          resolve(window.BanikAuth);
+          return;
+        }
+
+        if (Date.now() - startedAt >= AUTH_READY_TIMEOUT_MS) {
+          reject(new Error("Auth service did not load."));
+          return;
+        }
+
+        window.setTimeout(checkAuthService, 75);
+      };
+
+      checkAuthService();
+    });
+  }
+
+  function withTimeout(promise, timeoutMs) {
+    let timeoutId = 0;
+    const timeout = new Promise((_, reject) => {
+      timeoutId = window.setTimeout(() => {
+        reject(new Error("Authentication request timed out."));
+      }, timeoutMs);
+    });
+
+    return Promise.race([promise, timeout]).finally(() => {
+      window.clearTimeout(timeoutId);
+    });
+  }
+
   modeToggle.addEventListener("click", (event) => {
     event.preventDefault();
     setMode(mode === "signup" ? "login" : "signup");
@@ -37,13 +74,28 @@ document.addEventListener("DOMContentLoaded", () => {
     event.preventDefault();
     submitButton.disabled = true;
     setStatus("Please wait...", false);
-    const result =
-      mode === "login"
-        ? await window.BanikAuth.login(emailInput.value, passwordInput.value)
-        : await window.BanikAuth.register({
-            email: emailInput.value,
-            password: passwordInput.value,
-          });
+    let result = null;
+
+    try {
+      const authService = await waitForBanikAuth();
+      const authAction =
+        mode === "login"
+          ? authService.login(emailInput.value, passwordInput.value)
+          : authService.register({
+              email: emailInput.value,
+              password: passwordInput.value,
+            });
+
+      result = await withTimeout(authAction, AUTH_ACTION_TIMEOUT_MS);
+    } catch (error) {
+      console.error("BANIK Books auth failed to complete.", error);
+      setStatus(
+        "Sign-in could not complete. Check internet/Firebase domain settings, then try again.",
+        true
+      );
+      submitButton.disabled = false;
+      return;
+    }
 
     if (!result.ok) {
       setStatus(result.message, !result.requiresVerification);

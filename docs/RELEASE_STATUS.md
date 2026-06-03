@@ -2,11 +2,12 @@
 
 ## Repository Status
 
-Current version: 1.1.2
+Current version: 1.1.3
 Current release: June 2026
 
-The local codebase architecture migration is complete. Version 1.1.2 adds the
-Vercel deployment routing needed for the hosted landing page.
+The local codebase architecture migration is complete. Version 1.1.3 adds
+sign-in fail-safe handling for hosted Firebase/Auth delays and domain
+configuration errors.
 
 Completed inside the repository:
 

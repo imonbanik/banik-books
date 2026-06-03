@@ -449,6 +449,8 @@ function getFriendlyAuthMessage(error) {
     "auth/network-request-failed": "Network problem. Check internet connection and try again.",
     "auth/operation-not-allowed": "Email/password login is not enabled in Firebase Authentication.",
     "auth/too-many-requests": "Too many attempts. Please wait a few minutes, then try again.",
+    "auth/unauthorized-domain":
+      "This website domain is not authorized in Firebase Authentication. Add this domain in Firebase Auth settings.",
     "auth/unauthorized-continue-uri":
       "Verification link domain is not authorized in Firebase. Use localhost or add the domain in Firebase Authentication settings.",
     "auth/weak-password": "Password must be at least 6 characters.",

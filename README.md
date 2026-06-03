@@ -4,7 +4,7 @@ Browser-based accounting and business tools app using Firebase Auth and
 Firestore.
 
 Current release: June 2026
-Current version: 1.1.2
+Current version: 1.1.3
 
 ## What This App Contains
 

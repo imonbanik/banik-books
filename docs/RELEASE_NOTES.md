@@ -1,5 +1,25 @@
 # Release Notes
 
+## Version 1.1.3 - June 2026
+
+Release type: Hosted sign-in reliability patch.
+
+Deployment status: Prepared locally for GitHub push and Vercel redeploy.
+
+### Fixes
+
+- Added a fail-safe around landing page sign-in/signup so the button no longer
+  stays on `Please wait...` indefinitely when Firebase Auth or the hosted
+  domain configuration does not respond.
+- Added a clear Firebase unauthorized-domain message for Vercel/custom-domain
+  setup problems.
+- Kept the existing landing page design unchanged while updating the version to
+  `1.1.3`.
+
+### Verification
+
+- `npm run commercial:audit`
+
 ## Version 1.1.2 - June 2026
 
 Release type: Hosted deployment routing patch.
