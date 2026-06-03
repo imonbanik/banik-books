@@ -844,12 +844,18 @@ document.addEventListener("DOMContentLoaded", async () => {
       return;
     }
 
-    localStorage.setItem("banikBooksAccountingPreferences", JSON.stringify({
-      currency: document.getElementById("profileCurrency").value,
-      fiscalYearStart: document.getElementById("profileFiscalYearStart").value,
-      dateFormat: document.getElementById("profileDateFormat").value,
-      numberFormat: document.getElementById("profileNumberFormat").value,
-    }));
+    if (window.BanikApi && typeof window.BanikApi.saveSetting === "function") {
+      try {
+        await window.BanikApi.saveSetting("accountingPreferences", {
+          currency: document.getElementById("profileCurrency").value,
+          fiscalYearStart: document.getElementById("profileFiscalYearStart").value,
+          dateFormat: document.getElementById("profileDateFormat").value,
+          numberFormat: document.getElementById("profileNumberFormat").value,
+        });
+      } catch {
+        // Profile save should not fail just because preference sync is temporarily unavailable.
+      }
+    }
 
     const assetSaves = [
       await savePendingProfilePhoto(),

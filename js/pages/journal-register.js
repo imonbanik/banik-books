@@ -130,6 +130,11 @@ function deletePendingJournal() {
     (journal) => journal.number !== pendingDeleteJournalNumber
   );
   localStorage.setItem(STORAGE_KEYS.journals, JSON.stringify(nextJournals));
+  if (window.BanikApi && typeof window.BanikApi.remove === "function") {
+    window.BanikApi.remove("journals", pendingDeleteJournalNumber);
+  } else if (window.BanikApi && typeof window.BanikApi.replace === "function") {
+    window.BanikApi.replace("journals", nextJournals);
+  }
   hideDeleteConfirm();
   renderRegister();
 }
@@ -216,5 +221,8 @@ toDateInput.addEventListener("change", renderRegister);
 
 document.addEventListener("DOMContentLoaded", async () => {
   if (window.BanikAccounting) await window.BanikAccounting.ready();
+  if (window.BanikReportData) {
+    await window.BanikReportData.hydrate("journals", STORAGE_KEYS.journals);
+  }
   renderRegister();
 });

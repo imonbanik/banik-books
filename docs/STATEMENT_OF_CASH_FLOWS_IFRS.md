@@ -8,7 +8,7 @@
 - Public browser service:
   - `window.BanikCashFlowService.generateStatementOfCashFlows(options)`
 
-The current stack stores journals and Chart of Accounts in localStorage. The same service shape can be moved behind Firebase or an HTTP API later without changing the report renderer.
+The current stack hydrates journals and Chart of Accounts through the backend API with local browser cache/fallback. The report renderer should keep using that service boundary rather than reading a future database directly.
 
 This report follows the `CF` sheet logic from `Zabai BD FS FY 24-25 2nd Draft.xlsx`.
 

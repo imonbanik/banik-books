@@ -6,8 +6,17 @@
   "scripts": {
     "start": "node server.js",
     "dev": "./local-server.sh",
-    "check": "npm run check:js && npm run check:smoke",
+    "check": "npm run check:js && npm run check:api && npm run check:storage && npm run check:smoke",
+    "commercial:audit": "npm run check && npm run check:api:http && node scripts/commercial-audit.mjs",
+    "migrate:file-to-adapter": "node scripts/migrate-file-to-adapter.mjs",
+    "check:production-config": "node scripts/check-production-config.mjs",
     "check:js": "node scripts/check-js.mjs",
+    "check:api": "node scripts/check-api.mjs",
+    "check:api:http": "node scripts/check-api-http.mjs",
+    "check:storage": "node scripts/audit-local-storage.mjs",
     "check:smoke": "node scripts/smoke-check.mjs"
+  },
+  "dependencies": {
+    "firebase-admin": "^13.10.0"
   }
 }

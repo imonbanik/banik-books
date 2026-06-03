@@ -1,14 +1,13 @@
 # BANIK Books Project Structure
 
-This project currently keeps root HTML page URLs stable for safety. For example,
-`journal-entry.html` still opens at `/journal-entry.html` through a redirect
-shim, while the active page lives at `/pages/accounting/journal-entry.html`.
+This project keeps root HTML page URLs stable through a dynamic route map. For
+example, `/journal-entry.html` redirects to
+`/pages/accounting/journal-entry.html`.
 
 ## Runtime Entry Points
 
-- `routes/compat/` - compatibility redirect shims for old root `*.html` links
-  and bookmarks. The local server maps requests like `/journal-entry.html` to
-  this folder.
+- `backend/page-routes.js` - compatibility redirect map for old root `*.html`
+  links and bookmarks.
 - `pages/` - active HTML pages grouped by auth, workspace, accounting, reports,
   tools, admin, and redirects.
 - `styles.css` - the single stylesheet entry point used by existing pages.
@@ -20,7 +19,8 @@ shim, while the active page lives at `/pages/accounting/journal-entry.html`.
 ## Frontend Files
 
 - `assets/` - image and logo assets.
-- `routes/compat/` - root URL compatibility shims served by `server.js`.
+- `backend/page-routes.js` - root URL compatibility redirects served by
+  `server.js`.
 - `data/` - ignored local development data. See
   `docs/DATA_RUNTIME_POLICY.md`.
 - `runtime/` - ignored local runtime artifacts such as pid/log files.
@@ -38,11 +38,13 @@ shim, while the active page lives at `/pages/accounting/journal-entry.html`.
   targets.
 - `docs/JS_DEPENDENCY_MAP.md` - current JavaScript dependency map and future
   folder targets.
-- `pages/` - active HTML page folders. Root HTML files remain as compatibility
-  shims.
+- `pages/` - active HTML page folders.
 - `js/` - active browser JavaScript folders for config, core, services, and
   page scripts.
 - `css/base.css` - shared base styles loaded before extracted page modules.
+- `css/accounting.css` - accounting import hub.
+- `css/reports.css` - reports import hub.
+- `css/tools.css` - tools import hub.
 - `css/legacy.css` - older page styles that have not yet been split into page
   modules.
 - `css/responsive/base-responsive.css` - shared responsive overrides.
@@ -74,21 +76,18 @@ Current stylesheet order:
 @import "./css/base.css";
 @import "./css/pages/workspace.css";
 @import "./css/pages/detail-pages.css";
-@import "./css/pages/payroll-tax-calculator.css";
-@import "./css/pages/withholding-vat-tax-calculator.css";
+@import "./css/tools.css";
 @import "./css/pages/admin.css";
-@import "./css/pages/challan-management.css";
-@import "./css/pages/journal-entry-base.css";
-@import "./css/pages/chart-of-accounts.css";
-@import "./css/pages/emi-calculator.css";
-@import "./css/pages/tax-vat-customs-rates.css";
-@import "./css/pages/invoice-generator.css";
+@import "./css/accounting.css";
+@import "./css/reports.css";
+@import "./css/pages/party-management.css";
 @import "./css/legacy.css";
 @import "./css/responsive/base-responsive.css";
 @import "./css/responsive/tools-responsive.css";
 @import "./css/responsive/accounting-responsive.css";
 @import "./css/responsive/admin-responsive.css";
 @import "./css/pages/journal-entry.css";
+@import "./css/typography.css";
 ```
 
 ## JavaScript Files
@@ -97,14 +96,14 @@ Current stylesheet order:
 - `js/config/firebase-config.js` - Firebase project configuration.
 - `js/core/auth.js` - Firebase Auth/session UI behavior.
 - `js/services/data-service.js` - shared data access helper.
+- `js/services/report-data.js` - shared report storage/API hydration helper.
 - `js/pages/` - page-level browser scripts.
 - `js/tools/` - tool/calculator browser scripts.
 - `js/pages/journal-entry.js` - Journal Entry page behavior.
 - `js/pages/chart-of-accounts.js` - Chart of Accounts page behavior.
 
-Browser JavaScript now lives under `js/`. Root HTML compatibility shims live in
-`routes/compat/` and are served by `server.js`. For the current dependency
-inventory, see
+Browser JavaScript now lives under `js/`. Root HTML compatibility URLs are
+served from `backend/page-routes.js`. For the current dependency inventory, see
 `docs/JS_DEPENDENCY_MAP.md`.
 
 Active JavaScript folders:
@@ -133,21 +132,39 @@ pages/
 
 ## Backend And Support
 
-- `server.js` - local HTTP server and `/rate-finder-csv` proxy.
+- `backend/` - API route, auth context, validation, service, and storage
+  adapter modules.
+- `backend/adapters/` - persistence adapters. `file-adapter.js` is active for
+  local/dev storage; `firebase-admin-adapter.js` is the production Firestore
+  adapter; `postgres-adapter.js` documents a future SQL target.
+- `backend/storage-adapter.js` - persistence adapter selector for the current
+  file store and future database stores.
+- `backend/backup-service.js` - scoped backup export/import logic.
+- `backend/permissions.js` - API role guard helpers.
+- `backend/rate-limit.js` - local API rate limit helper.
+- `server.js` - local HTTP server, backend API mount, and `/rate-finder-csv`
+  proxy.
 - `firestore.rules` - Firestore security rules.
 - `scripts/` - utility scripts for rate data extraction/building.
 - `scripts/backend-server.sh` - backend helper script.
 - `scripts/check-js.mjs` - runs `node --check` across active JavaScript files.
+- `scripts/check-api.mjs` - validates backend collection, auth, backup, and
+  permission behavior.
+- `scripts/audit-local-storage.mjs` - reports frontend localStorage usage by
+  backend-backed cache vs UI-local state.
 - `scripts/smoke-check.mjs` - checks key local URLs and static assets.
 - `package.json` - npm scripts.
 - `README.md` - quick start and folder overview.
 - `docs/ROOT_SUPPORT_FILES.md` - root file ownership guide.
+- `docs/COMMERCIAL_ARCHITECTURE.md` - commercial backend/frontend migration
+  status and deployment boundary.
 
 ## Safe Reorganization Rule
 
-Do not delete `routes/compat/` shim files until old links and bookmarks are
-deliberately retired. The current safe approach is to keep root URLs as stable
-compatibility entry points while active pages live under `pages/`.
+Do not remove entries from `backend/page-routes.js` until old links and
+bookmarks are deliberately retired. The current safe approach is to keep root
+URLs as stable compatibility entry points while active pages live under
+`pages/`.
 
 For the current page inventory and future destination folders, see
 `docs/HTML_ROUTE_MAP.md`.

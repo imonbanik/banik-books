@@ -3,11 +3,24 @@
   .admin-summary-grid {
     grid-template-columns: 1fr;
   }
+
+  .admin-workspace-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 640px) {
   .admin-hero {
     flex-direction: column;
+  }
+
+  .admin-ops-actions {
+    justify-content: stretch;
+  }
+
+  .admin-ops-actions .secondary-button {
+    justify-content: center;
+    width: 100%;
   }
 
   .admin-panel {

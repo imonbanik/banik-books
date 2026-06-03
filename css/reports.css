@@ -1,0 +1,8 @@
+@import "./pages/journal-register.css";
+@import "./pages/general-ledger.css";
+@import "./pages/party-wise-transaction.css";
+@import "./pages/trial-balance.css";
+@import "./pages/statement-of-financial-position.css";
+@import "./pages/statement-of-profit-loss-and-oci.css";
+@import "./pages/statement-of-changes-in-equity.css";
+@import "./pages/statement-of-cash-flows.css";

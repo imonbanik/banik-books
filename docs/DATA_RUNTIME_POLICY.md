@@ -9,7 +9,8 @@ should not be treated as source code.
 
 Current local file:
 
-- `data/banik-books-db.json`
+- `data/app-data.json`
+- `data/banik-books-db.json` may exist as older local development data.
 
 This file may contain local users, sessions, or other development records. Keep
 `data/` ignored and do not commit local database snapshots unless there is a

@@ -107,7 +107,7 @@ let editingPartyId = "";
 let pendingDeleteId = "";
 let activeRegisterType = "Customer";
 
-function loadParties() {
+function loadLocalParties() {
   try {
     const parsed = JSON.parse(localStorage.getItem(PARTY_STORAGE_KEY) || "[]");
     return Array.isArray(parsed) ? parsed.filter((party) => PARTY_TYPES.includes(party.type)) : [];
@@ -117,8 +117,103 @@ function loadParties() {
   }
 }
 
+function loadParties() {
+  return loadLocalParties();
+}
+
 function saveParties() {
   localStorage.setItem(PARTY_STORAGE_KEY, JSON.stringify(parties));
+  syncPartiesToBackend();
+}
+
+async function syncJournalsToBackend(journals) {
+  if (!window.BanikApi || typeof window.BanikApi.replace !== "function") {
+    return;
+  }
+
+  try {
+    await window.BanikApi.replace("journals", journals);
+  } catch (error) {
+    console.warn("Could not sync journal party labels to backend.", error);
+  }
+}
+
+async function syncPartiesToBackend() {
+  if (!window.BanikApi || typeof window.BanikApi.replace !== "function") {
+    return;
+  }
+
+  try {
+    await window.BanikApi.replace("parties", parties);
+  } catch (error) {
+    console.warn("Could not sync parties to backend.", error);
+  }
+}
+
+async function syncPartyToBackend(party) {
+  if (!window.BanikApi) {
+    return;
+  }
+
+  try {
+    if (typeof window.BanikApi.upsert === "function") {
+      await window.BanikApi.upsert("parties", party.id, party);
+      return;
+    }
+
+    if (typeof window.BanikApi.replace === "function") {
+      await window.BanikApi.replace("parties", parties);
+    }
+  } catch (error) {
+    console.warn("Could not sync party to backend.", error);
+  }
+}
+
+async function removePartyFromBackend(partyId) {
+  if (!window.BanikApi) {
+    return;
+  }
+
+  try {
+    if (typeof window.BanikApi.remove === "function") {
+      await window.BanikApi.remove("parties", partyId);
+      return;
+    }
+
+    if (typeof window.BanikApi.replace === "function") {
+      await window.BanikApi.replace("parties", parties);
+    }
+  } catch (error) {
+    console.warn("Could not delete party from backend.", error);
+  }
+}
+
+async function hydratePartiesFromBackend() {
+  if (!window.BanikApi || typeof window.BanikApi.list !== "function") {
+    return;
+  }
+
+  try {
+    const remoteParties = (await window.BanikApi.list("parties")).filter((party) =>
+      PARTY_TYPES.includes(party && party.type)
+    );
+    const localParties = loadLocalParties();
+
+    if (remoteParties.length) {
+      parties = remoteParties;
+      localStorage.setItem(PARTY_STORAGE_KEY, JSON.stringify(parties));
+      renderActiveRegister();
+      return;
+    }
+
+    if (localParties.length) {
+      parties = localParties;
+      await window.BanikApi.replace("parties", parties);
+      renderActiveRegister();
+    }
+  } catch (error) {
+    console.warn("Could not load parties from backend.", error);
+  }
 }
 
 function getPartyDisplayName(party) {
@@ -179,6 +274,7 @@ function updateJournalPartyNames(partyId, oldLabel, newLabel, oldName = "") {
 
   if (didChange) {
     localStorage.setItem(JOURNAL_STORAGE_KEY, JSON.stringify(nextJournals));
+    syncJournalsToBackend(nextJournals);
   }
 }
 
@@ -209,6 +305,7 @@ function syncJournalPartyLabels() {
 
   if (didChange) {
     localStorage.setItem(JOURNAL_STORAGE_KEY, JSON.stringify(nextJournals));
+    syncJournalsToBackend(nextJournals);
   }
 }
 
@@ -500,6 +597,8 @@ function handleSubmit(event) {
   const now = new Date().toISOString();
   const partyData = collectFormData();
 
+  let savedParty = null;
+
   if (editingPartyId) {
     const oldParty = parties.find((party) => party.id === editingPartyId);
     const oldLabel = oldParty ? getPartyDisplayLabel(oldParty, parties) : "";
@@ -507,20 +606,26 @@ function handleSubmit(event) {
     parties = parties.map((party) =>
       party.id === editingPartyId ? { ...party, ...partyData, updatedAt: now } : party
     );
-    const updatedParty = parties.find((party) => party.id === editingPartyId);
-    const newLabel = updatedParty ? getPartyDisplayLabel(updatedParty, parties) : "";
+    savedParty = parties.find((party) => party.id === editingPartyId) || null;
+    const newLabel = savedParty ? getPartyDisplayLabel(savedParty, parties) : "";
     updateJournalPartyNames(editingPartyId, oldLabel, newLabel, oldName);
     syncJournalPartyLabels();
   } else {
-    parties.push({
+    savedParty = {
       id: `party-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
       createdAt: now,
       updatedAt: now,
       ...partyData,
-    });
+    };
+    parties.push(savedParty);
   }
 
-  saveParties();
+  localStorage.setItem(PARTY_STORAGE_KEY, JSON.stringify(parties));
+  if (savedParty) {
+    syncPartyToBackend(savedParty);
+  } else {
+    syncPartiesToBackend();
+  }
   syncJournalPartyLabels();
   closeModal();
   renderActiveRegister();
@@ -664,8 +769,10 @@ function hideDeleteConfirm() {
 
 function deletePendingParty() {
   if (!pendingDeleteId) return;
+  const deletedPartyId = pendingDeleteId;
   parties = parties.filter((party) => party.id !== pendingDeleteId);
-  saveParties();
+  localStorage.setItem(PARTY_STORAGE_KEY, JSON.stringify(parties));
+  removePartyFromBackend(deletedPartyId);
   hideDeleteConfirm();
   renderActiveRegister();
 }
@@ -735,3 +842,4 @@ document.addEventListener("keydown", (event) => {
 
 renderDynamicFields(typeSelect.value);
 renderActiveRegister();
+hydratePartiesFromBackend();

@@ -32,10 +32,12 @@
 
   let preferences = normalizePreferences({ ...defaults, ...readStoredPreferences() });
   let readyPromise = null;
+  let didHydrateFromBackend = false;
 
   function setPreferences(source = {}, notify = true) {
     preferences = normalizePreferences({ ...preferences, ...source });
     localStorage.setItem(STORAGE_KEY, JSON.stringify(preferences));
+    savePreferencesToBackend();
 
     if (notify) {
       window.dispatchEvent(new CustomEvent("banik:accounting-preferences-ready", { detail: getPreferences() }));
@@ -68,11 +70,73 @@
     });
   }
 
+  function waitForApi() {
+    if (window.BanikApi && typeof window.BanikApi.getSetting === "function") {
+      return Promise.resolve(window.BanikApi);
+    }
+
+    return new Promise((resolve) => {
+      let attempts = 0;
+      const timer = window.setInterval(() => {
+        attempts += 1;
+        if (window.BanikApi && typeof window.BanikApi.getSetting === "function") {
+          window.clearInterval(timer);
+          resolve(window.BanikApi);
+        } else if (attempts >= 80) {
+          window.clearInterval(timer);
+          resolve(null);
+        }
+      }, 25);
+    });
+  }
+
+  async function hydratePreferencesFromBackend() {
+    const api = await waitForApi();
+
+    if (!api || typeof api.getSetting !== "function") {
+      return null;
+    }
+
+    try {
+      const remotePreferences = await api.getSetting("accountingPreferences");
+
+      if (remotePreferences) {
+        didHydrateFromBackend = true;
+        return setPreferences(remotePreferences, false);
+      }
+    } catch {
+      return null;
+    }
+
+    return null;
+  }
+
+  async function savePreferencesToBackend() {
+    if (!didHydrateFromBackend && !window.BanikApi) {
+      return;
+    }
+
+    const api = await waitForApi();
+
+    if (!api || typeof api.saveSetting !== "function") {
+      return;
+    }
+
+    try {
+      await api.saveSetting("accountingPreferences", getPreferences());
+    } catch {
+      // Local preferences remain available if backend sync is unavailable.
+    }
+  }
+
   function ready() {
     if (!readyPromise) {
       readyPromise = waitForAuth()
         .then((auth) => auth ? auth.getCurrentUser() : null)
-        .then((user) => setPreferences(user || {}, true))
+        .then(async (user) => {
+          const remotePreferences = await hydratePreferencesFromBackend();
+          return setPreferences(remotePreferences || user || {}, true);
+        })
         .catch(() => getPreferences());
     }
 

@@ -64,13 +64,13 @@ For a new page CSS file:
 
 - Current root-level HTML pages are mapped in `docs/HTML_ROUTE_MAP.md`.
 - Active HTML pages now live under `pages/`.
-- Root URL compatibility shims live under `routes/compat/`; `server.js` serves
-  them for old links such as `/journal-entry.html`.
+- Root URL compatibility redirects live in `backend/page-routes.js`;
+  `server.js` serves them for old links such as `/journal-entry.html`.
 - Active pages use `<base href="/" />` so root-level styles, scripts, assets,
   and shim links continue to resolve correctly.
 - Before moving any page, search every `href`, `script src`, and JavaScript
   navigation reference with `rg`.
-- Preserve existing redirect/shim pages such as `Imon-Cheque.html` and
+- Preserve existing redirect route entries such as `Imon-Cheque.html` and
   `vat-tax-calculator.html` until old URLs are deliberately retired.
 
 ## JavaScript Convention
@@ -84,7 +84,7 @@ For a new page CSS file:
 - Support scripts live in `scripts/`; local runtime pid/log files live in
   `runtime/`.
 - Active page/tool scripts have been extracted into `js/pages/` and `js/tools/`.
-- Keep tiny redirect shim scripts inline in `routes/compat/` and
+- Keep legacy redirect behavior in `backend/page-routes.js` and
   `pages/redirects/`.
 - Run `npm run check:js` before handoff after JavaScript changes.
 
@@ -108,7 +108,7 @@ For a new page CSS file:
 - Base/shared Journal CSS lives in `css/pages/journal-entry-base.css`.
 - The active final compact overrides live in `css/pages/journal-entry.css` and
   must remain the last stylesheet import.
-- The page keeps root shim URL `/journal-entry.html`; active page URL is
+- The page keeps root URL `/journal-entry.html`; active page URL is
   `/pages/accounting/journal-entry.html`.
 - Run `node --check js/pages/journal-entry.js` after changes.
 

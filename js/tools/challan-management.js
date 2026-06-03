@@ -106,6 +106,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     direction: "desc",
   };
   let toastTimer = null;
+  let didHydrateToolSettingsFromBackend = false;
 
   function getScopedStorageKey(storageKey) {
     return currentUserStoragePrefix + ":" + storageKey;
@@ -131,33 +132,131 @@ document.addEventListener("DOMContentLoaded", async () => {
     organizationNames = loadOrganizationNames();
   }
 
-  async function loadCloudEntries() {
-    if (!window.BanikData || typeof window.BanikData.listChallans !== "function") {
-      entries = [];
-      showToast("Cloud data service is not ready. Please refresh after signing in.", "error");
+  function persistToolSettingsLocally() {
+    MANAGED_ENTRY_OPTION_CONFIGS.forEach((config) => {
+      localStorage.setItem(
+        getScopedStorageKey(config.storageKey),
+        JSON.stringify(managedEntryOptions[config.key] || [])
+      );
+      localStorage.setItem(
+        getScopedStorageKey(config.deletedStorageKey),
+        JSON.stringify(managedEntryDeletedKeys[config.key] || [])
+      );
+    });
+    localStorage.setItem(
+      getScopedStorageKey(ORGANIZATION_STORAGE_KEY),
+      JSON.stringify(organizationNames)
+    );
+    localStorage.setItem(
+      getScopedStorageKey(ORGANIZATION_DELETED_STORAGE_KEY),
+      JSON.stringify(deletedOrganizationKeys)
+    );
+  }
+
+  async function hydrateToolSettingsFromBackend() {
+    if (!window.BanikApi || typeof window.BanikApi.getSetting !== "function") {
       return;
     }
 
     try {
-      entries = await window.BanikData.listChallans();
+      const settings = await window.BanikApi.getSetting("challanManagementOptions");
+
+      if (!settings) {
+        didHydrateToolSettingsFromBackend = true;
+        await syncToolSettingsToBackend();
+        return;
+      }
+
+      managedEntryOptions =
+        settings.managedEntryOptions && typeof settings.managedEntryOptions === "object"
+          ? settings.managedEntryOptions
+          : managedEntryOptions;
+      managedEntryDeletedKeys =
+        settings.managedEntryDeletedKeys && typeof settings.managedEntryDeletedKeys === "object"
+          ? settings.managedEntryDeletedKeys
+          : managedEntryDeletedKeys;
+      organizationNames = Array.isArray(settings.organizationNames)
+        ? settings.organizationNames
+        : organizationNames;
+      deletedOrganizationKeys = Array.isArray(settings.deletedOrganizationKeys)
+        ? settings.deletedOrganizationKeys
+        : deletedOrganizationKeys;
+      didHydrateToolSettingsFromBackend = true;
+      persistToolSettingsLocally();
+    } catch {
+      // Local helper lists remain available when backend settings are unavailable.
+    }
+  }
+
+  async function syncToolSettingsToBackend() {
+    if (!window.BanikApi || typeof window.BanikApi.saveSetting !== "function") {
+      return;
+    }
+
+    if (!didHydrateToolSettingsFromBackend) {
+      return;
+    }
+
+    try {
+      await window.BanikApi.saveSetting("challanManagementOptions", {
+        managedEntryOptions,
+        managedEntryDeletedKeys,
+        organizationNames,
+        deletedOrganizationKeys,
+      });
+    } catch {
+      // Local helper lists remain available when backend sync is unavailable.
+    }
+  }
+
+  function sortEntriesByCreatedAt(sourceEntries) {
+    return [...sourceEntries].sort((leftEntry, rightEntry) =>
+      String(rightEntry.createdAt || "").localeCompare(String(leftEntry.createdAt || ""))
+    );
+  }
+
+  async function loadCloudEntries() {
+    try {
+      if (window.BanikApi && typeof window.BanikApi.list === "function") {
+        entries = sortEntriesByCreatedAt(await window.BanikApi.list("challans"));
+        localStorage.removeItem(CHALLAN_STORAGE_KEY);
+        return;
+      }
+
+      if (!window.BanikData || typeof window.BanikData.listChallans !== "function") {
+        entries = [];
+        showToast("Backend data service is not ready. Please refresh after signing in.", "error");
+        return;
+      }
+
+      entries = sortEntriesByCreatedAt(await window.BanikData.listChallans());
       localStorage.removeItem(CHALLAN_STORAGE_KEY);
     } catch {
       entries = [];
-      showToast("Could not load cloud challans. Check sign-in and internet connection.", "error");
+      showToast("Could not load backend challans. Check sign-in and internet connection.", "error");
     }
   }
 
   async function saveCloudEntry(entry) {
+    if (window.BanikApi && typeof window.BanikApi.upsert === "function") {
+      return window.BanikApi.upsert("challans", entry.id, entry);
+    }
+
     if (!window.BanikData || typeof window.BanikData.saveChallan !== "function") {
-      throw new Error("Cloud data service is not ready.");
+      throw new Error("Backend data service is not ready.");
     }
 
     return window.BanikData.saveChallan(entry);
   }
 
   async function deleteCloudEntry(entryId) {
+    if (window.BanikApi && typeof window.BanikApi.remove === "function") {
+      await window.BanikApi.remove("challans", entryId);
+      return;
+    }
+
     if (!window.BanikData || typeof window.BanikData.deleteChallan !== "function") {
-      throw new Error("Cloud data service is not ready.");
+      throw new Error("Backend data service is not ready.");
     }
 
     await window.BanikData.deleteChallan(entryId);
@@ -216,6 +315,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       getScopedStorageKey(config.storageKey),
       JSON.stringify(managedEntryOptions[config.key] || [])
     );
+    syncToolSettingsToBackend();
   }
 
   function persistManagedEntryDeletedKeys(config) {
@@ -223,6 +323,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       getScopedStorageKey(config.deletedStorageKey),
       JSON.stringify(managedEntryDeletedKeys[config.key] || [])
     );
+    syncToolSettingsToBackend();
   }
 
   function getManagedEntryControl(config, suffix) {
@@ -449,6 +550,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       getScopedStorageKey(ORGANIZATION_DELETED_STORAGE_KEY),
       JSON.stringify(deletedOrganizationKeys)
     );
+    syncToolSettingsToBackend();
   }
 
   function loadOrganizationNames() {
@@ -479,6 +581,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       getScopedStorageKey(ORGANIZATION_STORAGE_KEY),
       JSON.stringify(organizationNames)
     );
+    syncToolSettingsToBackend();
   }
 
   function findOrganizationName(name) {
@@ -1434,7 +1537,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     try {
       savedEntry = await saveCloudEntry(entryRecord);
     } catch {
-      setEntryError("Could not save this challan to cloud. Check internet and try again.");
+      setEntryError("Could not save this challan to backend. Check internet and try again.");
       showToast("Challan entry was not saved.", "error");
       return;
     }
@@ -1499,7 +1602,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     try {
       await deleteCloudEntry(entryId);
     } catch {
-      showToast("Could not delete this challan from cloud. Try again.", "error");
+      showToast("Could not delete this challan from backend. Try again.", "error");
       return;
     }
 
@@ -1509,6 +1612,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 
   await prepareUserScopedLocalState();
+  await hydrateToolSettingsFromBackend();
   renderAllManagedEntryOptions();
   renderOrganizationOptions("");
   toggleNewOrganizationField();

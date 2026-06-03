@@ -1,18 +1,21 @@
 # BANIK Books JavaScript Dependency Map
 
 This map documents the current JavaScript files after the safe folder move.
-Active HTML pages live under `pages/`, compatibility shims live under
-`routes/compat/`, and browser JavaScript lives under `js/`.
+Active HTML pages live under `pages/`, compatibility redirects live in
+`backend/page-routes.js`, and browser JavaScript lives under `js/`.
 
 ## Current Rule
 
 - Keep JavaScript files under the active `js/` folders.
 - `js/core/auth.js` and `js/services/data-service.js` are browser ES modules.
+- `js/services/report-data.js` is a shared classic-script helper for report
+  storage/API hydration.
 - `js/pages/journal-entry.js` and `js/pages/chart-of-accounts.js` are loaded as
-  deferred classic scripts and currently communicate through `window` globals
-  and localStorage.
+  deferred classic scripts and use backend-backed API hydration with local UI
+  cache/fallback.
 - Large active page/tool scripts have been extracted from HTML into `js/pages/`
-  and `js/tools/`. Small redirect shim scripts remain inline by design.
+  and `js/tools/`. Legacy redirect behavior is handled by
+  `backend/page-routes.js` and `pages/redirects/`.
 
 ## Active Folders
 
@@ -35,21 +38,21 @@ js/
 | `js/config/firebase-config.js` | ES module | Exports Firebase config and founder admin email. |
 | `js/core/auth.js` | ES module | Firebase Auth, user profile, admin access, page protection, and `window.BanikAuth`. Imports `../config/firebase-config.js`. |
 | `js/services/data-service.js` | ES module | User-scoped Firestore helper and `window.BanikData`. Imports `../config/firebase-config.js`. |
-| `js/pages/journal-entry.js` | classic script | Journal Entry behavior, localStorage journals/ledgers, attachment UI, and quick ledger modal. |
-| `js/pages/journal-register.js` | classic script | Journal Register report behavior, localStorage journal register rows, date filtering, totals, and Journal Entry drilldown links. |
-| `js/pages/general-ledger.js` | classic script | General Ledger report behavior, localStorage ledger aggregation, date/search filtering, debit/credit/balance totals. |
-| `js/pages/party-wise-transaction.js` | classic script | Party Wise Transaction report behavior, localStorage party aggregation, date/search filtering, debit/credit/balance totals, and Journal Entry drilldown links. |
-| `js/pages/trial-balance.js` | classic script | Trial Balance report behavior, localStorage ledger balance aggregation, date filtering, and debit/credit totals. |
-| `js/pages/statement-of-financial-position.js` | classic script | Statement of Financial Position behavior, localStorage ledger balance aggregation, chart classification mapping, date filtering, and vertical assets/equity/liabilities totals. |
-| `js/pages/statement-of-profit-loss-and-oci.js` | classic script | Statement of Profit & Loss and OCI behavior, localStorage income/expense aggregation, chart hierarchy mapping, date filtering, and profit subtotals. |
-| `js/pages/statement-of-changes-in-equity.js` | classic script | Statement of Changes in Equity behavior, localStorage equity movement aggregation, CoA equity column mapping, date filtering, and net profit allocation to retained earnings. |
-| `js/pages/statement-of-cash-flows.js` | classic script | Statement of Cash Flows behavior, localStorage journal aggregation, CoA cash/non-cash classification, comparative period cash flow sections, and cash reconciliation. |
-| `js/pages/party-management.js` | classic script | Party Management behavior, localStorage party register, dynamic party form, and edit/delete actions. |
-| `js/pages/chart-of-accounts.js` | classic script | Chart of Accounts behavior, default chart data, localStorage sync, and optional `window.BanikData` sync. |
+| `js/pages/journal-entry.js` | classic script | Journal Entry behavior, backend-backed journals/parties/chart data, attachment UI, and quick ledger modal. |
+| `js/pages/journal-register.js` | classic script | Journal Register report behavior, backend-hydrated journal register rows, date filtering, totals, and Journal Entry drilldown links. |
+| `js/pages/general-ledger.js` | classic script | General Ledger report behavior, backend-hydrated ledger aggregation, date/search filtering, debit/credit/balance totals. |
+| `js/pages/party-wise-transaction.js` | classic script | Party Wise Transaction report behavior, backend-hydrated party aggregation, date/search filtering, debit/credit/balance totals, and Journal Entry drilldown links. |
+| `js/pages/trial-balance.js` | classic script | Trial Balance report behavior, backend-hydrated ledger balance aggregation, date filtering, and debit/credit totals. |
+| `js/pages/statement-of-financial-position.js` | classic script | Statement of Financial Position behavior, backend-hydrated ledger balance aggregation, chart classification mapping, date filtering, and vertical assets/equity/liabilities totals. |
+| `js/pages/statement-of-profit-loss-and-oci.js` | classic script | Statement of Profit & Loss and OCI behavior, backend-hydrated income/expense aggregation, chart hierarchy mapping, date filtering, and profit subtotals. |
+| `js/pages/statement-of-changes-in-equity.js` | classic script | Statement of Changes in Equity behavior, backend-hydrated equity movement aggregation, CoA equity column mapping, date filtering, and net profit allocation to retained earnings. |
+| `js/pages/statement-of-cash-flows.js` | classic script | Statement of Cash Flows behavior, backend-hydrated journal aggregation, CoA cash/non-cash classification, comparative period cash flow sections, and cash reconciliation. |
+| `js/pages/party-management.js` | classic script | Party Management behavior, backend-backed party register, dynamic party form, and edit/delete actions. |
+| `js/pages/chart-of-accounts.js` | classic script | Chart of Accounts behavior, default chart data, backend-backed sync, and optional template sync. |
 | `js/pages/index.js` | classic script | Sign-in/register landing page behavior. |
 | `js/pages/signup.js` | classic script | Signup/profile setup, letterhead, and e-signature behavior. |
-| `js/pages/admin.js` | classic script | Admin user/module permission table behavior. |
-| `js/tools/challan-management.js` | classic script | Challan Management modal, register, cloud sync, and export behavior. |
+| `js/pages/admin.js` | classic script | Admin user/module permission table plus backend backup/workspace operations. Depends on `window.BanikApi`. |
+| `js/tools/challan-management.js` | classic script | Challan Management modal, register, backend sync, and export behavior. |
 | `js/tools/cheque-printer.js` | classic script | Cheque Printer layout, formatting, and print behavior. |
 | `js/tools/emi-calculator.js` | classic script | EMI calculation and amortization schedule behavior. |
 | `js/tools/invoice-generator.js` | classic script | Invoice form, preview, letterhead/e-signature, PDF rendering, and print behavior. |
@@ -124,7 +127,7 @@ These active pages now load page-specific JavaScript from separate files:
 | --- | --- |
 | `index.html` | `js/pages/index.js` |
 | `signup.html` | `js/pages/signup.js` |
-| `admin.html` | `js/pages/admin.js` |
+| `admin.html` | `js/services/api-client.js`, `js/pages/admin.js` |
 | `cheque-printer.html` | `js/tools/cheque-printer.js` |
 | `challan-management.html` | `js/tools/challan-management.js` |
 | `payroll-tax-calculator.html` | `js/tools/payroll-tax-calculator.js` |
@@ -133,8 +136,8 @@ These active pages now load page-specific JavaScript from separate files:
 | `emi-calculator.html` | `js/tools/emi-calculator.js` |
 | `invoice-generator.html` | `js/tools/invoice-generator.js` |
 
-Compatibility shims under `routes/compat/` and legacy redirect pages under
-`pages/redirects/` keep tiny inline redirect scripts intentionally.
+Legacy redirect pages under `pages/redirects/` remain for product-specific
+aliases; old root URLs are handled by `backend/page-routes.js`.
 
 ## Dependency Notes
 

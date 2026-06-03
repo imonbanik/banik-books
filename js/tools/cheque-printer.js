@@ -24,6 +24,7 @@ const amountMeasure = document.getElementById("amountMeasure");
 const accountPayeeStamp = document.getElementById("accountPayeeStamp");
 let deletedPayeeKeys = loadDeletedPayeeKeys();
 let payeeNames = loadPayeeNames();
+let didHydratePayeesFromBackend = false;
 
 function padDateDigits(value) {
   return String(value).padStart(2, "0");
@@ -52,6 +53,7 @@ function loadDeletedPayeeKeys() {
 
 function persistDeletedPayeeKeys() {
   localStorage.setItem(PAYEE_DELETED_STORAGE_KEY, JSON.stringify(deletedPayeeKeys));
+  syncPayeeSettingsToBackend();
 }
 
 function loadPayeeNames() {
@@ -68,6 +70,53 @@ function loadPayeeNames() {
 
 function persistPayeeNames() {
   localStorage.setItem(PAYEE_STORAGE_KEY, JSON.stringify(payeeNames));
+  syncPayeeSettingsToBackend();
+}
+
+async function hydratePayeeSettingsFromBackend() {
+  if (!window.BanikApi || typeof window.BanikApi.getSetting !== "function") {
+    return;
+  }
+
+  try {
+    const settings = await window.BanikApi.getSetting("chequePrinterPayees");
+
+    if (!settings) {
+      didHydratePayeesFromBackend = true;
+      await syncPayeeSettingsToBackend();
+      return;
+    }
+
+    deletedPayeeKeys = Array.isArray(settings.deletedPayeeKeys) ? settings.deletedPayeeKeys : [];
+    payeeNames = Array.isArray(settings.payeeNames) ? settings.payeeNames : [];
+    localStorage.setItem(PAYEE_DELETED_STORAGE_KEY, JSON.stringify(deletedPayeeKeys));
+    localStorage.setItem(PAYEE_STORAGE_KEY, JSON.stringify(payeeNames));
+    didHydratePayeesFromBackend = true;
+    renderPayeeOptions(payeeNameInput.value);
+    togglePayeeManagedState();
+    renderPayee();
+  } catch {
+    // Local payee cache remains available when backend settings are unavailable.
+  }
+}
+
+async function syncPayeeSettingsToBackend() {
+  if (!window.BanikApi || typeof window.BanikApi.saveSetting !== "function") {
+    return;
+  }
+
+  if (!didHydratePayeesFromBackend && !payeeNames.length && !deletedPayeeKeys.length) {
+    return;
+  }
+
+  try {
+    await window.BanikApi.saveSetting("chequePrinterPayees", {
+      payeeNames,
+      deletedPayeeKeys,
+    });
+  } catch {
+    // Local payee cache remains available when backend sync is unavailable.
+  }
 }
 
 function findPayeeName(name) {
@@ -601,3 +650,4 @@ printChequeButton.addEventListener("click", () => {
 
 renderAll();
 normalizeAmountInputField();
+hydratePayeeSettingsFromBackend();

@@ -845,6 +845,24 @@ function persistLocal() {
   localStorage.setItem(LEDGER_STORAGE_KEY, JSON.stringify(flattenLedgers(chartItems)));
 }
 
+async function saveChartViaApi() {
+  if (!window.BanikApi || typeof window.BanikApi.replace !== "function") {
+    return false;
+  }
+
+  await window.BanikApi.replace("chartOfAccounts", chartItems);
+  return true;
+}
+
+async function loadChartViaApi() {
+  if (!window.BanikApi || typeof window.BanikApi.list !== "function") {
+    return [];
+  }
+
+  const rawItems = await window.BanikApi.list("chartOfAccounts");
+  return applyChartStructureRules(rawItems).items;
+}
+
 function persistCollapsedGroups() {
   localStorage.setItem(COLLAPSED_GROUPS_STORAGE_KEY, JSON.stringify([...collapsedGroupIds]));
 }
@@ -1252,8 +1270,21 @@ function restoreFormDraft() {
 }
 
 async function persistRemote() {
+  let didSaveToApi = false;
+
+  try {
+    didSaveToApi = await saveChartViaApi();
+  } catch (error) {
+    console.warn("Could not sync chart of accounts to backend API.", error);
+  }
+
   if (!window.BanikData || typeof window.BanikData.saveChartOfAccounts !== "function") {
-    setStatus("Saved in this browser. Backend sync is not available on this page.", "success");
+    setStatus(
+      didSaveToApi
+        ? "Saved. Backend API chart is updated."
+        : "Saved in this browser. Backend sync is not available on this page.",
+      "success"
+    );
     return;
   }
 
@@ -1902,7 +1933,33 @@ async function loadChart() {
   await waitForBanikData();
   await revealDefaultTemplateButton();
 
+  try {
+    const apiItems = await loadChartViaApi();
+
+    if (apiItems.length) {
+      chartItems = apiItems;
+      persistLocal();
+      markDefaultChartApplied();
+      renderTree();
+      setStatus("Loaded saved chart of accounts from backend API.", "success");
+      restoreFormDraft();
+      return;
+    }
+
+    if (localItems.length) {
+      await saveChartViaApi();
+    }
+  } catch (error) {
+    console.warn("Could not load backend API chart.", error);
+  }
+
   if (!window.BanikData || typeof window.BanikData.getChartOfAccounts !== "function") {
+    try {
+      await saveChartViaApi();
+    } catch {
+      // Local chart remains available if API sync is unavailable.
+    }
+
     if (!chartItems.length) {
       setStatus("Create your first group or ledger to start.", "pending");
     }
@@ -1937,6 +1994,7 @@ async function loadChart() {
     persistLocal();
     markDefaultChartApplied();
     renderTree();
+    await saveChartViaApi();
     await window.BanikData.saveChartOfAccounts(chartItems);
     setStatus("Default chart of accounts saved.", "success");
   } catch (error) {

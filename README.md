@@ -47,13 +47,13 @@ Only app entry/support files should stay at the project root:
 - `firestore.rules` - Firebase security rules.
 - `.gitignore` - local/generated file ignore rules.
 
-Compatibility HTML shims live in `routes/compat/`. Active pages live in
-`pages/`.
+Root URL compatibility is handled dynamically by `backend/page-routes.js`.
+Active pages live in `pages/`.
 
 ## Main Folders
 
 - `pages/` - active HTML pages grouped by area.
-- `routes/compat/` - old root URL redirect shims.
+- `backend/page-routes.js` - old root URL redirects mapped to active pages.
 - `js/` - browser JavaScript grouped by config, core, services, pages, and
   tools.
 - `css/` - shared, page-specific, and responsive styles.
@@ -67,7 +67,7 @@ Compatibility HTML shims live in `routes/compat/`. Active pages live in
 ## Where To Edit
 
 - HTML page markup: `pages/`
-- Root URL compatibility shims: `routes/compat/`
+- Root URL compatibility routes: `backend/page-routes.js`
 - Page/tool JavaScript: `js/pages/` and `js/tools/`
 - Shared Firebase/Auth/Data code: `js/core/`, `js/services/`, `js/config/`
 - Page CSS: `css/pages/`
@@ -82,6 +82,7 @@ It is an import hub.
 ## Key Docs
 
 - `docs/README.md`
+- `docs/COMMERCIAL_ARCHITECTURE.md`
 - `docs/PROJECT_STRUCTURE.md`
 - `docs/DEVELOPMENT_NOTES.md`
 - `docs/HTML_ROUTE_MAP.md`

@@ -424,6 +424,20 @@ async function getCurrentBanikUser() {
   return cachedCurrentUser;
 }
 
+async function getCurrentIdToken() {
+  const configStatus = assertFirebaseConfigured();
+
+  if (!configStatus.ok || !auth || !auth.currentUser || !auth.currentUser.emailVerified) {
+    return "";
+  }
+
+  try {
+    return auth.currentUser.getIdToken();
+  } catch {
+    return "";
+  }
+}
+
 function getFriendlyAuthMessage(error) {
   const code = error && error.code;
   const messages = {
@@ -1414,6 +1428,7 @@ window.BanikAuth = {
   modules: BANIK_MODULES,
   getUsers: getAuthUsers,
   getCurrentUser: getCurrentBanikUser,
+  getIdToken: getCurrentIdToken,
   register: registerBanikUser,
   login: loginBanikUser,
   logout: logoutBanikUser,

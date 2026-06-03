@@ -727,6 +727,12 @@ printButton.addEventListener("click", printPartyWiseTransaction);
 
 document.addEventListener("DOMContentLoaded", async () => {
   if (window.BanikAccounting) await window.BanikAccounting.ready();
+  if (window.BanikReportData) {
+    await window.BanikReportData.hydrateCollections([
+      { name: "journals", storageKey: STORAGE_KEYS.journals },
+      { name: "parties", storageKey: STORAGE_KEYS.parties },
+    ]);
+  }
   renderPartyLedgerOptions();
   renderPartyWiseLedger();
 });

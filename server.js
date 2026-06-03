@@ -2,11 +2,12 @@ const fs = require("node:fs");
 const https = require("node:https");
 const http = require("node:http");
 const path = require("node:path");
+const { handleApi } = require("./backend/api");
+const { getPageRoute } = require("./backend/page-routes");
 
 const HOST = process.env.HOST || "127.0.0.1";
 const PORT = Number(process.env.PORT || 4104);
 const ROOT_DIR = __dirname;
-const COMPAT_ROUTE_DIR = path.join(ROOT_DIR, "routes", "compat");
 const RATE_CSV_SOURCES = Object.freeze({
   tax: "https://docs.google.com/spreadsheets/d/e/2PACX-1vSbvytUuGCejzOfJMRKS4xqk9p8PwZhataapcgCDcR1M_N7PNyMDv-gwBUdYEFcbqZNACMBxHxpkmsy/pub?gid=157320309&single=true&output=csv",
   vat: "https://docs.google.com/spreadsheets/d/e/2PACX-1vSbvytUuGCejzOfJMRKS4xqk9p8PwZhataapcgCDcR1M_N7PNyMDv-gwBUdYEFcbqZNACMBxHxpkmsy/pub?gid=1347947834&single=true&output=csv",
@@ -31,14 +32,23 @@ function getContentType(filePath) {
 
 function sendStatic(request, response) {
   const url = new URL(request.url, `http://${request.headers.host}`);
+  const routedPage = getPageRoute(url.pathname);
+
+  if (routedPage) {
+    const location = `${routedPage}${url.search}`;
+    response.writeHead(308, {
+      Location: location,
+      "Cache-Control": "no-store",
+    });
+    response.end();
+    return;
+  }
+
   const requestedPath = decodeURIComponent(url.pathname);
-  const pageName = requestedPath === "/" ? "index.html" : requestedPath.replace(/^\/+/, "");
+  const pageName = requestedPath.replace(/^\/+/, "");
   const safePath = path.normalize(pageName).replace(/^(\.\.[/\\])+/, "");
   const rootFilePath = path.join(ROOT_DIR, safePath);
-  const compatFilePath = path.join(COMPAT_ROUTE_DIR, safePath);
-  const isRootHtmlRequest = !safePath.includes(path.sep) && path.extname(safePath) === ".html";
-  const filePath =
-    isRootHtmlRequest && fs.existsSync(compatFilePath) ? compatFilePath : rootFilePath;
+  const filePath = rootFilePath;
 
   if (
     !filePath.startsWith(ROOT_DIR) ||
@@ -118,8 +128,12 @@ function sendRateCsv(request, response) {
   sendRemoteCsv(sourceUrl, response);
 }
 
-const server = http.createServer((request, response) => {
+const server = http.createServer(async (request, response) => {
   const url = new URL(request.url, `http://${request.headers.host}`);
+
+  if (await handleApi(request, response)) {
+    return;
+  }
 
   if (url.pathname === "/rate-finder-csv") {
     sendRateCsv(request, response);

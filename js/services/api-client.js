@@ -1,0 +1,184 @@
+(function () {
+  const ENDPOINTS = Object.freeze({
+    journals: "/api/journals",
+    parties: "/api/parties",
+    chartOfAccounts: "/api/chart-of-accounts",
+    challans: "/api/challans",
+    settings: "/api/settings",
+  });
+
+  async function getAuthHeaders() {
+    if (!window.BanikAuth || typeof window.BanikAuth.getIdToken !== "function") {
+      return {};
+    }
+
+    try {
+      const token = await window.BanikAuth.getIdToken();
+      return token ? { Authorization: `Bearer ${token}` } : {};
+    } catch {
+      return {};
+    }
+  }
+
+  function getWorkspaceHeaders() {
+    const workspaceId =
+      String(localStorage.getItem("banikBooksWorkspaceId") || "").trim() ||
+      document.documentElement.dataset.workspaceId ||
+      "default";
+
+    return {
+      "X-Banik-Workspace-Id": workspaceId,
+    };
+  }
+
+  async function requestJson(url, options = {}) {
+    const authHeaders = await getAuthHeaders();
+    const response = await fetch(url, {
+      headers: {
+        "Content-Type": "application/json",
+        ...authHeaders,
+        ...getWorkspaceHeaders(),
+        ...(options.headers || {}),
+      },
+      ...options,
+    });
+
+    if (!response.ok) {
+      throw new Error(`API request failed: ${response.status}`);
+    }
+
+    return response.json();
+  }
+
+  async function list(collectionName) {
+    const endpoint = ENDPOINTS[collectionName];
+
+    if (!endpoint) {
+      throw new Error(`Unknown API collection: ${collectionName}`);
+    }
+
+    const payload = await requestJson(endpoint);
+    return Array.isArray(payload.items) ? payload.items : [];
+  }
+
+  async function replace(collectionName, items) {
+    const endpoint = ENDPOINTS[collectionName];
+
+    if (!endpoint) {
+      throw new Error(`Unknown API collection: ${collectionName}`);
+    }
+
+    const payload = await requestJson(endpoint, {
+      method: "PUT",
+      body: JSON.stringify({ items: Array.isArray(items) ? items : [] }),
+    });
+    return Array.isArray(payload.items) ? payload.items : [];
+  }
+
+  async function upsert(collectionName, itemId, item) {
+    const endpoint = ENDPOINTS[collectionName];
+
+    if (!endpoint) {
+      throw new Error(`Unknown API collection: ${collectionName}`);
+    }
+
+    if (!itemId) {
+      throw new Error("Missing API item id.");
+    }
+
+    const payload = await requestJson(`${endpoint}/${encodeURIComponent(itemId)}`, {
+      method: "PUT",
+      body: JSON.stringify({ item }),
+    });
+    return payload.item || item;
+  }
+
+  async function remove(collectionName, itemId) {
+    const endpoint = ENDPOINTS[collectionName];
+
+    if (!endpoint) {
+      throw new Error(`Unknown API collection: ${collectionName}`);
+    }
+
+    if (!itemId) {
+      throw new Error("Missing API item id.");
+    }
+
+    const payload = await requestJson(`${endpoint}/${encodeURIComponent(itemId)}`, {
+      method: "DELETE",
+    });
+    return Array.isArray(payload.items) ? payload.items : [];
+  }
+
+  function readLocalArray(storageKey) {
+    try {
+      const parsed = JSON.parse(localStorage.getItem(storageKey) || "[]");
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }
+
+  async function hydrate(collectionName, storageKey, filterItems = (items) => items) {
+    try {
+      const remoteItems = filterItems(await list(collectionName));
+      const localItems = filterItems(readLocalArray(storageKey));
+
+      if (remoteItems.length) {
+        localStorage.setItem(storageKey, JSON.stringify(remoteItems));
+        return remoteItems;
+      }
+
+      if (localItems.length) {
+        await replace(collectionName, localItems);
+      }
+
+      return localItems;
+    } catch (error) {
+      console.warn(`Could not hydrate ${collectionName}.`, error);
+      return readLocalArray(storageKey);
+    }
+  }
+
+  async function getSetting(settingId) {
+    const settings = await list("settings");
+    const setting = settings.find((item) => item && item.id === settingId);
+    return setting && setting.value && typeof setting.value === "object" ? setting.value : null;
+  }
+
+  async function saveSetting(settingId, value) {
+    return upsert("settings", settingId, {
+      id: settingId,
+      value: value && typeof value === "object" ? value : {},
+      updatedAt: new Date().toISOString(),
+    });
+  }
+
+  async function getWorkspace() {
+    return requestJson("/api/workspace");
+  }
+
+  async function exportBackup() {
+    return requestJson("/api/backups/export");
+  }
+
+  async function importBackup(backupPayload) {
+    return requestJson("/api/backups/import", {
+      method: "PUT",
+      body: JSON.stringify(backupPayload || {}),
+    });
+  }
+
+  window.BanikApi = {
+    hydrate,
+    exportBackup,
+    getSetting,
+    getWorkspace,
+    importBackup,
+    list,
+    remove,
+    replace,
+    saveSetting,
+    upsert,
+  };
+})();

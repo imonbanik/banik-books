@@ -231,5 +231,11 @@ toDateInput.addEventListener("change", renderTrialBalance);
 
 document.addEventListener("DOMContentLoaded", async () => {
   if (window.BanikAccounting) await window.BanikAccounting.ready();
+  if (window.BanikReportData) {
+    await window.BanikReportData.hydrateCollections([
+      { name: "journals", storageKey: STORAGE_KEYS.journals },
+      { name: "chartOfAccounts", storageKey: STORAGE_KEYS.chartOfAccounts },
+    ]);
+  }
   renderTrialBalance();
 });

@@ -117,8 +117,98 @@ function getSavedParties() {
   return safeReadArray(STORAGE_KEYS.parties).filter((party) => PARTY_TYPES.includes(party && party.type));
 }
 
-function saveParties(parties) {
+function saveParties(parties, changedParty = null) {
   localStorage.setItem(STORAGE_KEYS.parties, JSON.stringify(parties));
+
+  if (changedParty && changedParty.id) {
+    upsertItemToBackend("parties", changedParty.id, changedParty, parties);
+    return;
+  }
+
+  syncCollectionToBackend("parties", parties);
+}
+
+async function syncCollectionToBackend(collectionName, items) {
+  if (!window.BanikApi || typeof window.BanikApi.replace !== "function") {
+    return;
+  }
+
+  try {
+    await window.BanikApi.replace(collectionName, items);
+  } catch (error) {
+    console.warn(`Could not sync ${collectionName} to backend.`, error);
+  }
+}
+
+async function upsertItemToBackend(collectionName, itemId, item, fallbackItems = []) {
+  if (!window.BanikApi) {
+    return;
+  }
+
+  try {
+    if (typeof window.BanikApi.upsert === "function") {
+      await window.BanikApi.upsert(collectionName, itemId, item);
+      return;
+    }
+
+    if (typeof window.BanikApi.replace === "function") {
+      await window.BanikApi.replace(collectionName, fallbackItems);
+    }
+  } catch (error) {
+    console.warn(`Could not save ${collectionName} item to backend.`, error);
+  }
+}
+
+async function removeItemFromBackend(collectionName, itemId, fallbackItems = []) {
+  if (!window.BanikApi) {
+    return;
+  }
+
+  try {
+    if (typeof window.BanikApi.remove === "function") {
+      await window.BanikApi.remove(collectionName, itemId);
+      return;
+    }
+
+    if (typeof window.BanikApi.replace === "function") {
+      await window.BanikApi.replace(collectionName, fallbackItems);
+    }
+  } catch (error) {
+    console.warn(`Could not delete ${collectionName} item from backend.`, error);
+  }
+}
+
+async function hydrateCollectionFromBackend(collectionName, storageKey, filterItems = (items) => items) {
+  if (!window.BanikApi || typeof window.BanikApi.list !== "function") {
+    return safeReadArray(storageKey);
+  }
+
+  try {
+    const remoteItems = filterItems(await window.BanikApi.list(collectionName));
+    const localItems = filterItems(safeReadArray(storageKey));
+
+    if (remoteItems.length) {
+      localStorage.setItem(storageKey, JSON.stringify(remoteItems));
+      return remoteItems;
+    }
+
+    if (localItems.length) {
+      await window.BanikApi.replace(collectionName, localItems);
+    }
+
+    return localItems;
+  } catch (error) {
+    console.warn(`Could not load ${collectionName} from backend.`, error);
+    return safeReadArray(storageKey);
+  }
+}
+
+function filterParties(items) {
+  return Array.isArray(items) ? items.filter((party) => PARTY_TYPES.includes(party && party.type)) : [];
+}
+
+function filterJournals(items) {
+  return Array.isArray(items) ? items.filter((journal) => journal && journal.number) : [];
 }
 
 function getPartyDisplayName(party) {
@@ -1892,6 +1982,7 @@ function deleteCurrentJournal() {
   }
 
   localStorage.setItem(STORAGE_KEYS.journals, JSON.stringify(nextJournals));
+  removeItemFromBackend("journals", targetNumber, nextJournals);
   hideDeleteConfirm();
   resetRows();
   journalDescription.value = "";
@@ -1966,6 +2057,7 @@ function persistJournal() {
   }
 
   localStorage.setItem(STORAGE_KEYS.journals, JSON.stringify(savedJournals));
+  upsertItemToBackend("journals", journalEntry.number, journalEntry, savedJournals);
   currentEditingJournalNumber = journalNumberInput.value;
   clearCopyNotice();
   showSaveToast(`Journal Number ${journalNumberInput.value} saved`);
@@ -2679,7 +2771,7 @@ function saveJournalParty(event) {
   };
   const parties = getSavedParties();
   parties.push(party);
-  saveParties(parties);
+  saveParties(parties, party);
 
   const displayName = getPartyDisplayLabel(party, parties);
   if (pendingPartyNameInput && displayName) {
@@ -2971,6 +3063,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   if (window.BanikAccounting) {
     await window.BanikAccounting.ready();
   }
+  await hydrateCollectionFromBackend("parties", STORAGE_KEYS.parties, filterParties);
+  await hydrateCollectionFromBackend("journals", STORAGE_KEYS.journals, filterJournals);
   updateBackButtonFromUrlParams();
   renderJournalPartyFields(journalPartyType.value);
   journalDateInput.value = getLatestJournalDateForNewEntry();

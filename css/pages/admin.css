@@ -57,6 +57,59 @@
   border-radius: 30px;
 }
 
+.admin-ops-panel {
+  display: grid;
+  gap: 18px;
+}
+
+.admin-ops-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.admin-file-button {
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.admin-file-button input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.admin-workspace-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.admin-workspace-grid article {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid rgba(86, 30, 30, 0.12);
+  border-radius: 8px;
+  background: rgba(255, 245, 244, 0.54);
+}
+
+.admin-workspace-grid span {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.admin-workspace-grid strong {
+  overflow-wrap: anywhere;
+  color: var(--red-900);
+  font-size: 0.98rem;
+}
+
 .admin-table-wrap {
   overflow-x: auto;
   border-radius: 18px;
@@ -150,6 +203,14 @@
   margin: 14px 0 0;
   color: var(--muted);
   line-height: 1.55;
+}
+
+.admin-note[data-variant="success"] {
+  color: #15803d;
+}
+
+.admin-note[data-variant="error"] {
+  color: #b91c1c;
 }
 
 .admin-empty {

@@ -3,6 +3,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   const summary = document.getElementById("adminSummary");
   const tableHead = document.getElementById("adminTableHead");
   const tableBody = document.getElementById("adminTableBody");
+  const workspaceStatus = document.getElementById("adminWorkspaceStatus");
+  const backupStatus = document.getElementById("adminBackupStatus");
+  const exportBackupButton = document.getElementById("adminExportBackup");
+  const importBackupInput = document.getElementById("adminImportBackup");
 
   if (!currentUser || currentUser.role !== "admin") {
     return;
@@ -26,6 +30,81 @@ document.addEventListener("DOMContentLoaded", async () => {
       .replace(/>/g, "&gt;")
       .replace(/"/g, "&quot;")
       .replace(/'/g, "&#039;");
+  }
+
+  function setBackupStatus(message, variant = "info") {
+    backupStatus.textContent = message;
+    backupStatus.dataset.variant = variant;
+  }
+
+  function downloadJson(filename, payload) {
+    const blob = new Blob([JSON.stringify(payload, null, 2)], {
+      type: "application/json;charset=utf-8",
+    });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+
+    link.href = url;
+    link.download = filename;
+    document.body.append(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  async function renderWorkspaceStatus() {
+    if (!window.BanikApi || typeof window.BanikApi.getWorkspace !== "function") {
+      workspaceStatus.innerHTML = `
+        <article>
+          <span>Workspace</span>
+          <strong>Unavailable</strong>
+        </article>
+        <article>
+          <span>Role</span>
+          <strong>${escapeHtml(currentUser.role || "-")}</strong>
+        </article>
+        <article>
+          <span>Backend</span>
+          <strong>Offline</strong>
+        </article>
+      `;
+      setBackupStatus("Backend API client is not ready.", "error");
+      return;
+    }
+
+    try {
+      const workspace = await window.BanikApi.getWorkspace();
+      workspaceStatus.innerHTML = `
+        <article>
+          <span>Workspace</span>
+          <strong>${escapeHtml(workspace.workspaceId || "default")}</strong>
+        </article>
+        <article>
+          <span>Role</span>
+          <strong>${escapeHtml(workspace.role || currentUser.role || "-")}</strong>
+        </article>
+        <article>
+          <span>Backend</span>
+          <strong>${escapeHtml(workspace.source || "connected")}</strong>
+        </article>
+      `;
+    } catch {
+      workspaceStatus.innerHTML = `
+        <article>
+          <span>Workspace</span>
+          <strong>Unknown</strong>
+        </article>
+        <article>
+          <span>Role</span>
+          <strong>${escapeHtml(currentUser.role || "-")}</strong>
+        </article>
+        <article>
+          <span>Backend</span>
+          <strong>Unavailable</strong>
+        </article>
+      `;
+      setBackupStatus("Could not connect to backend operations.", "error");
+    }
   }
 
   async function getRegularUsers() {
@@ -137,5 +216,62 @@ document.addEventListener("DOMContentLoaded", async () => {
     await persistPermission(input.dataset.userId, input.dataset.moduleKey, input.checked);
   });
 
+  exportBackupButton.addEventListener("click", async () => {
+    if (!window.BanikApi || typeof window.BanikApi.exportBackup !== "function") {
+      setBackupStatus("Backup API is not ready.", "error");
+      return;
+    }
+
+    exportBackupButton.disabled = true;
+    setBackupStatus("Preparing backup...", "info");
+
+    try {
+      const backup = await window.BanikApi.exportBackup();
+      const workspaceId = backup.workspaceId || "default";
+      const datePart = new Date().toISOString().slice(0, 10);
+      downloadJson(`banik-books-${workspaceId}-backup-${datePart}.json`, backup);
+      setBackupStatus("Backup exported successfully.", "success");
+    } catch {
+      setBackupStatus("Could not export backup. Check backend auth and try again.", "error");
+    } finally {
+      exportBackupButton.disabled = false;
+    }
+  });
+
+  importBackupInput.addEventListener("change", async () => {
+    const file = importBackupInput.files && importBackupInput.files[0];
+
+    if (!file) {
+      return;
+    }
+
+    if (!window.BanikApi || typeof window.BanikApi.importBackup !== "function") {
+      setBackupStatus("Backup API is not ready.", "error");
+      importBackupInput.value = "";
+      return;
+    }
+
+    try {
+      const backup = JSON.parse(await file.text());
+      const confirmed = window.confirm(
+        "Importing this backup will replace backend data for the current workspace. Continue?"
+      );
+
+      if (!confirmed) {
+        setBackupStatus("Backup import cancelled.", "info");
+        return;
+      }
+
+      setBackupStatus("Importing backup...", "info");
+      await window.BanikApi.importBackup(backup);
+      setBackupStatus("Backup imported successfully. Refresh opened report pages to reload data.", "success");
+    } catch {
+      setBackupStatus("Could not import backup. Confirm the JSON file and admin permission.", "error");
+    } finally {
+      importBackupInput.value = "";
+    }
+  });
+
+  await renderWorkspaceStatus();
   await render();
 });

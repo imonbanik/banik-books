@@ -18,7 +18,7 @@ because tools, local scripts, or active pages depend on stable paths.
 | Former root item | Current location |
 | --- | --- |
 | Active HTML pages | `pages/` |
-| Root URL HTML shims | `routes/compat/` |
+| Root URL HTML shims | Removed; dynamic redirects live in `backend/page-routes.js` |
 | Browser JavaScript | `js/` |
 | Backend helper script | `scripts/backend-server.sh` |
 | Local pid/log files | `runtime/` |

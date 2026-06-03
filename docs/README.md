@@ -11,7 +11,8 @@ Use this folder as the handoff guide for future development.
 
 ## Route And Script Maps
 
-- `HTML_ROUTE_MAP.md` - root compatibility URLs and active page locations.
+- `HTML_ROUTE_MAP.md` - dynamic root compatibility URLs and active page
+  locations.
 - `JS_DEPENDENCY_MAP.md` - browser JavaScript files, dependencies, and page
   script ownership.
 
@@ -23,6 +24,16 @@ Use this folder as the handoff guide for future development.
   and generated outputs.
 - `SMOKE_TESTS.md` - local route and asset smoke test coverage.
 - `VISUAL_QA_CHECKLIST.md` - browser layout QA checklist.
+- `NO_VISUAL_REGRESSION_POLICY.md` - architecture refactor guardrails for
+  preserving the current frontend design.
+- `PRODUCTION_RELEASE_CHECKLIST.md` - release verification and environment
+  handoff checklist.
+- `REMAINING_EXTERNAL_STEPS.md` - deployment, credential, migration, and human
+  visual-review tasks that cannot be completed inside the repository alone.
+- `RELEASE_STATUS.md` - current release state and final local/external task
+  split.
+- `DEPENDENCY_AUDIT_NOTES.md` - current npm audit status and release guidance.
+- `COMMIT_PLAN.md` - suggested commit grouping for this architecture migration.
 - `SECURITY_NOTES.md` - local data, Firebase config, and handoff security notes.
 
 ## Common Tasks
@@ -37,12 +48,12 @@ For a page behavior change:
 
 1. Edit the matching file in `../js/pages/` or `../js/tools/`.
 2. Run `node --check` on the changed file.
-3. Verify the active page and old root shim URL with `curl -I`.
+3. Verify the active page and old root URL with `curl -I`.
 
 For a route change:
 
 1. Update the active page under `../pages/`.
-2. Keep or update the matching shim under `../routes/compat/`.
+2. Keep or update the matching route in `../backend/page-routes.js`.
 3. Update `HTML_ROUTE_MAP.md`.
 4. Verify both URLs.
 

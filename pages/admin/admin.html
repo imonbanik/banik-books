@@ -11,6 +11,7 @@
     <link rel="stylesheet" href="./styles.css" />
     <script src="./js/config/app-config.js" defer></script>
     <script src="./js/core/auth.js" type="module"></script>
+    <script src="./js/services/api-client.js" defer></script>
   </head>
   <body>
     <div class="page-shell admin-page">
@@ -41,6 +42,40 @@
         </section>
 
         <section class="admin-summary-grid" id="adminSummary"></section>
+
+        <section class="admin-panel admin-ops-panel">
+          <div class="sheet-header">
+            <div>
+              <p class="sheet-header__eyebrow">Workspace</p>
+              <h2>Data Operations</h2>
+            </div>
+            <div class="admin-ops-actions">
+              <button id="adminExportBackup" class="secondary-button" type="button">Export backup</button>
+              <label class="secondary-button admin-file-button" for="adminImportBackup">
+                Import backup
+                <input id="adminImportBackup" type="file" accept="application/json,.json" />
+              </label>
+            </div>
+          </div>
+
+          <div class="admin-workspace-grid" id="adminWorkspaceStatus">
+            <article>
+              <span>Workspace</span>
+              <strong>Loading</strong>
+            </article>
+            <article>
+              <span>Role</span>
+              <strong>Loading</strong>
+            </article>
+            <article>
+              <span>Backend</span>
+              <strong>Checking</strong>
+            </article>
+          </div>
+          <p class="admin-note" id="adminBackupStatus">
+            Export creates a JSON backup of this workspace. Import replaces backend data after confirmation.
+          </p>
+        </section>
 
         <section class="admin-panel">
           <div class="sheet-header">
