@@ -5,6 +5,16 @@
 These changes are local only until the owner explicitly approves a GitHub push.
 Do not change the public version number for this section.
 
+No unreleased local changes.
+
+## Version 1.1.2 - June 2026
+
+Release type: Admin experience and hosted auth hardening release.
+
+Deployment status: Owner approved GitHub commit and push on June 4, 2026.
+
+### Highlights
+
 - Hosted sign-in no longer fails when Firebase Auth succeeds but Firestore
   profile sync times out.
 - Landing page now detects the auth module script loading state and waits
@@ -14,10 +24,21 @@ Do not change the public version number for this section.
   modules from being converted into Node-style `require(...)` code.
 - Git ignore rules and secret audit checks now block real `.env`, service
   account, and private key files from being tracked.
+- Super Admin Panel now has a smoother premium background, fixed-scroll
+  tabular access matrix, `BB-2606-00000001` style admin account serials,
+  separate Firebase UIDs, admin-first sorting, centered column headings, and
+  Excel export with text-safe serials plus Yes/No access values.
 - Profile-sync fallback opens the workspace using authenticated user data while
   Firestore configuration is corrected.
 - Stage-specific Firebase/Auth timeout messages remain available for real
   domain, API key, or network failures.
+
+### Verification
+
+Passed locally on June 4, 2026:
+
+- `npm run check:js`
+- `npm run commercial:audit`
 
 ## Version 1.1.1 - June 2026
 

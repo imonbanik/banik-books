@@ -2,11 +2,12 @@
 
 ## Repository Status
 
-Current version: 1.1.1
+Current version: 1.1.2
 Current release: June 2026
 
-The local codebase architecture migration is complete. Local hosted sign-in
-fallback changes are pending owner-approved commit/push.
+The local codebase architecture migration is complete. Version 1.1.2 includes
+hosted sign-in resilience, production secret guardrails, and Super Admin Panel
+polish approved for GitHub push.
 
 Completed inside the repository:
 

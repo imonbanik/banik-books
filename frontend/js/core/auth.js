@@ -40,6 +40,7 @@ const PROFILE_IMAGE_MAX_BYTES = 700 * 1024;
 const PROFILE_IMAGE_ALLOWED_TYPES = new Set(["image/png", "image/jpeg", "image/jpg"]);
 const AUTH_REQUEST_TIMEOUT_MS = 12000;
 const PROFILE_SYNC_TIMEOUT_MS = 8000;
+const ACCOUNT_SERIAL_PREFIX = "BB-2606";
 
 const BANIK_MODULES = Object.freeze([
   { key: "journal-entry", label: "Journal Entry", pages: ["journal-entry.html"] },
@@ -152,6 +153,51 @@ function isFounderEmail(email) {
   return normalizeAuthEmail(email) === normalizedFounderEmail;
 }
 
+function isValidAccountSerial(value) {
+  return new RegExp(`^${ACCOUNT_SERIAL_PREFIX}-\\d{8}$`).test(String(value || "").trim());
+}
+
+function getAccountSerialSequence(value) {
+  if (!isValidAccountSerial(value)) {
+    return 0;
+  }
+
+  return Number(String(value).slice(-8)) || 0;
+}
+
+function formatAccountSerial(sequence) {
+  return `${ACCOUNT_SERIAL_PREFIX}-${String(Number(sequence) || 0).padStart(8, "0")}`;
+}
+
+function getSortableTimestamp(value) {
+  if (value && typeof value.toDate === "function") {
+    return value.toDate().getTime();
+  }
+
+  const date = value ? new Date(value) : null;
+  return date && !Number.isNaN(date.getTime()) ? date.getTime() : 0;
+}
+
+function sortUsersForAdminSerial(left, right) {
+  const leftData = left.data || {};
+  const rightData = right.data || {};
+  const leftRoleRank = leftData.role === "admin" ? 0 : 1;
+  const rightRoleRank = rightData.role === "admin" ? 0 : 1;
+
+  if (leftRoleRank !== rightRoleRank) {
+    return leftRoleRank - rightRoleRank;
+  }
+
+  const leftCreatedAt = getSortableTimestamp(leftData.createdAt);
+  const rightCreatedAt = getSortableTimestamp(rightData.createdAt);
+
+  if (leftCreatedAt !== rightCreatedAt) {
+    return leftCreatedAt - rightCreatedAt;
+  }
+
+  return String(leftData.email || left.id).localeCompare(String(rightData.email || right.id));
+}
+
 function getCurrentHostName() {
   return window.location && window.location.hostname
     ? window.location.hostname
@@ -221,6 +267,7 @@ function normalizeUserDoc(id, data) {
     dateFormat: data.dateFormat || "DD/MM/YYYY",
     numberFormat: data.numberFormat || "1,23,456.78",
     role,
+    accountSerial: isValidAccountSerial(data.accountSerial) ? data.accountSerial : "",
     profileCompleted,
     permissions: {
       ...createPermissionMap(role === "admin"),
@@ -246,6 +293,7 @@ function createFallbackUser(firebaseUser, profile = {}) {
     companyName: profile.companyName || (role === "admin" ? "BANIK Books" : fallbackName),
     fullName: profile.fullName || firebaseUser.displayName || fallbackName,
     role,
+    accountSerial: isValidAccountSerial(profile.accountSerial) ? profile.accountSerial : "",
     emailVerified: Boolean(firebaseUser.emailVerified),
     profileCompleted: Boolean(profile.profileCompleted),
     permissions: profile.permissions || createPermissionMap(role === "admin"),
@@ -452,11 +500,14 @@ async function ensureUserProfile(firebaseUser, profile = {}) {
       lastLoginAt: serverTimestamp(),
     });
   } else {
-    await updateDoc(userRef, {
+    const existingProfile = userSnapshot.data() || {};
+    const updatePayload = {
       email: normalizeAuthEmail(firebaseUser.email),
       emailVerified: firebaseUser.emailVerified,
       lastLoginAt: serverTimestamp(),
-    });
+    };
+
+    await updateDoc(userRef, updatePayload);
   }
 
   const refreshedSnapshot = await getDoc(userRef);
@@ -634,9 +685,69 @@ async function getAuthUsers() {
 
   try {
     const snapshot = await getDocs(collection(db, "users"));
-    return snapshot.docs
-      .map((userDoc) => normalizeUserDoc(userDoc.id, userDoc.data()))
-      .sort((leftUser, rightUser) => leftUser.email.localeCompare(rightUser.email));
+    const users = [];
+    const usedSerials = new Set();
+    const serialCounterRef = doc(db, "publicSettings", "adminAccountSerial");
+    let storedLastSequence = 0;
+
+    try {
+      const serialCounterSnapshot = await getDoc(serialCounterRef);
+      storedLastSequence = Number((serialCounterSnapshot.data() || {}).lastSequence || 0);
+    } catch {
+      storedLastSequence = 0;
+    }
+
+    const records = snapshot.docs
+      .map((userDoc) => ({
+        id: userDoc.id,
+        ref: userDoc.ref,
+        data: userDoc.data() || {},
+      }))
+      .sort(sortUsersForAdminSerial);
+    let nextSequence = Math.max(
+      storedLastSequence,
+      ...records.map((record) => getAccountSerialSequence(record.data.accountSerial))
+    );
+
+    for (const userDoc of records) {
+      const data = userDoc.data;
+      const currentSerial = String(data.accountSerial || "").trim();
+
+      if (!isValidAccountSerial(currentSerial) || usedSerials.has(currentSerial)) {
+        nextSequence += 1;
+        data.accountSerial = formatAccountSerial(nextSequence);
+
+        try {
+          await updateDoc(userDoc.ref, {
+            accountSerial: data.accountSerial,
+            updatedAt: serverTimestamp(),
+          });
+        } catch {
+          // The admin screen can still show a deterministic fallback if backfill is blocked.
+        }
+      }
+
+      usedSerials.add(data.accountSerial);
+      users.push(normalizeUserDoc(userDoc.id, data));
+    }
+
+    if (nextSequence > storedLastSequence) {
+      try {
+        await setDoc(
+          serialCounterRef,
+          {
+            prefix: ACCOUNT_SERIAL_PREFIX,
+            lastSequence: nextSequence,
+            updatedAt: serverTimestamp(),
+          },
+          { merge: true }
+        );
+      } catch {
+        // Serial backfill remains visible even if the counter metadata write is blocked.
+      }
+    }
+
+    return users.sort((leftUser, rightUser) => leftUser.email.localeCompare(rightUser.email));
   } catch {
     return [];
   }
@@ -1424,10 +1535,14 @@ function renderAuthControls(user) {
     const logoutButton = target.hasAttribute("data-auth-hide-logout")
       ? ""
       : '<button class="auth-logout-button" type="button" data-auth-logout>Sign Out</button>';
+    const adminLink =
+      user.role === "admin" && !target.hasAttribute("data-auth-hide-admin-link")
+        ? '<a class="auth-link" href="/admin.html">Admin Panel</a>'
+        : "";
 
     target.innerHTML = `
       <span class="auth-user-chip">${user.role === "admin" ? "Admin" : user.companyName}</span>
-      ${user.role === "admin" ? '<a class="auth-link" href="/admin.html">Admin Panel</a>' : ""}
+      ${adminLink}
       ${logoutButton}
     `;
   });

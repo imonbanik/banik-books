@@ -1,5 +1,22 @@
 /* Admin responsive overrides */
 @media (max-width: 1024px) {
+  .page-shell.admin-page {
+    width: min(100% - 32px, 1200px);
+  }
+
+  .admin-users-toolbar {
+    flex-direction: column;
+  }
+
+  .admin-user-panel {
+    width: 100%;
+    height: clamp(400px, 56vh, 560px);
+  }
+
+  .admin-users-actions {
+    justify-content: flex-start;
+  }
+
   .admin-summary-grid {
     grid-template-columns: 1fr;
   }
@@ -10,6 +27,19 @@
 }
 
 @media (max-width: 640px) {
+  .page-shell.admin-page {
+    width: min(100% - 24px, 1200px);
+  }
+
+  .admin-topbar-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .admin-page .topbar-back-button {
+    width: 100%;
+  }
+
   .admin-hero {
     flex-direction: column;
   }
@@ -23,8 +53,23 @@
     width: 100%;
   }
 
+  .admin-users-actions,
+  .admin-sort-control,
+  .admin-sort-control select,
+  .admin-users-actions .secondary-button {
+    width: 100%;
+  }
+
+  .admin-sort-control {
+    justify-content: space-between;
+  }
+
   .admin-panel {
     padding: 20px 14px;
     border-radius: 24px;
+  }
+
+  .admin-user-panel {
+    height: 520px;
   }
 }

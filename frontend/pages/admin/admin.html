@@ -4,7 +4,7 @@
     <base href="/" />
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Admin Panel | BANIK Books</title>
+    <title>Super Admin Panel | BANIK Books</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -13,7 +13,7 @@
     <script src="./js/core/auth.js" type="module"></script>
     <script src="./js/services/api-client.js" defer></script>
   </head>
-  <body>
+  <body class="admin-body">
     <div class="page-shell admin-page">
       <header class="topbar">
         <a class="brand" href="./workspace.html">
@@ -25,20 +25,21 @@
             <span class="brand-copy__tag">Simple accounting for growing businesses</span>
           </span>
         </a>
-        <a class="topbar-back-button" href="./workspace.html">Back</a>
-        <div class="auth-controls" data-auth-controls></div>
+        <div class="admin-topbar-actions">
+          <a class="topbar-back-button admin-topbar-back-button" href="./workspace.html">Back to workspace</a>
+          <div class="auth-controls" data-auth-controls data-auth-hide-admin-link></div>
+        </div>
       </header>
 
       <main class="admin-layout">
         <section class="admin-hero">
           <div>
-            <p class="sheet-header__eyebrow">Admin Panel</p>
-            <h1>User and access control</h1>
+            <p class="sheet-header__eyebrow">Control Center</p>
+            <h1>Super Admin Panel</h1>
             <p class="lead">
               Review signed-up users and choose which BANIK Books pages each account can open.
             </p>
           </div>
-          <a class="secondary-button" href="./workspace.html">Back to workspace</a>
         </section>
 
         <section class="admin-summary-grid" id="adminSummary"></section>
@@ -50,8 +51,10 @@
               <h2>Data Operations</h2>
             </div>
             <div class="admin-ops-actions">
-              <button id="adminExportBackup" class="secondary-button" type="button">Export backup</button>
-              <label class="secondary-button admin-file-button" for="adminImportBackup">
+              <button id="adminExportBackup" class="secondary-button admin-action-button" type="button">
+                Export backup
+              </button>
+              <label class="secondary-button admin-action-button admin-file-button" for="adminImportBackup">
                 Import backup
                 <input id="adminImportBackup" type="file" accept="application/json,.json" />
               </label>
@@ -77,23 +80,35 @@
           </p>
         </section>
 
-        <section class="admin-panel">
-          <div class="sheet-header">
-            <div>
+        <section class="admin-panel admin-user-panel">
+          <div class="admin-users-toolbar">
+            <div class="admin-users-title">
               <p class="sheet-header__eyebrow">Users</p>
               <h2>Access Matrix</h2>
+              <p class="admin-users-meta" id="adminUserCount">Loading users</p>
+            </div>
+            <div class="admin-users-actions">
+              <label class="admin-sort-control" for="adminUserSort">
+                <span>Sort</span>
+                <select id="adminUserSort">
+                  <option value="name-asc">User name A-Z</option>
+                  <option value="name-desc">User name Z-A</option>
+                  <option value="email-asc">Email A-Z</option>
+                  <option value="joined-desc">Newest joined</option>
+                </select>
+              </label>
+              <button id="adminExportUsers" class="secondary-button admin-action-button admin-excel-button" type="button">
+                Download Excel
+              </button>
             </div>
           </div>
 
-          <div class="admin-table-wrap">
+          <div class="admin-table-wrap" role="region" aria-label="User access matrix" tabindex="0">
             <table class="admin-table">
               <thead id="adminTableHead"></thead>
               <tbody id="adminTableBody"></tbody>
             </table>
           </div>
-          <p class="admin-note">
-            Access changes save instantly in the backend database. New users start with workspace access only.
-          </p>
         </section>
       </main>
     </div>

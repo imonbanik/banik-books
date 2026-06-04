@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", async () => {
-  const currentUser = await window.BanikAuth.getCurrentUser();
+  const authService = await waitForAuthService();
   const summary = document.getElementById("adminSummary");
   const tableHead = document.getElementById("adminTableHead");
   const tableBody = document.getElementById("adminTableBody");
@@ -7,9 +7,35 @@ document.addEventListener("DOMContentLoaded", async () => {
   const backupStatus = document.getElementById("adminBackupStatus");
   const exportBackupButton = document.getElementById("adminExportBackup");
   const importBackupInput = document.getElementById("adminImportBackup");
+  const exportUsersButton = document.getElementById("adminExportUsers");
+  const userSortSelect = document.getElementById("adminUserSort");
+  const userCount = document.getElementById("adminUserCount");
+  let usersCache = [];
+
+  if (!authService) {
+    return;
+  }
+
+  const currentUser = await authService.getCurrentUser();
 
   if (!currentUser || currentUser.role !== "admin") {
     return;
+  }
+
+  function waitForAuthService() {
+    if (window.BanikAuth) {
+      return Promise.resolve(window.BanikAuth);
+    }
+
+    return new Promise((resolve) => {
+      const startedAt = Date.now();
+      const timer = window.setInterval(() => {
+        if (window.BanikAuth || Date.now() - startedAt > 12000) {
+          window.clearInterval(timer);
+          resolve(window.BanikAuth || null);
+        }
+      }, 80);
+    });
   }
 
   function formatDate(value) {
@@ -17,10 +43,16 @@ document.addEventListener("DOMContentLoaded", async () => {
       return "Never";
     }
 
+    const date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) {
+      return "Never";
+    }
+
     return new Intl.DateTimeFormat("en-BD", {
       dateStyle: "medium",
       timeStyle: "short",
-    }).format(new Date(value));
+    }).format(date);
   }
 
   function escapeHtml(value) {
@@ -32,6 +64,73 @@ document.addEventListener("DOMContentLoaded", async () => {
       .replace(/'/g, "&#039;");
   }
 
+  function getDisplayName(user) {
+    return String(user.fullName || user.companyName || user.email || "Unnamed user").trim();
+  }
+
+  function getAccountName(user) {
+    return String(user.companyName || user.fullName || "-").trim();
+  }
+
+  function getUserSerial(user) {
+    return String(user.accountSerial || "Pending");
+  }
+
+  function getFirebaseUid(user) {
+    return String(user.id || "-");
+  }
+
+  function getShortFirebaseUid(user) {
+    const uid = getFirebaseUid(user);
+
+    if (uid.length <= 14) {
+      return uid;
+    }
+
+    return `${uid.slice(0, 6)}...${uid.slice(-5)}`;
+  }
+
+  function getSortValue(user, mode) {
+    if (mode.startsWith("email")) {
+      return String(user.email || "").toLowerCase();
+    }
+
+    if (mode.startsWith("joined")) {
+      const joinedDate = new Date(user.createdAt || 0);
+      return Number.isNaN(joinedDate.getTime()) ? 0 : joinedDate.getTime();
+    }
+
+    return getDisplayName(user).toLowerCase();
+  }
+
+  function getSortedUsers(users) {
+    const mode = userSortSelect.value || "name-asc";
+    const sortedUsers = [...users].sort((leftUser, rightUser) => {
+      const leftRoleRank = leftUser.role === "admin" ? 0 : 1;
+      const rightRoleRank = rightUser.role === "admin" ? 0 : 1;
+
+      if (leftRoleRank !== rightRoleRank) {
+        return leftRoleRank - rightRoleRank;
+      }
+
+      const leftValue = getSortValue(leftUser, mode);
+      const rightValue = getSortValue(rightUser, mode);
+
+      if (mode === "joined-desc") {
+        return rightValue - leftValue;
+      }
+
+      const result = String(leftValue).localeCompare(String(rightValue), undefined, {
+        numeric: true,
+        sensitivity: "base",
+      });
+
+      return mode.endsWith("desc") ? -result : result;
+    });
+
+    return sortedUsers;
+  }
+
   function setBackupStatus(message, variant = "info") {
     backupStatus.textContent = message;
     backupStatus.dataset.variant = variant;
@@ -40,6 +139,50 @@ document.addEventListener("DOMContentLoaded", async () => {
   function downloadJson(filename, payload) {
     const blob = new Blob([JSON.stringify(payload, null, 2)], {
       type: "application/json;charset=utf-8",
+    });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+
+    link.href = url;
+    link.download = filename;
+    document.body.append(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  function downloadExcel(filename, headers, rows) {
+    const headHtml = headers.map((header) => `<th>${escapeHtml(header)}</th>`).join("");
+    const bodyHtml = rows
+      .map(
+        (row) => `
+          <tr>
+            ${row
+              .map(
+                (cell) =>
+                  `<td style="mso-number-format:'\\@';">${escapeHtml(cell)}</td>`
+              )
+              .join("")}
+          </tr>
+        `
+      )
+      .join("");
+    const excelHtml = `
+      <!doctype html>
+      <html>
+        <head>
+          <meta charset="UTF-8" />
+        </head>
+        <body>
+          <table border="1">
+            <thead><tr>${headHtml}</tr></thead>
+            <tbody>${bodyHtml}</tbody>
+          </table>
+        </body>
+      </html>
+    `;
+    const blob = new Blob(["\ufeff" + excelHtml], {
+      type: "application/vnd.ms-excel;charset=utf-8",
     });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
@@ -107,84 +250,142 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   }
 
-  async function getRegularUsers() {
-    return (await window.BanikAuth.getUsers()).filter((user) => user.role !== "admin");
+  function getEnabledModuleCount(user) {
+    if (user.role === "admin") {
+      return authService.modules.length;
+    }
+
+    return authService.modules.filter(
+      (module) => user.permissions && user.permissions[module.key]
+    ).length;
   }
 
-  async function renderSummary(users) {
-    const allUsers = await window.BanikAuth.getUsers();
-    const enabledCount = users.reduce((count, user) => {
-      const enabledModules = window.BanikAuth.modules.filter(
-        (module) => user.permissions && user.permissions[module.key]
-      ).length;
-      return count + enabledModules;
-    }, 0);
+  function renderSummary(users) {
+    const adminCount = users.filter((user) => user.role === "admin").length;
+    const enabledCount = users.reduce((count, user) => count + getEnabledModuleCount(user), 0);
 
     summary.innerHTML = `
       <article class="admin-summary-card">
         <span>Total users</span>
+        <small>Signed-up accounts</small>
         <strong>${users.length}</strong>
       </article>
       <article class="admin-summary-card">
         <span>Admin accounts</span>
-        <strong>${allUsers.filter((user) => user.role === "admin").length}</strong>
+        <small>Full-control users</small>
+        <strong>${adminCount}</strong>
       </article>
       <article class="admin-summary-card">
         <span>Enabled page groups</span>
+        <small>Granted module access</small>
         <strong>${enabledCount}</strong>
       </article>
     `;
   }
 
   async function persistPermission(userId, moduleKey, isEnabled) {
-    const result = await window.BanikAuth.updateUserPermission(userId, moduleKey, isEnabled);
+    const targetUser = usersCache.find((user) => user.id === userId);
+
+    if (targetUser && targetUser.role === "admin") {
+      window.alert("Admin accounts always keep full access.");
+      renderTable(usersCache);
+      return;
+    }
+
+    const result = await authService.updateUserPermission(userId, moduleKey, isEnabled);
 
     if (!result.ok) {
       window.alert(result.message || "Could not update permission.");
+      renderTable(usersCache);
+      return;
     }
 
-    await render();
+    usersCache = usersCache.map((user) => {
+      if (user.id !== userId) {
+        return user;
+      }
+
+      return {
+        ...user,
+        permissions: {
+          ...(user.permissions || {}),
+          [moduleKey]: Boolean(isEnabled),
+        },
+      };
+    });
+    renderSummary(usersCache);
+    renderTable(usersCache);
+  }
+
+  function renderUserMeta(users) {
+    const regularCount = users.filter((user) => user.role !== "admin").length;
+    const adminCount = users.length - regularCount;
+    userCount.textContent = `${users.length} total users / ${regularCount} regular / ${adminCount} admin`;
   }
 
   function renderTable(users) {
+    const sortedUsers = getSortedUsers(users);
+
     tableHead.innerHTML = `
       <tr>
-        <th>User</th>
-        <th>Account name</th>
-        <th>Joined</th>
-        <th>Last login</th>
-        ${window.BanikAuth.modules.map((module) => `<th>${module.label}</th>`).join("")}
+        <th class="admin-sticky-col admin-serial-col">Serial</th>
+        <th class="admin-sticky-col admin-user-col">User</th>
+        <th class="admin-firebase-col">Firebase UID</th>
+        <th class="admin-account-col">Account name</th>
+        <th class="admin-date-col">Joined</th>
+        <th class="admin-date-col">Last login</th>
+        ${authService.modules
+          .map(
+            (module) =>
+              `<th class="admin-access-head"><span>${escapeHtml(module.label)}</span></th>`
+          )
+          .join("")}
       </tr>
     `;
 
-    tableBody.innerHTML = users.length
-      ? users
+    tableBody.innerHTML = sortedUsers.length
+      ? sortedUsers
           .map(
             (user) => `
               <tr>
-                <td>
-                  <strong>${escapeHtml(user.email)}</strong>
-                  <span>${escapeHtml(user.id)}</span>
+                <td class="admin-sticky-col admin-serial-col admin-serial-cell">
+                  <strong>${escapeHtml(getUserSerial(user))}</strong>
                 </td>
-                <td>${escapeHtml(user.fullName || user.companyName || "-")}</td>
+                <td class="admin-sticky-col admin-user-col admin-user-cell">
+                  <strong>${escapeHtml(user.email)}</strong>
+                  <span class="admin-role-pill ${user.role === "admin" ? "is-admin" : ""}">
+                    ${escapeHtml(user.role === "admin" ? "Admin" : "User")}
+                  </span>
+                </td>
+                <td class="admin-firebase-cell" title="${escapeHtml(getFirebaseUid(user))}">
+                  ${escapeHtml(getShortFirebaseUid(user))}
+                </td>
+                <td class="admin-account-cell">${escapeHtml(getAccountName(user))}</td>
                 <td>${formatDate(user.createdAt)}</td>
                 <td>${formatDate(user.lastLoginAt)}</td>
-                ${window.BanikAuth.modules
-                  .map(
-                    (module) => `
+                ${authService.modules
+                  .map((module) => {
+                    const isEnabled =
+                      user.role === "admin" ||
+                      Boolean(user.permissions && user.permissions[module.key]);
+
+                    return `
                       <td class="admin-toggle-cell">
-                        <label class="admin-switch">
+                        <label class="admin-switch" aria-label="${escapeHtml(
+                          `${module.label} access for ${user.email}`
+                        )}">
                           <input
                             type="checkbox"
                             data-user-id="${user.id}"
                             data-module-key="${module.key}"
-                            ${user.permissions && user.permissions[module.key] ? "checked" : ""}
+                            ${isEnabled ? "checked" : ""}
+                            ${user.role === "admin" ? "disabled" : ""}
                           />
                           <span></span>
                         </label>
                       </td>
-                    `
-                  )
+                    `;
+                  })
                   .join("")}
               </tr>
             `
@@ -192,17 +393,18 @@ document.addEventListener("DOMContentLoaded", async () => {
           .join("")
       : `
         <tr>
-          <td colspan="${window.BanikAuth.modules.length + 4}" class="admin-empty">
-            No regular users have signed up yet.
+          <td colspan="${authService.modules.length + 6}" class="admin-empty">
+            No users have signed up yet.
           </td>
         </tr>
       `;
   }
 
   async function render() {
-    const users = await getRegularUsers();
-    await renderSummary(users);
-    renderTable(users);
+    usersCache = await authService.getUsers();
+    renderUserMeta(usersCache);
+    renderSummary(usersCache);
+    renderTable(usersCache);
   }
 
   tableBody.addEventListener("change", async (event) => {
@@ -214,6 +416,45 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     input.disabled = true;
     await persistPermission(input.dataset.userId, input.dataset.moduleKey, input.checked);
+  });
+
+  userSortSelect.addEventListener("change", () => {
+    renderTable(usersCache);
+  });
+
+  exportUsersButton.addEventListener("click", () => {
+    if (!usersCache.length) {
+      window.alert("No users available to export.");
+      return;
+    }
+
+    const headers = [
+      "Serial",
+      "Firebase UID",
+      "Email",
+      "Account name",
+      "Role",
+      "Joined",
+      "Last login",
+      ...authService.modules.map((module) => module.label),
+    ];
+    const rows = getSortedUsers(usersCache).map((user) => [
+      getUserSerial(user),
+      getFirebaseUid(user),
+      user.email,
+      getAccountName(user),
+        user.role,
+        formatDate(user.createdAt),
+        formatDate(user.lastLoginAt),
+        ...authService.modules.map((module) =>
+        user.role === "admin" || (user.permissions && user.permissions[module.key])
+          ? "Yes"
+          : "No"
+      ),
+    ]);
+    const datePart = new Date().toISOString().slice(0, 10);
+
+    downloadExcel(`banik-books-user-access-${datePart}.xls`, headers, rows);
   });
 
   exportBackupButton.addEventListener("click", async () => {
