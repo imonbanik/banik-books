@@ -6,14 +6,36 @@
     challans: "/api/challans",
     settings: "/api/settings",
   });
+  const AUTH_READY_TIMEOUT_MS = 15000;
+
+  function waitForBanikAuth() {
+    if (window.BanikAuth && typeof window.BanikAuth.getIdToken === "function") {
+      return Promise.resolve(window.BanikAuth);
+    }
+
+    return new Promise((resolve) => {
+      let timeoutId = 0;
+
+      const finish = () => {
+        window.clearTimeout(timeoutId);
+        window.removeEventListener("banik-auth-ready", finish);
+        resolve(window.BanikAuth || null);
+      };
+
+      window.addEventListener("banik-auth-ready", finish, { once: true });
+      timeoutId = window.setTimeout(finish, AUTH_READY_TIMEOUT_MS);
+    });
+  }
 
   async function getAuthHeaders() {
-    if (!window.BanikAuth || typeof window.BanikAuth.getIdToken !== "function") {
+    const authService = await waitForBanikAuth();
+
+    if (!authService || typeof authService.getIdToken !== "function") {
       return {};
     }
 
     try {
-      const token = await window.BanikAuth.getIdToken();
+      const token = await authService.getIdToken();
       return token ? { Authorization: `Bearer ${token}` } : {};
     } catch {
       return {};

@@ -7,6 +7,25 @@ Do not change the public version number for this section.
 
 No unreleased local changes.
 
+## Version 1.1.3 - June 2026
+
+Release type: Hosted API auth readiness fix.
+
+Deployment status: Owner approved GitHub commit and push on June 4, 2026.
+
+### Highlights
+
+- Backend API requests now wait for the Firebase auth module before sending
+  requests, preventing hosted Chart of Accounts and other backend-backed pages
+  from calling APIs without an `Authorization` bearer token.
+
+### Verification
+
+Passed locally on June 4, 2026:
+
+- `npm run check:js`
+- `npm run commercial:audit`
+
 ## Version 1.1.2 - June 2026
 
 Release type: Admin experience and hosted auth hardening release.
