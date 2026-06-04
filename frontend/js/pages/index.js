@@ -90,7 +90,9 @@ document.addEventListener("DOMContentLoaded", () => {
     } catch (error) {
       console.error("BANIK Books auth failed to complete.", error);
       setStatus(
-        "Sign-in could not complete. Check internet/Firebase domain settings, then try again.",
+        error && error.message
+          ? error.message
+          : "Sign-in could not complete. Check internet/Firebase domain settings, then try again.",
         true
       );
       submitButton.disabled = false;

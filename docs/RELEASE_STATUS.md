@@ -2,12 +2,11 @@
 
 ## Repository Status
 
-Current version: 1.1.3
+Current version: 1.1.1
 Current release: June 2026
 
-The local codebase architecture migration is complete. Version 1.1.3 adds
-sign-in fail-safe handling for hosted Firebase/Auth delays and domain
-configuration errors.
+The local codebase architecture migration is complete. Local hosted sign-in
+fallback changes are pending owner-approved commit/push.
 
 Completed inside the repository:
 

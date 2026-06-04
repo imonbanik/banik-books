@@ -38,6 +38,8 @@ const ESIGN_REQUIRED_WIDTH = 300;
 const ESIGN_REQUIRED_HEIGHT = 100;
 const PROFILE_IMAGE_MAX_BYTES = 700 * 1024;
 const PROFILE_IMAGE_ALLOWED_TYPES = new Set(["image/png", "image/jpeg", "image/jpg"]);
+const AUTH_REQUEST_TIMEOUT_MS = 12000;
+const PROFILE_SYNC_TIMEOUT_MS = 8000;
 
 const BANIK_MODULES = Object.freeze([
   { key: "journal-entry", label: "Journal Entry", pages: ["journal-entry.html"] },
@@ -118,7 +120,18 @@ if (auth) {
         return;
       }
 
-      cachedCurrentUser = await ensureUserProfile(firebaseUser);
+      try {
+        cachedCurrentUser = await withTimeout(
+          ensureUserProfile(firebaseUser),
+          PROFILE_SYNC_TIMEOUT_MS,
+          "Signed in, but profile sync did not finish. Check Firestore rules/network, then try again."
+        );
+      } catch {
+        cachedCurrentUser = createFallbackUser(firebaseUser, {
+          profileCompleted: true,
+          permissions: createPermissionMap(true),
+        });
+      }
       resolve(cachedCurrentUser);
     });
   });
@@ -137,6 +150,31 @@ function createPermissionMap(defaultValue = false) {
 
 function isFounderEmail(email) {
   return normalizeAuthEmail(email) === normalizedFounderEmail;
+}
+
+function getCurrentHostName() {
+  return window.location && window.location.hostname
+    ? window.location.hostname
+    : "this domain";
+}
+
+function createFriendlyError(message) {
+  const error = new Error(message);
+  error.friendlyMessage = message;
+  return error;
+}
+
+function withTimeout(promise, timeoutMs, message) {
+  let timeoutId = 0;
+  const timeout = new Promise((_, reject) => {
+    timeoutId = window.setTimeout(() => {
+      reject(createFriendlyError(message));
+    }, timeoutMs);
+  });
+
+  return Promise.race([promise, timeout]).finally(() => {
+    window.clearTimeout(timeoutId);
+  });
 }
 
 function assertFirebaseConfigured() {
@@ -196,6 +234,22 @@ function normalizeUserDoc(id, data) {
     profilePhotoMeta: data.profilePhotoMeta || null,
     companyLogoMeta: data.companyLogoMeta || null,
   };
+}
+
+function createFallbackUser(firebaseUser, profile = {}) {
+  const email = normalizeAuthEmail(firebaseUser && firebaseUser.email);
+  const role = isFounderEmail(email) ? "admin" : "user";
+  const fallbackName = email.split("@")[0] || "BANIK Books User";
+
+  return normalizeUserDoc(firebaseUser.uid, {
+    email,
+    companyName: profile.companyName || (role === "admin" ? "BANIK Books" : fallbackName),
+    fullName: profile.fullName || firebaseUser.displayName || fallbackName,
+    role,
+    emailVerified: Boolean(firebaseUser.emailVerified),
+    profileCompleted: Boolean(profile.profileCompleted),
+    permissions: profile.permissions || createPermissionMap(role === "admin"),
+  });
 }
 
 function getLetterheadRefs(userId) {
@@ -439,6 +493,10 @@ async function getCurrentIdToken() {
 }
 
 function getFriendlyAuthMessage(error) {
+  if (error && error.friendlyMessage) {
+    return error.friendlyMessage;
+  }
+
   const code = error && error.code;
   const messages = {
     "auth/email-already-in-use":
@@ -501,13 +559,25 @@ async function loginBanikUser(email, password) {
   }
 
   try {
-    const credential = await signInWithEmailAndPassword(
-      auth,
-      normalizeAuthEmail(email),
-      String(password || "")
+    const credential = await withTimeout(
+      signInWithEmailAndPassword(
+        auth,
+        normalizeAuthEmail(email),
+        String(password || "")
+      ),
+      AUTH_REQUEST_TIMEOUT_MS,
+      `Firebase Auth did not respond from ${getCurrentHostName()}. Add this domain in Firebase Authentication authorized domains and check internet/API key restrictions.`
     );
 
-    await credential.user.reload();
+    try {
+      await withTimeout(
+        credential.user.reload(),
+        AUTH_REQUEST_TIMEOUT_MS,
+        "Firebase Auth signed in but could not refresh verification status. Try again."
+      );
+    } catch {
+      // Continue with the current SDK user state; verification is checked below.
+    }
 
     if (!credential.user.emailVerified) {
       await sendBanikVerificationEmail(credential.user);
@@ -520,7 +590,20 @@ async function loginBanikUser(email, password) {
       };
     }
 
-    cachedCurrentUser = await ensureUserProfile(credential.user);
+    try {
+      cachedCurrentUser = await withTimeout(
+        ensureUserProfile(credential.user),
+        PROFILE_SYNC_TIMEOUT_MS,
+        "Sign-in succeeded, but Firestore profile sync did not finish."
+      );
+    } catch (profileError) {
+      console.warn("BANIK Books profile sync fallback used.", profileError);
+      cachedCurrentUser = createFallbackUser(credential.user, {
+        profileCompleted: true,
+        permissions: createPermissionMap(true),
+      });
+    }
+
     return { ok: true, user: cachedCurrentUser };
   } catch (error) {
     return { ok: false, message: getFriendlyAuthMessage(error) };
