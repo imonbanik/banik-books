@@ -28,6 +28,7 @@ const REQUIRED_PATHS = [
   "frontend/pages/accounting/chart-of-accounts.html",
   "frontend/pages/admin/admin.html",
   "frontend/styles.css",
+  "scripts/check-secrets.mjs",
   "scripts/migrate-file-to-adapter.mjs",
   "scripts/check-production-config.mjs",
   "docs/RELEASE_NOTES.md",

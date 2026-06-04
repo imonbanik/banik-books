@@ -6,12 +6,40 @@
 snapshots, pid files, logs, and generated files there unless an artifact is
 sanitized and intentionally moved into source or docs.
 
+## Environment Files
+
+Only sanitized templates should be committed:
+
+- `.env.example`
+- `.env.production.example`
+- `.env.staging.example`
+
+Never commit real environment files or credential files:
+
+- `.env`
+- `.env.local`
+- `.env.production`
+- `.env.staging`
+- Firebase Admin service account JSON files
+- Google Application Credentials JSON files
+- `.pem`, `.key`, or `.p12` private keys
+
+Run `npm run check:secrets` before pushing. If a real secret was ever pushed,
+delete is not enough; rotate the secret from its provider.
+
 ## Firebase Web Config
 
 `frontend/js/config/firebase-config.js` contains Firebase browser
 configuration. Firebase web API keys are not treated like server secrets, but
 access must be protected by Firebase Auth, Firestore rules, and Firebase project
 restrictions.
+
+## Browser Inspection
+
+Users can always inspect HTML, CSS, and browser JavaScript that is delivered to
+their browser. Do not put secrets, private pricing rules, admin decisions, or
+trust boundaries in frontend code. Protect commercial data through backend API
+auth, Firestore rules, server credentials, and storage permissions.
 
 ## Firestore Rules
 

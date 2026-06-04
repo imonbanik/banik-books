@@ -8,6 +8,7 @@ not authorize frontend design changes.
 Run:
 
 ```bash
+npm run check:secrets
 npm run commercial:audit
 npm audit --omit=dev
 ```
@@ -15,6 +16,7 @@ npm audit --omit=dev
 The audit must pass with:
 
 - No root HTML duplicates.
+- No tracked real `.env` files, service account JSON files, or private keys.
 - No `routes/compat` duplicates.
 - No direct backend-backed `localStorage.setItem` writes.
 - Active page routes and static assets returning healthy responses.
@@ -46,6 +48,7 @@ workspace ids.
 
 - Export a backup before importing or migrating data.
 - Keep `data/`, `runtime/`, and `outputs/` out of commits.
+- Keep real `.env` files and service account keys out of commits.
 - Keep server credentials outside the repository.
 - Keep `BANIK_API_TRUST_UNVERIFIED_TOKEN` disabled in production.
 

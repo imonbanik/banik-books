@@ -6,3 +6,20 @@ runtime/*.log
 *.pid
 *.log
 .DS_Store
+
+# Local environment files. Keep only sanitized examples in git.
+.env
+.env.*
+!.env.example
+!.env.production.example
+!.env.staging.example
+
+# Server credentials and private keys must stay outside the repository.
+*service-account*.json
+*serviceAccount*.json
+serviceAccountKey.json
+firebase-service-account*.json
+google-application-credentials*.json
+*.pem
+*.key
+*.p12

@@ -12,6 +12,8 @@ Do not change the public version number for this section.
 - Vercel now serves `/js`, `/css`, `/assets`, `/pages`, and `/styles.css` from
   static frontend files before falling back to `server.js`, preventing browser
   modules from being converted into Node-style `require(...)` code.
+- Git ignore rules and secret audit checks now block real `.env`, service
+  account, and private key files from being tracked.
 - Profile-sync fallback opens the workspace using authenticated user data while
   Firestore configuration is corrected.
 - Stage-specific Firebase/Auth timeout messages remain available for real
