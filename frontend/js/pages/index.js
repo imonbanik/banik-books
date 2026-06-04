@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
-  const AUTH_READY_TIMEOUT_MS = 8000;
+  const AUTH_READY_TIMEOUT_MS = 30000;
   const AUTH_ACTION_TIMEOUT_MS = 25000;
   const form = document.getElementById("home-auth-form");
   const emailInput = document.getElementById("home-auth-email");
@@ -34,20 +34,39 @@ document.addEventListener("DOMContentLoaded", () => {
     const startedAt = Date.now();
 
     return new Promise((resolve, reject) => {
+      let pollId = 0;
+      let timeoutId = 0;
+
+      const cleanup = () => {
+        window.clearTimeout(pollId);
+        window.clearTimeout(timeoutId);
+        window.removeEventListener("banik-auth-ready", checkAuthService);
+      };
+
       const checkAuthService = () => {
         if (window.BanikAuth && typeof window.BanikAuth.login === "function") {
+          cleanup();
           resolve(window.BanikAuth);
           return;
         }
 
-        if (Date.now() - startedAt >= AUTH_READY_TIMEOUT_MS) {
-          reject(new Error("Auth service did not load."));
+        if (window.BANIK_AUTH_SCRIPT_ERROR) {
+          cleanup();
+          reject(new Error("Sign-in script could not load. Hard refresh the page and try again."));
           return;
         }
 
-        window.setTimeout(checkAuthService, 75);
+        if (Date.now() - startedAt >= AUTH_READY_TIMEOUT_MS) {
+          cleanup();
+          reject(new Error("Auth service is still loading. Check connection, hard refresh, then try again."));
+          return;
+        }
+
+        pollId = window.setTimeout(checkAuthService, 100);
       };
 
+      window.addEventListener("banik-auth-ready", checkAuthService);
+      timeoutId = window.setTimeout(checkAuthService, AUTH_READY_TIMEOUT_MS);
       checkAuthService();
     });
   }

@@ -1534,3 +1534,6 @@ window.BanikAuth = {
   createPermissionMap,
   isConfigured: isFirebaseConfigured,
 };
+
+window.BANIK_AUTH_SCRIPT_READY = true;
+window.dispatchEvent(new Event("banik-auth-ready"));

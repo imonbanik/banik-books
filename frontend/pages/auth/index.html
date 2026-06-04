@@ -10,7 +10,13 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="./styles.css" />
     <script src="./js/config/app-config.js" defer></script>
-    <script src="./js/core/auth.js" type="module"></script>
+    <script
+      id="banik-auth-script"
+      src="./js/core/auth.js"
+      type="module"
+      onload="window.BANIK_AUTH_SCRIPT_LOADED=true"
+      onerror="window.BANIK_AUTH_SCRIPT_ERROR=true"
+    ></script>
   </head>
   <body>
     <div class="page-shell">

@@ -7,6 +7,8 @@ Do not change the public version number for this section.
 
 - Hosted sign-in no longer fails when Firebase Auth succeeds but Firestore
   profile sync times out.
+- Landing page now detects the auth module script loading state and waits
+  longer for hosted/CDN startup before showing an error.
 - Profile-sync fallback opens the workspace using authenticated user data while
   Firestore configuration is corrected.
 - Stage-specific Firebase/Auth timeout messages remain available for real
