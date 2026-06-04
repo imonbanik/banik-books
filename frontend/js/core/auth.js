@@ -529,7 +529,7 @@ async function getCurrentBanikUser() {
   return cachedCurrentUser;
 }
 
-async function getCurrentIdToken() {
+async function getCurrentIdToken(forceRefresh = false) {
   const configStatus = assertFirebaseConfigured();
 
   if (!configStatus.ok || !auth || !auth.currentUser || !auth.currentUser.emailVerified) {
@@ -537,7 +537,7 @@ async function getCurrentIdToken() {
   }
 
   try {
-    return auth.currentUser.getIdToken();
+    return auth.currentUser.getIdToken(Boolean(forceRefresh));
   } catch {
     return "";
   }

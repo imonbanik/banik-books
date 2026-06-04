@@ -7,6 +7,28 @@ Do not change the public version number for this section.
 
 No unreleased local changes.
 
+## Version 1.1.4 - June 2026
+
+Release type: Hosted API token retry fix.
+
+Deployment status: Owner approved GitHub commit and push on June 4, 2026.
+
+### Highlights
+
+- Backend API requests now wait for the current BANIK Books user before reading
+  the Firebase ID token.
+- Hosted API calls retry once with a freshly refreshed Firebase ID token after a
+  `401` response.
+- API errors now include the backend response message when available, making
+  production Firebase Admin configuration issues easier to identify.
+
+### Verification
+
+Passed locally on June 4, 2026:
+
+- `npm run check:js`
+- `npm run commercial:audit`
+
 ## Version 1.1.3 - June 2026
 
 Release type: Hosted API auth readiness fix.

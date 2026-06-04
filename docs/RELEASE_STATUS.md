@@ -2,11 +2,11 @@
 
 ## Repository Status
 
-Current version: 1.1.3
+Current version: 1.1.4
 Current release: June 2026
 
-The local codebase architecture migration is complete. Version 1.1.3 includes
-hosted API auth readiness fixes for backend-backed pages.
+The local codebase architecture migration is complete. Version 1.1.4 includes
+hosted API token refresh retry and clearer backend auth error reporting.
 
 Completed inside the repository:
 

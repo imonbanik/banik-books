@@ -27,7 +27,7 @@
     });
   }
 
-  async function getAuthHeaders() {
+  async function getAuthHeaders({ forceRefresh = false } = {}) {
     const authService = await waitForBanikAuth();
 
     if (!authService || typeof authService.getIdToken !== "function") {
@@ -35,7 +35,11 @@
     }
 
     try {
-      const token = await authService.getIdToken();
+      if (typeof authService.getCurrentUser === "function") {
+        await authService.getCurrentUser();
+      }
+
+      const token = await authService.getIdToken(forceRefresh);
       return token ? { Authorization: `Bearer ${token}` } : {};
     } catch {
       return {};
@@ -53,9 +57,23 @@
     };
   }
 
-  async function requestJson(url, options = {}) {
-    const authHeaders = await getAuthHeaders();
-    const response = await fetch(url, {
+  async function getApiErrorMessage(response) {
+    try {
+      const contentType = response.headers.get("content-type") || "";
+
+      if (contentType.includes("application/json")) {
+        const payload = await response.json();
+        return payload && (payload.error || payload.message) ? payload.error || payload.message : "";
+      }
+
+      return (await response.text()).trim();
+    } catch {
+      return "";
+    }
+  }
+
+  function fetchJson(url, options, authHeaders) {
+    return fetch(url, {
       headers: {
         "Content-Type": "application/json",
         ...authHeaders,
@@ -64,9 +82,22 @@
       },
       ...options,
     });
+  }
+
+  async function requestJson(url, options = {}) {
+    let authHeaders = await getAuthHeaders();
+    let response = await fetchJson(url, options, authHeaders);
+
+    if (response.status === 401) {
+      authHeaders = await getAuthHeaders({ forceRefresh: true });
+      response = await fetchJson(url, options, authHeaders);
+    }
 
     if (!response.ok) {
-      throw new Error(`API request failed: ${response.status}`);
+      const errorMessage = await getApiErrorMessage(response);
+      throw new Error(
+        `API request failed: ${response.status}${errorMessage ? ` - ${errorMessage}` : ""}`
+      );
     }
 
     return response.json();
