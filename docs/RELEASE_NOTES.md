@@ -9,6 +9,9 @@ Do not change the public version number for this section.
   profile sync times out.
 - Landing page now detects the auth module script loading state and waits
   longer for hosted/CDN startup before showing an error.
+- Vercel now serves `/js`, `/css`, `/assets`, `/pages`, and `/styles.css` from
+  static frontend files before falling back to `server.js`, preventing browser
+  modules from being converted into Node-style `require(...)` code.
 - Profile-sync fallback opens the workspace using authenticated user data while
   Firestore configuration is corrected.
 - Stage-specific Firebase/Auth timeout messages remain available for real
