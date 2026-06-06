@@ -20,10 +20,18 @@ Open the app and confirm the existing screens still look and behave as expected:
 Configure Firebase Admin credentials outside the repository:
 
 ```text
+FIREBASE_SERVICE_ACCOUNT_JSON={"type":"service_account","project_id":"..."}
+```
+
+For VPS-style hosts that can keep a private file outside the repo, this is also
+supported:
+
+```text
 GOOGLE_APPLICATION_CREDENTIALS=/secure/path/service-account.json
 ```
 
-or use host-provided Google Application Default Credentials.
+or use host-provided Google Application Default Credentials. Never commit or
+share the real service account JSON.
 
 ## Staging Deployment
 

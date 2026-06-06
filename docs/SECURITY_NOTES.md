@@ -63,8 +63,8 @@ Review it before adding new collections or admin-only features.
    - `BANIK_API_AUTH_PROVIDER=firebase`
    - `BANIK_STORAGE_ADAPTER=firebase`
    - `BANIK_ADMIN_EMAILS=owner@example.com`
-   - Firebase Admin credentials through the hosting platform or
-     `GOOGLE_APPLICATION_CREDENTIALS`.
+   - Firebase Admin credentials through the hosting platform,
+     `FIREBASE_SERVICE_ACCOUNT_JSON`, or `GOOGLE_APPLICATION_CREDENTIALS`.
 4. Configure `BANIK_ALLOWED_WORKSPACE_IDS` when a host should only serve known
    workspaces.
 5. Keep `BANIK_API_TRUST_UNVERIFIED_TOKEN` disabled in production.

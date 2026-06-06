@@ -11,6 +11,54 @@ function createFirebaseAdminError() {
   return error;
 }
 
+function createFirebaseCredentialError(message) {
+  const error = new Error(message);
+  error.statusCode = 500;
+  return error;
+}
+
+function getFirebaseServiceAccount() {
+  const rawJson = String(process.env.FIREBASE_SERVICE_ACCOUNT_JSON || "").trim();
+
+  if (!rawJson) {
+    return null;
+  }
+
+  let serviceAccount;
+
+  try {
+    serviceAccount = JSON.parse(rawJson);
+  } catch {
+    throw createFirebaseCredentialError("FIREBASE_SERVICE_ACCOUNT_JSON is not valid JSON.");
+  }
+
+  const requiredFields = ["project_id", "client_email", "private_key"];
+  const missingFields = requiredFields.filter((field) => !String(serviceAccount[field] || "").trim());
+
+  if (missingFields.length) {
+    throw createFirebaseCredentialError(
+      `FIREBASE_SERVICE_ACCOUNT_JSON is missing: ${missingFields.join(", ")}.`
+    );
+  }
+
+  serviceAccount.private_key = String(serviceAccount.private_key).replace(/\\n/g, "\n");
+  return serviceAccount;
+}
+
+function initializeFirebaseAdminApp(appModule) {
+  const serviceAccount = getFirebaseServiceAccount();
+
+  if (serviceAccount) {
+    appModule.initializeApp({
+      credential: appModule.cert(serviceAccount),
+      projectId: serviceAccount.project_id,
+    });
+    return;
+  }
+
+  appModule.initializeApp(appModule.applicationDefault());
+}
+
 function loadFirebaseAdmin() {
   if (cachedAppModule && cachedAuthModule && cachedFirestoreModule) {
     return {
@@ -29,7 +77,7 @@ function loadFirebaseAdmin() {
   }
 
   if (!cachedAppModule.getApps().length) {
-    cachedAppModule.initializeApp(cachedAppModule.applicationDefault());
+    initializeFirebaseAdminApp(cachedAppModule);
   }
 
   return {

@@ -7,6 +7,28 @@ Do not change the public version number for this section.
 
 No unreleased local changes.
 
+## Version 1.1.5 - June 2026
+
+Release type: Firebase Admin credential deployment fix.
+
+Deployment status: Owner approved GitHub commit and push on June 6, 2026.
+
+### Highlights
+
+- Backend Firebase Admin can now load server credentials from
+  `FIREBASE_SERVICE_ACCOUNT_JSON`, which fits Vercel-style environment variable
+  deployment.
+- Production config checks now validate `FIREBASE_SERVICE_ACCOUNT_JSON` when it
+  is provided and still support `GOOGLE_APPLICATION_CREDENTIALS` or host ADC.
+
+### Verification
+
+Passed locally on June 6, 2026:
+
+- `npm run check:js`
+- `npm run check:production-config` with safe sample credential shape
+- `npm run commercial:audit`
+
 ## Version 1.1.4 - June 2026
 
 Release type: Hosted API token retry fix.

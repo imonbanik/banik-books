@@ -2,11 +2,12 @@
 
 ## Repository Status
 
-Current version: 1.1.4
+Current version: 1.1.5
 Current release: June 2026
 
-The local codebase architecture migration is complete. Version 1.1.4 includes
-hosted API token refresh retry and clearer backend auth error reporting.
+The local codebase architecture migration is complete. Version 1.1.5 includes
+Firebase Admin service account JSON support for Vercel-style production
+environment variables.
 
 Completed inside the repository:
 
@@ -24,7 +25,8 @@ Completed inside the repository:
 
 These cannot be completed inside the repository without real deployment access:
 
-- Provide Firebase Admin credentials.
+- Provide Firebase Admin credentials through `FIREBASE_SERVICE_ACCOUNT_JSON`,
+  `GOOGLE_APPLICATION_CREDENTIALS`, or host-provided ADC.
 - Set real `BANIK_ADMIN_EMAILS`.
 - Deploy to a staging host.
 - Run migration against the real Firebase project.

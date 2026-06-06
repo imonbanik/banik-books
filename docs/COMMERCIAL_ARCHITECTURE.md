@@ -148,7 +148,8 @@ BANIK_FIRESTORE_ROOT_COLLECTION=banikWorkspaceData
 ```
 
 The deployment package must include `firebase-admin`, and the host must provide
-Google Application Default Credentials or `GOOGLE_APPLICATION_CREDENTIALS`.
+Firebase Admin credentials through `FIREBASE_SERVICE_ACCOUNT_JSON`,
+Google Application Default Credentials, or `GOOGLE_APPLICATION_CREDENTIALS`.
 Use `.env.production.example` for the release environment shape, then verify
 with:
 

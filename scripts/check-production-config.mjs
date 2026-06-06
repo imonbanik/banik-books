@@ -17,11 +17,43 @@ function assertEnv(name, expectedValue) {
   return value;
 }
 
-async function assertOptionalCredentialsFile() {
+function assertOptionalServiceAccountJson() {
+  const rawJson = String(process.env.FIREBASE_SERVICE_ACCOUNT_JSON || "").trim();
+
+  if (!rawJson) {
+    return false;
+  }
+
+  let serviceAccount;
+
+  try {
+    serviceAccount = JSON.parse(rawJson);
+  } catch {
+    throw new Error("FIREBASE_SERVICE_ACCOUNT_JSON is not valid JSON.");
+  }
+
+  const requiredFields = ["project_id", "client_email", "private_key"];
+  const missingFields = requiredFields.filter((field) => !String(serviceAccount[field] || "").trim());
+
+  if (missingFields.length) {
+    throw new Error(`FIREBASE_SERVICE_ACCOUNT_JSON is missing: ${missingFields.join(", ")}.`);
+  }
+
+  console.log("ok FIREBASE_SERVICE_ACCOUNT_JSON is configured");
+  return true;
+}
+
+async function assertOptionalCredentials() {
+  if (assertOptionalServiceAccountJson()) {
+    return;
+  }
+
   const credentialsPath = String(process.env.GOOGLE_APPLICATION_CREDENTIALS || "").trim();
 
   if (!credentialsPath) {
-    console.log("warn GOOGLE_APPLICATION_CREDENTIALS is not set; relying on host ADC.");
+    console.log(
+      "warn FIREBASE_SERVICE_ACCOUNT_JSON and GOOGLE_APPLICATION_CREDENTIALS are not set; relying on host ADC."
+    );
     return;
   }
 
@@ -52,7 +84,7 @@ async function run() {
   }
 
   assertFirebaseAdminInstalled();
-  await assertOptionalCredentialsFile();
+  await assertOptionalCredentials();
   console.log("Production config checks passed.");
 }
 
