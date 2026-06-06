@@ -7,6 +7,25 @@ Do not change the public version number for this section.
 
 No unreleased local changes.
 
+## Version 1.1.7 - June 2026
+
+Release type: Super Admin confirmation modal polish.
+
+Deployment status: Owner approved GitHub commit and push on June 6, 2026.
+
+### Highlights
+
+- Super Admin user Disable/Enable, Permanent Delete, and backup import
+  confirmations now use centered in-app modals with blurred background instead
+  of browser-native confirm/prompt popups.
+
+### Verification
+
+Passed locally on June 6, 2026:
+
+- `npm run check:js`
+- `npm run commercial:audit`
+
 ## Version 1.1.6 - June 2026
 
 Release type: Admin user lifecycle controls.

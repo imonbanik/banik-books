@@ -2,12 +2,11 @@
 
 ## Repository Status
 
-Current version: 1.1.6
+Current version: 1.1.7
 Current release: June 2026
 
-The local codebase architecture migration is complete. Version 1.1.6 includes
-server-backed Super Admin controls for disabling, enabling, and permanently
-deleting user accounts.
+The local codebase architecture migration is complete. Version 1.1.7 includes
+centered in-app Super Admin confirmation modals with blurred background.
 
 Completed inside the repository:
 

@@ -158,6 +158,113 @@ document.addEventListener("DOMContentLoaded", async () => {
     userStatus.dataset.variant = variant;
   }
 
+  function showAdminActionModal({
+    title,
+    message,
+    confirmLabel = "Confirm",
+    cancelLabel = "Cancel",
+    requiredText = "",
+    variant = "default",
+  }) {
+    return new Promise((resolve) => {
+      const previousFocus = document.activeElement;
+      const modal = document.createElement("div");
+      const modalId = `adminConfirmTitle${Date.now()}`;
+      const requiredTextValue = String(requiredText || "");
+      const messageLines = Array.isArray(message) ? message : [message];
+
+      modal.className = `admin-confirm-modal admin-confirm-modal--${variant}`;
+      modal.setAttribute("role", "presentation");
+      modal.innerHTML = `
+        <div class="admin-confirm-modal__dialog" role="alertdialog" aria-modal="true" aria-labelledby="${modalId}">
+          <p class="admin-confirm-modal__eyebrow">Confirm action</p>
+          <h2 id="${modalId}">${escapeHtml(title)}</h2>
+          <div class="admin-confirm-modal__message">
+            ${messageLines.map((line) => `<p>${escapeHtml(line)}</p>`).join("")}
+          </div>
+          ${
+            requiredTextValue
+              ? `<label class="admin-confirm-modal__field">
+                  <span>Type ${escapeHtml(requiredTextValue)} to continue</span>
+                  <input type="text" autocomplete="off" spellcheck="false" data-confirm-input />
+                </label>`
+              : ""
+          }
+          <div class="admin-confirm-modal__actions">
+            <button class="admin-confirm-modal__button is-cancel" type="button" data-confirm-cancel>
+              ${escapeHtml(cancelLabel)}
+            </button>
+            <button class="admin-confirm-modal__button is-confirm" type="button" data-confirm-ok ${
+              requiredTextValue ? "disabled" : ""
+            }>
+              ${escapeHtml(confirmLabel)}
+            </button>
+          </div>
+        </div>
+      `;
+
+      const close = (result) => {
+        document.removeEventListener("keydown", handleKeydown);
+        document.body.classList.remove("modal-open");
+        modal.remove();
+
+        if (previousFocus && typeof previousFocus.focus === "function") {
+          previousFocus.focus();
+        }
+
+        resolve(result);
+      };
+
+      const confirmButton = modal.querySelector("[data-confirm-ok]");
+      const cancelButton = modal.querySelector("[data-confirm-cancel]");
+      const confirmInput = modal.querySelector("[data-confirm-input]");
+
+      const updateConfirmState = () => {
+        if (!requiredTextValue || !confirmInput) {
+          return;
+        }
+
+        confirmButton.disabled = confirmInput.value.trim() !== requiredTextValue;
+      };
+
+      function handleKeydown(event) {
+        if (event.key === "Escape") {
+          event.preventDefault();
+          close(false);
+          return;
+        }
+
+        if (event.key === "Enter" && !confirmButton.disabled) {
+          event.preventDefault();
+          close(true);
+        }
+      }
+
+      modal.addEventListener("click", (event) => {
+        if (event.target === modal || event.target.closest("[data-confirm-cancel]")) {
+          close(false);
+          return;
+        }
+
+        if (event.target.closest("[data-confirm-ok]") && !confirmButton.disabled) {
+          close(true);
+        }
+      });
+
+      if (confirmInput) {
+        confirmInput.addEventListener("input", updateConfirmState);
+      }
+
+      document.addEventListener("keydown", handleKeydown);
+      document.body.append(modal);
+      document.body.classList.add("modal-open");
+
+      window.requestAnimationFrame(() => {
+        (confirmInput || cancelButton || confirmButton).focus();
+      });
+    });
+  }
+
   function downloadJson(filename, payload) {
     const blob = new Blob([JSON.stringify(payload, null, 2)], {
       type: "application/json;charset=utf-8",
@@ -490,13 +597,17 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     const actionLabel = shouldDisable ? "disable" : "enable";
-    const didConfirm = window.confirm(
-      `${shouldDisable ? "Disable" : "Enable"} ${targetUser.email}?\n\n${
+    const didConfirm = await showAdminActionModal({
+      title: `${shouldDisable ? "Disable" : "Enable"} this user?`,
+      message: [
+        targetUser.email,
         shouldDisable
           ? "They will not be able to sign in until an admin enables the account again."
-          : "They will be able to sign in again."
-      }`
-    );
+          : "They will be able to sign in again.",
+      ],
+      confirmLabel: shouldDisable ? "Disable user" : "Enable user",
+      variant: shouldDisable ? "warning" : "success",
+    });
 
     if (!didConfirm) {
       return;
@@ -542,11 +653,19 @@ document.addEventListener("DOMContentLoaded", async () => {
       return;
     }
 
-    const confirmation = window.prompt(
-      `Permanent delete ${targetUser.email}?\n\nThis removes Firebase Auth, profile, uploaded assets, and backend workspace data for this user.\n\nType DELETE to continue.`
-    );
+    const didConfirm = await showAdminActionModal({
+      title: "Permanently delete this user?",
+      message: [
+        targetUser.email,
+        "This removes Firebase Auth, profile, uploaded assets, and backend workspace data for this user.",
+        "This action cannot be undone.",
+      ],
+      confirmLabel: "Delete permanently",
+      requiredText: "DELETE",
+      variant: "danger",
+    });
 
-    if (confirmation !== "DELETE") {
+    if (!didConfirm) {
       setUserStatus("Delete cancelled.", "info");
       return;
     }
@@ -665,9 +784,16 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     try {
       const backup = JSON.parse(await file.text());
-      const confirmed = window.confirm(
-        "Importing this backup will replace backend data for the current workspace. Continue?"
-      );
+      const confirmed = await showAdminActionModal({
+        title: "Import this backup?",
+        message: [
+          file.name,
+          "Importing this backup will replace backend data for the current workspace.",
+          "Export a fresh backup first if you need a rollback copy.",
+        ],
+        confirmLabel: "Import backup",
+        variant: "warning",
+      });
 
       if (!confirmed) {
         setBackupStatus("Backup import cancelled.", "info");
