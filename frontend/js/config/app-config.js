@@ -5,7 +5,7 @@ const BANIK_BOOKS_DEFAULT_SETTINGS = Object.freeze({
     "Income and expenses are recognized when earned or incurred, not only when cash is received or paid.",
 });
 const BANIK_BOOKS_RELEASE = Object.freeze({
-  version: "1.1.5",
+  version: "1.1.6",
   releaseMonthYear: "June 2026",
 });
 

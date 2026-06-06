@@ -10,6 +10,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const exportUsersButton = document.getElementById("adminExportUsers");
   const userSortSelect = document.getElementById("adminUserSort");
   const userCount = document.getElementById("adminUserCount");
+  const userStatus = document.getElementById("adminUserStatus");
   let usersCache = [];
 
   if (!authService) {
@@ -90,6 +91,18 @@ document.addEventListener("DOMContentLoaded", async () => {
     return `${uid.slice(0, 6)}...${uid.slice(-5)}`;
   }
 
+  function isCurrentAdminUser(user) {
+    return (
+      String(user && user.id ? user.id : "") === String(currentUser.id || "") ||
+      String(user && user.email ? user.email : "").toLowerCase() ===
+        String(currentUser.email || "").toLowerCase()
+    );
+  }
+
+  function getUserStatusLabel(user) {
+    return user.disabled ? "Disabled" : "Active";
+  }
+
   function getSortValue(user, mode) {
     if (mode.startsWith("email")) {
       return String(user.email || "").toLowerCase();
@@ -134,6 +147,15 @@ document.addEventListener("DOMContentLoaded", async () => {
   function setBackupStatus(message, variant = "info") {
     backupStatus.textContent = message;
     backupStatus.dataset.variant = variant;
+  }
+
+  function setUserStatus(message, variant = "info") {
+    if (!userStatus) {
+      return;
+    }
+
+    userStatus.textContent = message;
+    userStatus.dataset.variant = variant;
   }
 
   function downloadJson(filename, payload) {
@@ -332,8 +354,10 @@ document.addEventListener("DOMContentLoaded", async () => {
         <th class="admin-sticky-col admin-user-col">User</th>
         <th class="admin-firebase-col">Firebase UID</th>
         <th class="admin-account-col">Account name</th>
+        <th class="admin-status-col">Status</th>
         <th class="admin-date-col">Joined</th>
         <th class="admin-date-col">Last login</th>
+        <th class="admin-actions-col">Actions</th>
         ${authService.modules
           .map(
             (module) =>
@@ -361,8 +385,33 @@ document.addEventListener("DOMContentLoaded", async () => {
                   ${escapeHtml(getShortFirebaseUid(user))}
                 </td>
                 <td class="admin-account-cell">${escapeHtml(getAccountName(user))}</td>
+                <td class="admin-status-cell">
+                  <span class="admin-status-pill ${user.disabled ? "is-disabled" : "is-active"}">
+                    ${escapeHtml(getUserStatusLabel(user))}
+                  </span>
+                </td>
                 <td>${formatDate(user.createdAt)}</td>
                 <td>${formatDate(user.lastLoginAt)}</td>
+                <td class="admin-user-actions-cell">
+                  <button
+                    class="admin-user-action-button ${user.disabled ? "is-enable" : "is-disable"}"
+                    type="button"
+                    data-admin-user-action="${user.disabled ? "enable" : "disable"}"
+                    data-user-id="${escapeHtml(user.id)}"
+                    ${isCurrentAdminUser(user) ? "disabled" : ""}
+                  >
+                    ${user.disabled ? "Enable" : "Disable"}
+                  </button>
+                  <button
+                    class="admin-user-action-button is-delete"
+                    type="button"
+                    data-admin-user-action="delete"
+                    data-user-id="${escapeHtml(user.id)}"
+                    ${isCurrentAdminUser(user) ? "disabled" : ""}
+                  >
+                    Delete
+                  </button>
+                </td>
                 ${authService.modules
                   .map((module) => {
                     const isEnabled =
@@ -393,7 +442,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           .join("")
       : `
         <tr>
-          <td colspan="${authService.modules.length + 6}" class="admin-empty">
+          <td colspan="${authService.modules.length + 9}" class="admin-empty">
             No users have signed up yet.
           </td>
         </tr>
@@ -422,6 +471,126 @@ document.addEventListener("DOMContentLoaded", async () => {
     renderTable(usersCache);
   });
 
+  async function persistDisabledState(userId, shouldDisable) {
+    if (!window.BanikApi || typeof window.BanikApi.setAdminUserDisabled !== "function") {
+      setUserStatus("Admin user action API is not ready.", "error");
+      return;
+    }
+
+    const targetUser = usersCache.find((user) => user.id === userId);
+
+    if (!targetUser) {
+      setUserStatus("User record was not found.", "error");
+      return;
+    }
+
+    if (isCurrentAdminUser(targetUser)) {
+      setUserStatus("You cannot disable your own admin account here.", "error");
+      return;
+    }
+
+    const actionLabel = shouldDisable ? "disable" : "enable";
+    const didConfirm = window.confirm(
+      `${shouldDisable ? "Disable" : "Enable"} ${targetUser.email}?\n\n${
+        shouldDisable
+          ? "They will not be able to sign in until an admin enables the account again."
+          : "They will be able to sign in again."
+      }`
+    );
+
+    if (!didConfirm) {
+      return;
+    }
+
+    setUserStatus(`${shouldDisable ? "Disabling" : "Enabling"} ${targetUser.email}...`, "info");
+
+    try {
+      await window.BanikApi.setAdminUserDisabled(userId, shouldDisable);
+      usersCache = usersCache.map((user) =>
+        user.id === userId
+          ? {
+              ...user,
+              disabled: shouldDisable,
+              disabledAt: shouldDisable ? new Date().toISOString() : "",
+              enabledAt: shouldDisable ? "" : new Date().toISOString(),
+            }
+          : user
+      );
+      renderSummary(usersCache);
+      renderTable(usersCache);
+      setUserStatus(`${targetUser.email} is now ${shouldDisable ? "disabled" : "enabled"}.`, "success");
+    } catch (error) {
+      setUserStatus(error.message || `Could not ${actionLabel} this user.`, "error");
+    }
+  }
+
+  async function deleteUserAccount(userId) {
+    if (!window.BanikApi || typeof window.BanikApi.deleteAdminUser !== "function") {
+      setUserStatus("Admin user delete API is not ready.", "error");
+      return;
+    }
+
+    const targetUser = usersCache.find((user) => user.id === userId);
+
+    if (!targetUser) {
+      setUserStatus("User record was not found.", "error");
+      return;
+    }
+
+    if (isCurrentAdminUser(targetUser)) {
+      setUserStatus("You cannot delete your own admin account here.", "error");
+      return;
+    }
+
+    const confirmation = window.prompt(
+      `Permanent delete ${targetUser.email}?\n\nThis removes Firebase Auth, profile, uploaded assets, and backend workspace data for this user.\n\nType DELETE to continue.`
+    );
+
+    if (confirmation !== "DELETE") {
+      setUserStatus("Delete cancelled.", "info");
+      return;
+    }
+
+    setUserStatus(`Deleting ${targetUser.email} from server...`, "info");
+
+    try {
+      await window.BanikApi.deleteAdminUser(userId);
+      usersCache = usersCache.filter((user) => user.id !== userId);
+      renderUserMeta(usersCache);
+      renderSummary(usersCache);
+      renderTable(usersCache);
+      setUserStatus(`${targetUser.email} was permanently deleted.`, "success");
+    } catch (error) {
+      setUserStatus(error.message || "Could not permanently delete this user.", "error");
+    }
+  }
+
+  tableBody.addEventListener("click", async (event) => {
+    const actionButton = event.target.closest("button[data-admin-user-action][data-user-id]");
+
+    if (!actionButton) {
+      return;
+    }
+
+    actionButton.disabled = true;
+    const action = actionButton.dataset.adminUserAction;
+    const userId = actionButton.dataset.userId;
+
+    try {
+      if (action === "disable") {
+        await persistDisabledState(userId, true);
+      } else if (action === "enable") {
+        await persistDisabledState(userId, false);
+      } else if (action === "delete") {
+        await deleteUserAccount(userId);
+      }
+    } finally {
+      if (document.body.contains(actionButton)) {
+        actionButton.disabled = false;
+      }
+    }
+  });
+
   exportUsersButton.addEventListener("click", () => {
     if (!usersCache.length) {
       window.alert("No users available to export.");
@@ -434,6 +603,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       "Email",
       "Account name",
       "Role",
+      "Status",
       "Joined",
       "Last login",
       ...authService.modules.map((module) => module.label),
@@ -443,10 +613,11 @@ document.addEventListener("DOMContentLoaded", async () => {
       getFirebaseUid(user),
       user.email,
       getAccountName(user),
-        user.role,
-        formatDate(user.createdAt),
-        formatDate(user.lastLoginAt),
-        ...authService.modules.map((module) =>
+      user.role,
+      getUserStatusLabel(user),
+      formatDate(user.createdAt),
+      formatDate(user.lastLoginAt),
+      ...authService.modules.map((module) =>
         user.role === "admin" || (user.permissions && user.permissions[module.key])
           ? "Yes"
           : "No"

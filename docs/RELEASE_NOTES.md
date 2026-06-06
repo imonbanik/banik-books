@@ -7,6 +7,29 @@ Do not change the public version number for this section.
 
 No unreleased local changes.
 
+## Version 1.1.6 - June 2026
+
+Release type: Admin user lifecycle controls.
+
+Deployment status: Owner approved GitHub commit and push on June 6, 2026.
+
+### Highlights
+
+- Super Admin Panel now has server-backed Disable/Enable and Permanent Delete
+  actions for user accounts.
+- Permanent Delete removes the Firebase Auth user, Firestore profile, uploaded
+  user assets, legacy `userData`, and backend workspace-scope records for that
+  user.
+- Disabled accounts have refresh tokens revoked and backend API token checks now
+  reject revoked/disabled Firebase sessions.
+
+### Verification
+
+Passed locally on June 6, 2026:
+
+- `npm run check:js`
+- `npm run commercial:audit`
+
 ## Version 1.1.5 - June 2026
 
 Release type: Firebase Admin credential deployment fix.

@@ -222,7 +222,36 @@
     });
   }
 
+  async function setAdminUserDisabled(userId, disabled) {
+    const normalizedUserId = String(userId || "").trim();
+
+    if (!normalizedUserId) {
+      throw new Error("Missing user id.");
+    }
+
+    const payload = await requestJson(`/api/admin/users/${encodeURIComponent(normalizedUserId)}`, {
+      method: "PATCH",
+      body: JSON.stringify({ disabled: Boolean(disabled) }),
+    });
+    return payload.user || { id: normalizedUserId, disabled: Boolean(disabled) };
+  }
+
+  async function deleteAdminUser(userId) {
+    const normalizedUserId = String(userId || "").trim();
+
+    if (!normalizedUserId) {
+      throw new Error("Missing user id.");
+    }
+
+    const payload = await requestJson(`/api/admin/users/${encodeURIComponent(normalizedUserId)}`, {
+      method: "DELETE",
+    });
+    return payload.user || { id: normalizedUserId };
+  }
+
   window.BanikApi = {
+    deleteAdminUser,
+    setAdminUserDisabled,
     hydrate,
     exportBackup,
     getSetting,

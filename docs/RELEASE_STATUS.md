@@ -2,12 +2,12 @@
 
 ## Repository Status
 
-Current version: 1.1.5
+Current version: 1.1.6
 Current release: June 2026
 
-The local codebase architecture migration is complete. Version 1.1.5 includes
-Firebase Admin service account JSON support for Vercel-style production
-environment variables.
+The local codebase architecture migration is complete. Version 1.1.6 includes
+server-backed Super Admin controls for disabling, enabling, and permanently
+deleting user accounts.
 
 Completed inside the repository:
 

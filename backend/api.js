@@ -5,6 +5,7 @@ const {
   saveItem,
 } = require("./collection-service");
 const { resolveAuthContext } = require("./auth-context");
+const { deleteUserAccount, setUserDisabled } = require("./admin-user-service");
 const { exportBackup, importBackup } = require("./backup-service");
 const { assertCollectionAccess, assertRole } = require("./permissions");
 const { assertRateLimit } = require("./rate-limit");
@@ -128,6 +129,37 @@ function handleWorkspaceApi(request, response, authContext) {
   return true;
 }
 
+async function handleAdminApi(request, response, pathParts, authContext) {
+  assertRole(authContext, "admin");
+
+  const resourceName = pathParts[2] || "";
+  const itemId = pathParts.length > 3 ? decodeURIComponent(pathParts.slice(3).join("/")) : "";
+
+  if (resourceName === "users" && itemId && request.method === "PATCH") {
+    const payload = await readJsonBody(request);
+
+    if (!Object.prototype.hasOwnProperty.call(payload, "disabled")) {
+      sendJson(response, 400, { error: "Disabled state is required." });
+      return true;
+    }
+
+    sendJson(response, 200, { user: await setUserDisabled(itemId, payload.disabled, authContext) });
+    return true;
+  }
+
+  if (resourceName === "users" && itemId && request.method === "DELETE") {
+    sendJson(response, 200, { user: await deleteUserAccount(itemId, authContext) });
+    return true;
+  }
+
+  response.writeHead(405, {
+    "Content-Type": "text/plain; charset=utf-8",
+    Allow: "PATCH, DELETE",
+  });
+  response.end("Method not allowed");
+  return true;
+}
+
 async function handleApi(request, response) {
   const url = new URL(request.url, `http://${request.headers.host}`);
   const pathParts = url.pathname.split("/").filter(Boolean);
@@ -156,6 +188,10 @@ async function handleApi(request, response) {
 
     if (routeName === "workspace") {
       return handleWorkspaceApi(request, response, authContext);
+    }
+
+    if (routeName === "admin") {
+      return await handleAdminApi(request, response, pathParts, authContext);
     }
 
     if (!collectionName) {

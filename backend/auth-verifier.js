@@ -22,7 +22,7 @@ function getFirebaseVerifier() {
 
 async function verifyFirebaseToken(token) {
   const auth = getFirebaseVerifier();
-  const decodedToken = await auth.verifyIdToken(token);
+  const decodedToken = await auth.verifyIdToken(token, true);
   const userId = decodedToken.uid || decodedToken.user_id || decodedToken.sub;
 
   if (!userId) {
