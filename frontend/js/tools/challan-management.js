@@ -99,6 +99,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   const entryModal = document.getElementById("entryChallanModal");
   const registerModal = document.getElementById("registerChallanModal");
   const entryForm = document.getElementById("entryChallanForm");
+  const entryTitle = document.getElementById("entryChallanTitle");
+  const entrySaveButton = document.getElementById("entryChallanSaveButton");
   const entryError = document.getElementById("entryChallanError");
   const entryChallanInput = document.getElementById("entryChallanNumber");
   const entryDateInput = document.getElementById("entryChallanDate");
@@ -134,6 +136,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     key: "challanDate",
     direction: "desc",
   };
+  let editingEntryId = "";
   let toastTimer = null;
   let didHydrateToolSettingsFromBackend = false;
 
@@ -887,6 +890,27 @@ document.addEventListener("DOMContentLoaded", async () => {
     return new Date(parts[2], parts[1] - 1, parts[0]).getTime();
   }
 
+  function formatDateInputFromDisplay(displayValue) {
+    if (!displayValue) {
+      return "";
+    }
+
+    if (/^\d{4}-\d{2}-\d{2}$/.test(displayValue)) {
+      return displayValue;
+    }
+
+    const parts = String(displayValue).split(/[/-]/).map((part) => part.trim());
+    if (parts.length !== 3) {
+      return "";
+    }
+
+    if (/^\d{4}$/.test(parts[0])) {
+      return [parts[0], parts[1].padStart(2, "0"), parts[2].padStart(2, "0")].join("-");
+    }
+
+    return [parts[2], parts[1].padStart(2, "0"), parts[0].padStart(2, "0")].join("-");
+  }
+
   function parseEntryTimestamp(value) {
     if (!value) {
       return null;
@@ -1017,6 +1041,14 @@ document.addEventListener("DOMContentLoaded", async () => {
     return `
       <svg viewBox="0 0 24 24" aria-hidden="true">
         <path d="M3 6h18M8 6V4h8v2m-1 4v8M9 10v8M6 6l1 15h10l1-15" />
+      </svg>
+    `;
+  }
+
+  function editIcon() {
+    return `
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M4 20h4L19 9l-4-4L4 16v4zM13 7l4 4" />
       </svg>
     `;
   }
@@ -1401,6 +1433,17 @@ document.addEventListener("DOMContentLoaded", async () => {
               <button
                 class="icon-action-button"
                 type="button"
+                data-edit-entry="${escapeHtml(entry.id)}"
+                title="Edit entry"
+                aria-label="Edit entry"
+              >
+                ${editIcon()}
+              </button>
+            </td>
+            <td class="cell-center">
+              <button
+                class="icon-action-button"
+                type="button"
                 data-download-challan="${escapeHtml(entry.challanNumber)}"
                 title="Download challan"
                 aria-label="Download challan"
@@ -1427,7 +1470,49 @@ document.addEventListener("DOMContentLoaded", async () => {
     updateSortButtons();
   }
 
-  async function openEntryModal() {
+  function setEntryMode(entryId) {
+    editingEntryId = entryId || "";
+    entryTitle.textContent = editingEntryId ? "Edit Challan" : "Record Challan";
+    entrySaveButton.textContent = editingEntryId ? "Update" : "Save";
+  }
+
+  function ensureEntryOptionsForEdit(entry) {
+    [
+      ["withheldFy", entry.withheldFy],
+      ["month", entry.monthRaw || entry.monthLabel],
+      ["taxCategory", entry.taxCategory],
+      ["taxNature", entry.taxNature],
+    ].forEach(([key, value]) => {
+      const config = getManagedEntryConfig(key);
+      if (config && value) {
+        addManagedEntryOption(config, value);
+      }
+    });
+
+    if (entry.organizationName) {
+      addOrganizationName(entry.organizationName);
+    }
+  }
+
+  function fillEntryForm(entry) {
+    ensureEntryOptionsForEdit(entry);
+    renderManagedEntryOptions(getManagedEntryConfig("withheldFy"), entry.withheldFy || "");
+    renderManagedEntryOptions(getManagedEntryConfig("month"), entry.monthRaw || entry.monthLabel || "");
+    renderManagedEntryOptions(getManagedEntryConfig("taxCategory"), entry.taxCategory || "");
+    renderManagedEntryOptions(getManagedEntryConfig("taxNature"), entry.taxNature || "");
+    MANAGED_ENTRY_OPTION_CONFIGS.forEach(toggleManagedEntryOptionState);
+    renderOrganizationOptions(entry.organizationName || "");
+    toggleNewOrganizationField();
+    entryChallanInput.value = entry.challanNumber || "";
+    entryDateInput.value = formatDateInputFromDisplay(entry.challanDate);
+    document.getElementById("entryIndividualAmount").value = formatAmount(entry.individualAmount);
+    document.getElementById("entryTotalAmount").value = formatAmount(entry.totalAmount);
+  }
+
+  async function openEntryModal(options = {}) {
+    if (!options.keepMode) {
+      setEntryMode("");
+    }
     entryModal.hidden = false;
     setEntryError("");
     await loadPartyRecordsFromBackend();
@@ -1440,12 +1525,26 @@ document.addEventListener("DOMContentLoaded", async () => {
     }, 0);
   }
 
+  async function openEntryEditModal(entryId) {
+    const entry = entries.find((item) => item.id === entryId);
+    if (!entry) {
+      showToast("Could not find this challan entry.", "error");
+      return;
+    }
+
+    registerModal.hidden = true;
+    setEntryMode(entry.id);
+    await openEntryModal({ keepMode: true });
+    fillEntryForm(entry);
+  }
+
   function closeEntryModal() {
     if (closeSeparateWindowIfNeeded()) {
       return;
     }
 
     entryModal.hidden = true;
+    setEntryMode("");
     setEntryError("");
     updateBodyModalState();
   }
@@ -1970,8 +2069,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     const entryRecord = {
-      id:
-        typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+      ...(entries.find((entry) => entry.id === editingEntryId) || {}),
+      id: editingEntryId
+        ? editingEntryId
+        : typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
           ? crypto.randomUUID()
           : String(Date.now()) + Math.random().toString(36).slice(2),
       withheldFy,
@@ -1999,7 +2100,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     entries = [savedEntry, ...entries.filter((entry) => entry.id !== savedEntry.id)];
     renderRegister();
     setEntryError("");
-    showToast("Challan entry saved successfully.", "success");
+    showToast(
+      editingEntryId ? "Challan entry updated successfully." : "Challan entry saved successfully.",
+      "success"
+    );
   });
 
   sortButtons.forEach((button) => {
@@ -2032,6 +2136,14 @@ document.addEventListener("DOMContentLoaded", async () => {
       event.preventDefault();
       event.stopPropagation();
       openChallanDownload(downloadButton.dataset.downloadChallan);
+      return;
+    }
+
+    const editButton = event.target.closest("[data-edit-entry]");
+    if (editButton) {
+      event.preventDefault();
+      event.stopPropagation();
+      await openEntryEditModal(editButton.dataset.editEntry);
       return;
     }
 

@@ -7,6 +7,27 @@ Do not change the public version number for this section.
 
 No unreleased local changes.
 
+## Version 1.1.11 - June 2026
+
+Release type: Challan Register edit workflow.
+
+Deployment status: Owner approved GitHub commit and push on June 13, 2026.
+
+### Highlights
+
+- Challan Register entries now include an Edit action.
+- Edit opens the existing Record Challan popup with the selected entry
+  prefilled.
+- Updating a challan saves back to the same backend record instead of creating a
+  duplicate entry.
+
+### Verification
+
+Passed locally on June 13, 2026:
+
+- `npm run check:js`
+- `npm run commercial:audit`
+
 ## Version 1.1.10 - June 2026
 
 Release type: Challan record save workflow polish.

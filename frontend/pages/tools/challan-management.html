@@ -625,7 +625,7 @@
 
           <div class="record-form-actions">
             <button class="record-cancel-button" type="button" data-close-entry-modal>Cancel</button>
-            <button class="record-save-button" type="submit">Save</button>
+            <button id="entryChallanSaveButton" class="record-save-button" type="submit">Save</button>
           </div>
         </form>
       </div>
@@ -767,6 +767,7 @@
                     </select>
                   </div>
                 </th>
+                <th scope="col">Edit</th>
                 <th scope="col">Download</th>
                 <th scope="col">Delete</th>
               </tr>
@@ -776,7 +777,7 @@
               <tr class="register-total-row">
                 <td class="register-total-label" colspan="7">Total Individual Amount</td>
                 <td id="registerIndividualTotal" class="cell-amount">0.00</td>
-                <td colspan="4"></td>
+                <td colspan="5"></td>
               </tr>
             </tfoot>
           </table>
