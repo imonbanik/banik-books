@@ -77,8 +77,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const tinBinInfoForm = document.getElementById("tinBinInfoForm");
   const tinBinInfoError = document.getElementById("tinBinInfoError");
   const tinBinOrganizationInput = document.getElementById("tinBinOrganizationName");
-  const tinBinTinInput = document.getElementById("tinBinTinNumber");
-  const tinBinBinInput = document.getElementById("tinBinBinNumber");
+  const tinBinPartyList = document.getElementById("tinBinPartyList");
   const tinBinInfoEmpty = document.getElementById("tinBinInfoEmpty");
   const tinBinInfoTableWrap = document.getElementById("tinBinInfoTableWrap");
   const tinBinInfoTableBody = document.getElementById("tinBinInfoTableBody");
@@ -226,7 +225,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       );
   }
 
-  async function loadTinBinInfoFromBackend() {
+  async function loadTinBinInfoFromBackend({ silent = false } = {}) {
     if (!window.BanikApi || typeof window.BanikApi.getSetting !== "function") {
       tinBinInfoRecords = [];
       return;
@@ -237,7 +236,9 @@ document.addEventListener("DOMContentLoaded", async () => {
       tinBinInfoRecords = normalizeTinBinRecords(settings && settings.records);
     } catch {
       tinBinInfoRecords = [];
-      showToast("Could not load TIN/BIN info from backend.", "error");
+      if (!silent) {
+        showToast("Could not load TIN/BIN info from backend.", "error");
+      }
     }
   }
 
@@ -316,10 +317,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     );
   }
 
-  async function loadPartyRecordsFromBackend() {
+  async function loadPartyRecordsFromBackend({ silent = false } = {}) {
     if (!window.BanikApi || typeof window.BanikApi.list !== "function") {
       partyRecords = [];
-      showToast("Backend party records are not ready.", "error");
+      if (!silent) {
+        showToast("Backend party records are not ready.", "error");
+      }
       return;
     }
 
@@ -330,8 +333,21 @@ document.addEventListener("DOMContentLoaded", async () => {
         : [];
     } catch {
       partyRecords = [];
-      showToast("Could not load Party Management names from backend.", "error");
+      if (!silent) {
+        showToast("Could not load Party Management names from backend.", "error");
+      }
     }
+  }
+
+  function warmChallanReferenceData() {
+    window.setTimeout(async () => {
+      await Promise.all([
+        loadPartyRecordsFromBackend({ silent: true }),
+        loadTinBinInfoFromBackend({ silent: true }),
+      ]);
+      renderTinBinPartyOptions();
+      renderPreparePartyOptions();
+    }, 1500);
   }
 
   function sortEntriesByCreatedAt(sourceEntries) {
@@ -993,6 +1009,19 @@ document.addEventListener("DOMContentLoaded", async () => {
     }).format(numericValue);
   }
 
+  function formatBinNumber(value) {
+    const digits = String(value || "").replace(/\D/g, "");
+    if (!digits) {
+      return "";
+    }
+
+    if (digits.length <= 4) {
+      return digits;
+    }
+
+    return digits.slice(0, -4) + "-" + digits.slice(-4);
+  }
+
   function formatAChallanAmount(value) {
     const numericValue = Number(value);
     if (!Number.isFinite(numericValue)) {
@@ -1086,12 +1115,25 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   function renderTinBinInfoTable() {
-    const records = getPartyTinBinRecords();
+    const searchValue = tinBinOrganizationInput.value.trim().toLowerCase();
+    const allRecords = getPartyTinBinRecords();
+    const records = allRecords.filter((record) =>
+      record.organizationName.toLowerCase().includes(searchValue)
+    );
+
+    if (allRecords.length === 0) {
+      tinBinInfoEmpty.hidden = false;
+      tinBinInfoTableWrap.hidden = true;
+      tinBinInfoTableBody.innerHTML = "";
+      tinBinInfoEmpty.textContent = "No Party Management TIN/BIN info yet.";
+      return;
+    }
 
     if (records.length === 0) {
       tinBinInfoEmpty.hidden = false;
       tinBinInfoTableWrap.hidden = true;
       tinBinInfoTableBody.innerHTML = "";
+      tinBinInfoEmpty.textContent = "No party matched this search.";
       return;
     }
 
@@ -1103,7 +1145,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           <tr class="tin-bin-table-row" data-select-tin-bin-party="${escapeHtml(record.id)}">
             <td>${escapeHtml(record.organizationName)}</td>
             <td>${escapeHtml(record.tinNumber || "-")}</td>
-            <td>${escapeHtml(record.binNumber || "-")}</td>
+            <td>${escapeHtml(formatBinNumber(record.binNumber) || "-")}</td>
           </tr>
         `
       )
@@ -1141,29 +1183,18 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   function renderTinBinPartyOptions() {
     const options = getPartyTinBinRecords();
-    const selectedValue = tinBinOrganizationInput.value;
-
-    tinBinOrganizationInput.innerHTML = "";
-    const placeholder = new Option("Select party", "");
-    placeholder.disabled = true;
-    placeholder.hidden = true;
-    tinBinOrganizationInput.append(placeholder);
+    tinBinPartyList.innerHTML = "";
     options.forEach((record) => {
-      const option = new Option(record.organizationName, record.id);
-      option.dataset.tinNumber = record.tinNumber;
-      option.dataset.binNumber = record.binNumber;
-      tinBinOrganizationInput.append(option);
+      const option = document.createElement("option");
+      option.value = record.organizationName;
+      option.label = [record.tinNumber, formatBinNumber(record.binNumber)].filter(Boolean).join(" · ");
+      tinBinPartyList.append(option);
     });
-    tinBinOrganizationInput.value = options.some((record) => record.id === selectedValue)
-      ? selectedValue
-      : "";
   }
 
   function updateTinBinFieldsFromParty() {
-    const record = getPartyTinBinRecords().find((item) => item.id === tinBinOrganizationInput.value);
-    tinBinTinInput.value = record ? record.tinNumber : "";
-    tinBinBinInput.value = record ? record.binNumber : "";
     setTinBinInfoError("");
+    renderTinBinInfoTable();
   }
 
   function setPrepareAChallanResult(result) {
@@ -1870,6 +1901,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   });
 
+  tinBinOrganizationInput.addEventListener("input", updateTinBinFieldsFromParty);
   tinBinOrganizationInput.addEventListener("change", updateTinBinFieldsFromParty);
 
   tinBinInfoForm.addEventListener("submit", (event) => {
@@ -1884,7 +1916,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     event.preventDefault();
     event.stopPropagation();
-    tinBinOrganizationInput.value = row.dataset.selectTinBinParty || "";
+    const record = getPartyTinBinRecords().find(
+      (item) => item.id === (row.dataset.selectTinBinParty || "")
+    );
+    tinBinOrganizationInput.value = record ? record.organizationName : "";
     updateTinBinFieldsFromParty();
   });
 
@@ -2178,15 +2213,14 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   initializeEmptyToolSettings();
   await hydrateToolSettingsFromBackend();
-  await loadPartyRecordsFromBackend();
-  await loadTinBinInfoFromBackend();
-  renderTinBinPartyOptions();
-  renderPreparePartyOptions();
   renderAllManagedEntryOptions();
   renderOrganizationOptions("");
   toggleNewOrganizationField();
   await loadCloudEntries();
   renderRegister();
+  if (!isSeparateWindow) {
+    warmChallanReferenceData();
+  }
 
   if (separateWindowType === "verification") {
     openVerificationModal();

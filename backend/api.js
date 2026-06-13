@@ -1,4 +1,5 @@
 const {
+  getItem,
   listItems,
   removeItem,
   replaceItems,
@@ -231,7 +232,11 @@ async function handleApi(request, response) {
     }
 
     if (request.method === "GET") {
-      sendJson(response, 200, { items: await listItems(collectionName, authContext) });
+      if (itemId) {
+        sendJson(response, 200, { item: await getItem(collectionName, itemId, authContext) });
+      } else {
+        sendJson(response, 200, { items: await listItems(collectionName, authContext) });
+      }
       return true;
     }
 

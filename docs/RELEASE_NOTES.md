@@ -7,6 +7,36 @@ Do not change the public version number for this section.
 
 No unreleased local changes.
 
+## Version 1.1.12 - June 2026
+
+Release type: TIN/BIN quick view and performance optimization.
+
+Deployment status: Owner approved GitHub commit and push on June 13, 2026.
+
+### Highlights
+
+- TIN/BIN Info now works as a quick-search view with live party filtering.
+- BIN numbers display in the standard split format, such as
+  `000341027-0101`.
+- Added frontend API timing logs and short in-memory caching for repeated API
+  list reads.
+- Reduced duplicate concurrent auth and collection requests.
+- Challan Management loads party/TIN-BIN reference data lazily with background
+  prefetch instead of blocking initial page load.
+- Backend API now supports direct item reads through `/api/:collection/:id`, and
+  settings reads use that smaller endpoint.
+- Firebase storage adapter now uses direct document reads for item-level API
+  requests.
+
+### Verification
+
+Passed locally on June 13, 2026:
+
+- `npm run check:js`
+- `npm run check:api`
+- `npm run check:api:http`
+- `npm run commercial:audit`
+
 ## Version 1.1.11 - June 2026
 
 Release type: Challan Register edit workflow.

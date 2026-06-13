@@ -9,6 +9,7 @@ function notImplemented() {
 module.exports = {
   deleteItem: notImplemented,
   exportScope: notImplemented,
+  getItem: notImplemented,
   importScope: notImplemented,
   listCollection: notImplemented,
   replaceCollection: notImplemented,

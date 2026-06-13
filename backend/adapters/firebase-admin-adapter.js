@@ -112,6 +112,24 @@ async function listCollection(collectionName, authContext) {
   return snapshot.docs.map((doc) => doc.data() || {});
 }
 
+async function getItem(collectionName, itemId, authContext) {
+  const normalizedId = String(itemId || "").trim();
+
+  if (!normalizedId) {
+    const error = new Error("Missing item id.");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  if (ARRAY_DOCUMENT_COLLECTIONS.has(collectionName)) {
+    const items = await listCollection(collectionName, authContext);
+    return items.find((entry) => getItemId(entry) === normalizedId) || null;
+  }
+
+  const snapshot = await getItemCollectionRef(collectionName, authContext).doc(normalizedId).get();
+  return snapshot.exists ? snapshot.data() || null : null;
+}
+
 async function replaceCollection(collectionName, items, authContext) {
   if (ARRAY_DOCUMENT_COLLECTIONS.has(collectionName)) {
     return replaceArrayDocumentCollection(collectionName, items, authContext);
@@ -235,6 +253,7 @@ async function importScope(scopedData, authContext) {
 module.exports = {
   deleteItem,
   exportScope,
+  getItem,
   importScope,
   listCollection,
   replaceCollection,

@@ -149,39 +149,15 @@
           <div class="tin-bin-entry-grid">
             <label class="record-field tin-bin-field--name" for="tinBinOrganizationName">
               <span>Organization or Individual Name</span>
-              <select
+              <input
                 id="tinBinOrganizationName"
                 name="tinBinOrganizationName"
-                required
-              >
-                <option value="" disabled selected hidden>Select party</option>
-              </select>
-            </label>
-
-            <label class="record-field" for="tinBinTinNumber">
-              <span>TIN Number</span>
-              <input
-                id="tinBinTinNumber"
-                name="tinBinTinNumber"
                 type="text"
                 autocomplete="off"
-                maxlength="12"
-                placeholder="12 digit TIN no."
-                readonly
+                list="tinBinPartyList"
+                placeholder="Write party name to search"
               />
-            </label>
-
-            <label class="record-field" for="tinBinBinNumber">
-              <span>BIN Number</span>
-              <input
-                id="tinBinBinNumber"
-                name="tinBinBinNumber"
-                type="text"
-                autocomplete="off"
-                maxlength="13"
-                placeholder="BIN no."
-                readonly
-              />
+              <datalist id="tinBinPartyList"></datalist>
             </label>
           </div>
 

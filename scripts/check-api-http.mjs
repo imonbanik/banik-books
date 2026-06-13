@@ -111,6 +111,10 @@ async function run() {
     assert.equal(savedJournal.statusCode, 200);
     assert.equal(savedJournal.body.item.number, "JV-HTTP-001");
 
+    const fetchedJournal = await requestJson(server, "/api/journals/JV-HTTP-001");
+    assert.equal(fetchedJournal.statusCode, 200);
+    assert.equal(fetchedJournal.body.item.number, "JV-HTTP-001");
+
     const backup = await requestJson(server, "/api/backups/export");
     assert.equal(backup.statusCode, 200);
     assert.equal(backup.body.data.journals.length, 1);

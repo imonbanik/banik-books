@@ -2,14 +2,14 @@
 
 ## Repository Status
 
-Current version: 1.1.11
+Current version: 1.1.12
 Current release: June 2026
 
-The local codebase architecture migration is complete. Version 1.1.11 includes
+The local codebase architecture migration is complete. Version 1.1.12 includes
 user-scoped Challan Management backend storage, Party Management sourced
 TIN/BIN quick view data, separate-window support for Challan Management popups,
 continuous Record Challan entry after save, and Challan Register edit/update
-actions.
+actions, plus frontend/backend request performance optimizations.
 
 Completed inside the repository:
 

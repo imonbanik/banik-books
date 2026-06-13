@@ -9,6 +9,7 @@ process.env.BANIK_DATA_FILE = testDataFile;
 
 const require = createRequire(import.meta.url);
 const {
+  getItem,
   listItems,
   removeItem,
   replaceItems,
@@ -105,6 +106,10 @@ async function run() {
   assert.deepEqual(await listItems("settings", workspaceContext), [
     { id: "accountingPreferences", value: { currency: "BDT" } },
   ]);
+  assert.deepEqual(await getItem("settings", "accountingPreferences", workspaceContext), {
+    id: "accountingPreferences",
+    value: { currency: "BDT" },
+  });
 
   await saveItem(
     "challans",

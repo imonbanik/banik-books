@@ -6,6 +6,7 @@ Storage adapters implement the persistence contract used by
 Required methods:
 
 - `listCollection(collectionName, authContext)`
+- `getItem(collectionName, itemId, authContext)`
 - `replaceCollection(collectionName, items, authContext)`
 - `upsertItem(collectionName, itemId, item, authContext)`
 - `deleteItem(collectionName, itemId, authContext)`

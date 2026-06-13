@@ -106,6 +106,17 @@ async function listCollection(collectionName, authContext) {
   return Array.isArray(scopedData[collectionName]) ? scopedData[collectionName] : [];
 }
 
+async function getItem(collectionName, itemId, authContext) {
+  const normalizedId = String(itemId || "").trim();
+
+  if (!normalizedId) {
+    throw new Error("Missing item id.");
+  }
+
+  const items = await listCollection(collectionName, authContext);
+  return items.find((entry) => getItemId(entry) === normalizedId) || null;
+}
+
 async function replaceCollection(collectionName, items, authContext) {
   const data = await readData();
   const scopedData = getScopedData(data, authContext);
@@ -204,6 +215,7 @@ async function importScope(scopedData, authContext) {
 module.exports = {
   deleteItem,
   exportScope,
+  getItem,
   importScope,
   listCollection,
   replaceCollection,
