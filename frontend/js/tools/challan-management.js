@@ -1,5 +1,10 @@
 document.addEventListener("DOMContentLoaded", async () => {
   const TIN_BIN_INFO_SETTING_KEY = "challanTinBinInfo";
+  const WINDOW_QUERY_KEY = "challanWindow";
+  const allowedSeparateWindows = new Set(["verification", "tin-bin", "prepare", "record", "register"]);
+  const pageParams = new URLSearchParams(window.location.search);
+  const separateWindowType = pageParams.get(WINDOW_QUERY_KEY) || "";
+  const isSeparateWindow = allowedSeparateWindows.has(separateWindowType);
   const MANAGED_ENTRY_OPTION_CONFIGS = [
     {
       key: "withheldFy",
@@ -131,6 +136,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   };
   let toastTimer = null;
   let didHydrateToolSettingsFromBackend = false;
+
+  if (isSeparateWindow) {
+    document.body.classList.add("challan-window");
+  }
 
   function initializeEmptyToolSettings() {
     managedEntryDeletedKeys = loadAllManagedEntryDeletedKeys();
@@ -320,16 +329,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       partyRecords = [];
       showToast("Could not load Party Management names from backend.", "error");
     }
-  }
-
-  async function saveTinBinInfoToBackend() {
-    if (!window.BanikApi || typeof window.BanikApi.saveSetting !== "function") {
-      throw new Error("Backend data service is not ready.");
-    }
-
-    await window.BanikApi.saveSetting(TIN_BIN_INFO_SETTING_KEY, {
-      records: tinBinInfoRecords,
-    });
   }
 
   function sortEntriesByCreatedAt(sourceEntries) {
@@ -820,6 +819,29 @@ document.addEventListener("DOMContentLoaded", async () => {
     }, 3200);
   }
 
+  function openSeparateWindow(type) {
+    if (!allowedSeparateWindows.has(type)) {
+      return;
+    }
+
+    const url = new URL(window.location.href);
+    url.searchParams.set(WINDOW_QUERY_KEY, type);
+    window.open(
+      url.toString(),
+      `banik-challan-${type}`,
+      "popup=yes,width=1080,height=760,left=120,top=80,resizable=yes,scrollbars=yes"
+    );
+  }
+
+  function closeSeparateWindowIfNeeded() {
+    if (!isSeparateWindow) {
+      return false;
+    }
+
+    window.close();
+    return true;
+  }
+
   function formatChallanValue(rawValue) {
     const digitsOnly = rawValue.replace(/\D/g, "").slice(0, 15);
     const yearPart = digitsOnly.slice(0, 4);
@@ -1032,7 +1054,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   function renderTinBinInfoTable() {
-    if (tinBinInfoRecords.length === 0) {
+    const records = getPartyTinBinRecords();
+
+    if (records.length === 0) {
       tinBinInfoEmpty.hidden = false;
       tinBinInfoTableWrap.hidden = true;
       tinBinInfoTableBody.innerHTML = "";
@@ -1041,24 +1065,13 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     tinBinInfoEmpty.hidden = true;
     tinBinInfoTableWrap.hidden = false;
-    tinBinInfoTableBody.innerHTML = tinBinInfoRecords
+    tinBinInfoTableBody.innerHTML = records
       .map(
         (record) => `
-          <tr>
+          <tr class="tin-bin-table-row" data-select-tin-bin-party="${escapeHtml(record.id)}">
             <td>${escapeHtml(record.organizationName)}</td>
             <td>${escapeHtml(record.tinNumber || "-")}</td>
             <td>${escapeHtml(record.binNumber || "-")}</td>
-            <td>
-              <button
-                class="icon-action-button icon-action-button--danger"
-                type="button"
-                data-delete-tin-bin="${escapeHtml(record.id)}"
-                title="Delete TIN/BIN info"
-                aria-label="Delete TIN/BIN info for ${escapeHtml(record.organizationName)}"
-              >
-                ${trashIcon()}
-              </button>
-            </td>
           </tr>
         `
       )
@@ -1428,6 +1441,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   function closeEntryModal() {
+    if (closeSeparateWindowIfNeeded()) {
+      return;
+    }
+
     entryModal.hidden = true;
     setEntryError("");
     updateBodyModalState();
@@ -1440,6 +1457,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   function closeRegisterModal() {
+    if (closeSeparateWindowIfNeeded()) {
+      return;
+    }
+
     registerModal.hidden = true;
     updateBodyModalState();
   }
@@ -1454,6 +1475,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   function closeVerificationModal() {
+    if (closeSeparateWindowIfNeeded()) {
+      return;
+    }
+
     verificationModal.hidden = true;
     setQuickError("");
     updateBodyModalState();
@@ -1473,6 +1498,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   function closePrepareAChallanModal() {
+    if (closeSeparateWindowIfNeeded()) {
+      return;
+    }
+
     prepareAChallanModal.hidden = true;
     setPrepareAChallanError("");
     setPrepareAChallanResult(null);
@@ -1485,7 +1514,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     renderTinBinInfoTable();
     updateBodyModalState();
     await loadPartyRecordsFromBackend();
-    await loadTinBinInfoFromBackend();
     renderTinBinPartyOptions();
     updateTinBinFieldsFromParty();
     renderTinBinInfoTable();
@@ -1495,6 +1523,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   function closeTinBinInfoModal() {
+    if (closeSeparateWindowIfNeeded()) {
+      return;
+    }
+
     tinBinInfoModal.hidden = true;
     setTinBinInfoError("");
     updateBodyModalState();
@@ -1541,6 +1573,14 @@ document.addEventListener("DOMContentLoaded", async () => {
   registerButton.addEventListener("click", openRegisterModal);
 
   document.addEventListener("click", (event) => {
+    const separateWindowButton = event.target.closest("[data-open-separate-window]");
+    if (separateWindowButton) {
+      event.preventDefault();
+      event.stopPropagation();
+      openSeparateWindow(separateWindowButton.dataset.openSeparateWindow);
+      return;
+    }
+
     if (event.target.closest("[data-close-verification-modal]")) {
       closeVerificationModal();
       return;
@@ -1731,109 +1771,22 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   });
 
-  [tinBinTinInput, tinBinBinInput].forEach((input) => {
-    input.addEventListener("input", () => {
-      input.value = input.value.replace(/\D/g, "").slice(0, Number(input.maxLength) || 13);
-      setTinBinInfoError("");
-    });
-  });
-
   tinBinOrganizationInput.addEventListener("change", updateTinBinFieldsFromParty);
 
-  tinBinInfoForm.addEventListener("submit", async (event) => {
+  tinBinInfoForm.addEventListener("submit", (event) => {
     event.preventDefault();
-
-    const selectedPartyRecord = getPartyTinBinRecords().find(
-      (record) => record.id === tinBinOrganizationInput.value
-    );
-    const organizationName = selectedPartyRecord
-      ? selectedPartyRecord.organizationName
-      : normalizeOrganizationName(tinBinOrganizationInput.value);
-    const tinNumber = tinBinTinInput.value.replace(/\D/g, "").slice(0, 12);
-    const binNumber = tinBinBinInput.value.replace(/\D/g, "").slice(0, 13);
-
-    if (!organizationName) {
-      setTinBinInfoError("Write organization or individual name.");
-      tinBinOrganizationInput.focus();
-      return;
-    }
-
-    if (!tinNumber && !binNumber) {
-      setTinBinInfoError("Enter TIN or BIN number.");
-      tinBinTinInput.focus();
-      return;
-    }
-
-    if (tinNumber && !/^\d{12}$/.test(tinNumber)) {
-      setTinBinInfoError("TIN number must be exactly 12 digits.");
-      tinBinTinInput.focus();
-      return;
-    }
-
-    const organizationKey = getOrganizationKey(organizationName);
-    const existingRecord = tinBinInfoRecords.find(
-      (record) => getOrganizationKey(record.organizationName) === organizationKey
-    );
-    const previousRecords = tinBinInfoRecords;
-    const nextRecord = {
-      id:
-        existingRecord?.id ||
-        (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
-          ? crypto.randomUUID()
-          : String(Date.now()) + Math.random().toString(36).slice(2)),
-      organizationName,
-      tinNumber,
-      binNumber,
-      updatedAt: new Date().toISOString(),
-    };
-
-    tinBinInfoRecords = normalizeTinBinRecords([
-      nextRecord,
-      ...tinBinInfoRecords.filter((record) => record.id !== nextRecord.id),
-    ]);
-
-    try {
-      await saveTinBinInfoToBackend();
-    } catch {
-      tinBinInfoRecords = previousRecords;
-      setTinBinInfoError("Could not save TIN/BIN info to backend. Check sign-in and try again.");
-      showToast("TIN/BIN info was not saved.", "error");
-      return;
-    }
-
-    tinBinInfoForm.reset();
-    setTinBinInfoError("");
-    renderTinBinInfoTable();
-    renderPreparePartyOptions();
-    showToast("TIN/BIN info saved.", "success");
   });
 
-  tinBinInfoTableBody.addEventListener("click", async (event) => {
-    const deleteButton = event.target.closest("[data-delete-tin-bin]");
-    if (!deleteButton) {
+  tinBinInfoTableBody.addEventListener("click", (event) => {
+    const row = event.target.closest("[data-select-tin-bin-party]");
+    if (!row) {
       return;
     }
 
     event.preventDefault();
     event.stopPropagation();
-    const recordId = deleteButton.dataset.deleteTinBin;
-    const previousRecords = tinBinInfoRecords;
-
-    tinBinInfoRecords = tinBinInfoRecords.filter((record) => record.id !== recordId);
-    renderTinBinInfoTable();
-
-    try {
-      await saveTinBinInfoToBackend();
-    } catch {
-      tinBinInfoRecords = previousRecords;
-      renderTinBinInfoTable();
-      renderPreparePartyOptions();
-      showToast("Could not delete TIN/BIN info from backend.", "error");
-      return;
-    }
-
-    renderPreparePartyOptions();
-    showToast("TIN/BIN info deleted.", "success");
+    tinBinOrganizationInput.value = row.dataset.selectTinBinParty || "";
+    updateTinBinFieldsFromParty();
   });
 
   MANAGED_ENTRY_OPTION_CONFIGS.forEach((config) => {
@@ -2123,4 +2076,16 @@ document.addEventListener("DOMContentLoaded", async () => {
   toggleNewOrganizationField();
   await loadCloudEntries();
   renderRegister();
+
+  if (separateWindowType === "verification") {
+    openVerificationModal();
+  } else if (separateWindowType === "tin-bin") {
+    await openTinBinInfoModal();
+  } else if (separateWindowType === "prepare") {
+    await openPrepareAChallanModal();
+  } else if (separateWindowType === "record") {
+    await openEntryModal();
+  } else if (separateWindowType === "register") {
+    openRegisterModal();
+  }
 });

@@ -358,6 +358,29 @@
   box-shadow: none;
 }
 
+.challan-modal__window {
+  margin: 0 0 0 auto;
+  min-width: 82px;
+  min-height: 42px;
+  padding: 0 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  background: rgba(255, 255, 255, 0.96);
+  color: var(--red-900);
+  font: inherit;
+  font-size: 0.86rem;
+  font-weight: 700;
+  box-shadow: none;
+  cursor: pointer;
+}
+
+.challan-modal__window:hover,
+.challan-modal__window:active {
+  transform: none;
+  filter: none;
+  background: rgba(255, 245, 244, 0.98);
+}
+
 .challan-modal__close:hover,
 .challan-modal__close:active {
   transform: none;
@@ -909,11 +932,6 @@
   line-height: 1.5;
 }
 
-.tin-bin-info-actions {
-  grid-template-columns: minmax(0, 160px);
-  justify-content: end;
-}
-
 .tin-bin-table-panel {
   display: grid;
   gap: 12px;
@@ -922,6 +940,8 @@
 
 .tin-bin-table-wrap {
   overflow-x: auto;
+  max-height: 300px;
+  overflow-y: auto;
   border-radius: 0;
   background: #ffffff;
 }
@@ -953,9 +973,16 @@
 }
 
 .tin-bin-table td:nth-child(2),
-.tin-bin-table td:nth-child(3),
-.tin-bin-table td:nth-child(4) {
+.tin-bin-table td:nth-child(3) {
   text-align: center;
+}
+
+.tin-bin-table-row {
+  cursor: pointer;
+}
+
+.tin-bin-table-row:hover {
+  background: rgba(255, 241, 241, 0.72);
 }
 
 .record-form-actions button {
@@ -988,6 +1015,33 @@
 
 .register-modal-header {
   align-items: center;
+}
+
+body.challan-window {
+  min-height: 100vh;
+  background: #fff8f7;
+}
+
+body.challan-window .page-shell,
+body.challan-window .challan-toast {
+  display: none;
+}
+
+body.challan-window .challan-modal {
+  position: fixed;
+  inset: 0;
+  padding: 16px;
+  background: rgba(255, 248, 247, 0.96);
+  backdrop-filter: none;
+}
+
+body.challan-window .challan-modal__dialog {
+  max-height: calc(100vh - 32px);
+  box-shadow: none;
+}
+
+body.challan-window .challan-modal__window {
+  display: none;
 }
 
 .challan-register-filters {

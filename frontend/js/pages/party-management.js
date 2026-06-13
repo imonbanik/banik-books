@@ -106,6 +106,7 @@ let parties = loadParties();
 let editingPartyId = "";
 let pendingDeleteId = "";
 let activeRegisterType = "Customer";
+let shouldReturnToRegisterAfterEdit = false;
 
 function loadLocalParties() {
   try {
@@ -336,6 +337,11 @@ function openModal(partyId = "") {
 function closeModal() {
   modal.hidden = true;
   editingPartyId = "";
+
+  if (shouldReturnToRegisterAfterEdit) {
+    shouldReturnToRegisterAfterEdit = false;
+    openRegister(activeRegisterType);
+  }
 }
 
 function renderDynamicFields(type, values = {}) {
@@ -821,6 +827,10 @@ document.addEventListener("click", (event) => {
   const deleteButton = event.target.closest("[data-delete-party]");
 
   if (editButton) {
+    shouldReturnToRegisterAfterEdit = !registerModal.hidden;
+    if (!registerModal.hidden) {
+      closeRegister();
+    }
     openModal(editButton.getAttribute("data-edit-party"));
   }
 

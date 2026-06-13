@@ -7,6 +7,30 @@ Do not change the public version number for this section.
 
 No unreleased local changes.
 
+## Version 1.1.9 - June 2026
+
+Release type: Challan Management popup workflow and party info polish.
+
+Deployment status: Owner approved GitHub commit and push on June 13, 2026.
+
+### Highlights
+
+- Challan Management popup windows now include a `Window` option so each tool
+  can open in a separate browser window for multi-monitor workflows.
+- Separate popup windows open directly to the selected Challan Management tool
+  and close cleanly from their own close button.
+- TIN/BIN Info now works as a read-only quick view sourced from open Party
+  Management records instead of a separate save form.
+- Party edit actions no longer leave the edit form hidden behind the Party
+  Register overlay.
+
+### Verification
+
+Passed locally on June 13, 2026:
+
+- `npm run check:js`
+- `npm run commercial:audit`
+
 ## Version 1.1.8 - June 2026
 
 Release type: Challan Management backend storage and A-Challan prepare flow.

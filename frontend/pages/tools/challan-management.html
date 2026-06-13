@@ -68,6 +68,14 @@
         <div class="record-modal-header">
           <h2 id="challanVerificationTitle">A-Challan Verification</h2>
           <button
+            class="challan-modal__window"
+            type="button"
+            data-open-separate-window="verification"
+            aria-label="Open A-Challan Verification in separate window"
+          >
+            Window
+          </button>
+          <button
             class="challan-modal__close"
             type="button"
             data-close-verification-modal
@@ -120,6 +128,14 @@
         <div class="record-modal-header">
           <h2 id="tinBinInfoTitle">TIN/BIN Info</h2>
           <button
+            class="challan-modal__window"
+            type="button"
+            data-open-separate-window="tin-bin"
+            aria-label="Open TIN/BIN Info in separate window"
+          >
+            Window
+          </button>
+          <button
             class="challan-modal__close"
             type="button"
             data-close-tin-bin-modal
@@ -148,10 +164,10 @@
                 id="tinBinTinNumber"
                 name="tinBinTinNumber"
                 type="text"
-                inputmode="numeric"
                 autocomplete="off"
                 maxlength="12"
                 placeholder="12 digit TIN no."
+                readonly
               />
             </label>
 
@@ -161,23 +177,19 @@
                 id="tinBinBinNumber"
                 name="tinBinBinNumber"
                 type="text"
-                inputmode="numeric"
                 autocomplete="off"
                 maxlength="13"
                 placeholder="BIN no."
+                readonly
               />
             </label>
           </div>
 
           <p id="tinBinInfoError" class="challan-register-error" hidden></p>
-
-          <div class="record-form-actions tin-bin-info-actions">
-            <button class="record-save-button" type="submit">Save TIN/BIN</button>
-          </div>
         </form>
 
         <div class="tin-bin-table-panel">
-          <p id="tinBinInfoEmpty" class="challan-register-empty">No saved TIN/BIN info yet.</p>
+          <p id="tinBinInfoEmpty" class="challan-register-empty">No Party Management TIN/BIN info yet.</p>
           <div id="tinBinInfoTableWrap" class="tin-bin-table-wrap" hidden>
             <table class="tin-bin-table">
               <thead>
@@ -185,7 +197,6 @@
                   <th scope="col">Organization / Individual</th>
                   <th scope="col">TIN Number</th>
                   <th scope="col">BIN Number</th>
-                  <th scope="col">Action</th>
                 </tr>
               </thead>
               <tbody id="tinBinInfoTableBody"></tbody>
@@ -204,6 +215,14 @@
       >
         <div class="record-modal-header">
           <h2 id="prepareAChallanTitle">Prepare A-Challan</h2>
+          <button
+            class="challan-modal__window"
+            type="button"
+            data-open-separate-window="prepare"
+            aria-label="Open Prepare A-Challan in separate window"
+          >
+            Window
+          </button>
           <button
             class="challan-modal__close"
             type="button"
@@ -349,6 +368,14 @@
       >
         <div class="record-modal-header">
           <h2 id="entryChallanTitle">Record Challan</h2>
+          <button
+            class="challan-modal__window"
+            type="button"
+            data-open-separate-window="record"
+            aria-label="Open Record Challan in separate window"
+          >
+            Window
+          </button>
           <button
             class="challan-modal__close"
             type="button"
@@ -616,6 +643,14 @@
             <h2 id="registerChallanTitle">Challan Register</h2>
             <p id="challanRegisterSummary" class="challan-register-summary"></p>
           </div>
+          <button
+            class="challan-modal__window"
+            type="button"
+            data-open-separate-window="register"
+            aria-label="Open Challan Register in separate window"
+          >
+            Window
+          </button>
           <button
             class="challan-modal__close"
             type="button"
