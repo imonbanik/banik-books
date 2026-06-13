@@ -678,17 +678,16 @@ button:active {
 }
 
 .profile-photo-card {
-  grid-template-rows: auto auto auto auto 1fr;
+  grid-template-rows: auto auto 1fr auto auto;
+}
+
+.profile-assets-grid .letterhead-upload-card {
+  grid-template-rows: auto auto 1fr auto auto;
 }
 
 .profile-photo-preview,
 .company-logo-preview {
   align-items: center;
-}
-
-.profile-photo-preview .profile-image-preview,
-.company-logo-preview .profile-image-preview {
-  flex: 0 0 auto;
 }
 
 .profile-file-button {
@@ -1146,6 +1145,13 @@ button:active {
   flex-basis: 96px;
   width: 96px;
   height: 64px;
+}
+
+.profile-photo-preview__media {
+  flex-basis: 68px;
+  width: 68px;
+  height: 68px;
+  border-radius: 16px;
 }
 
 .e-sign-preview .letterhead-preview__media img {

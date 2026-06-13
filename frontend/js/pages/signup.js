@@ -14,7 +14,11 @@ document.addEventListener("DOMContentLoaded", async () => {
   const eSignDropzone = document.querySelector('label[for="profileESign"]');
   const eSignRemoveButton = document.getElementById("profileESignRemoveButton");
   const profilePhotoInput = document.getElementById("profilePhoto");
+  const profilePhotoDropzone = document.querySelector('label[for="profilePhoto"]');
   const profilePhotoPreview = document.getElementById("profilePhotoPreview");
+  const profilePhotoPreviewCard = document.getElementById("profilePhotoPreviewCard");
+  const profilePhotoPreviewName = document.getElementById("profilePhotoPreviewName");
+  const profilePhotoPreviewMeta = document.getElementById("profilePhotoPreviewMeta");
   const profilePhotoStatus = document.getElementById("profilePhotoStatus");
   const profilePhotoRemoveButton = document.getElementById("profilePhotoRemoveButton");
   const companyLogoInput = document.getElementById("companyLogo");
@@ -187,6 +191,12 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     if (!asset || !asset.dataUrl) {
       container.innerHTML = `<span>${escapeHtml(emptyText)}</span>`;
+      if (container === profilePhotoPreview) {
+        profilePhotoDropzone.hidden = false;
+        profilePhotoPreviewCard.hidden = true;
+        profilePhotoPreviewName.textContent = "Photo preview";
+        profilePhotoPreviewMeta.textContent = "Square 1:1 image";
+      }
       if (container === companyLogoPreview) {
         companyLogoDropzone.hidden = false;
         companyLogoPreviewCard.hidden = true;
@@ -197,6 +207,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     container.innerHTML = `<img src="${asset.dataUrl}" alt="${escapeHtml(asset.name || "Uploaded image")}" />`;
+    if (container === profilePhotoPreview) {
+      profilePhotoDropzone.hidden = true;
+      profilePhotoPreviewCard.hidden = false;
+      profilePhotoPreviewName.textContent = asset.name || "Profile photo";
+      profilePhotoPreviewMeta.textContent = `${asset.width || 320}x${asset.height || 320}px · Ratio 1:1 · ${formatBytes(asset.size)}`;
+    }
     if (container === companyLogoPreview) {
       companyLogoDropzone.hidden = true;
       companyLogoPreviewCard.hidden = false;

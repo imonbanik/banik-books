@@ -317,6 +317,18 @@
     width: 100%;
   }
 
+  .prepare-achallan-stack {
+    grid-template-columns: 1fr;
+  }
+
+  .prepare-achallan-field--full {
+    grid-column: auto;
+  }
+
+  .tin-bin-entry-grid {
+    grid-template-columns: 1fr;
+  }
+
   .record-form-actions {
     grid-template-columns: 1fr;
   }

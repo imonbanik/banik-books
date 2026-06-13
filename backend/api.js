@@ -6,6 +6,7 @@ const {
 } = require("./collection-service");
 const { resolveAuthContext } = require("./auth-context");
 const { deleteUserAccount, setUserDisabled } = require("./admin-user-service");
+const { runAChallanAutomation } = require("./achallan-automation");
 const { exportBackup, importBackup } = require("./backup-service");
 const { assertCollectionAccess, assertRole } = require("./permissions");
 const { assertRateLimit } = require("./rate-limit");
@@ -160,6 +161,25 @@ async function handleAdminApi(request, response, pathParts, authContext) {
   return true;
 }
 
+async function handleAChallanApi(request, response, pathParts, authContext) {
+  assertRole(authContext, "user");
+
+  const actionName = pathParts[2] || "";
+
+  if (actionName === "prepare" && request.method === "POST") {
+    const payload = await readJsonBody(request);
+    sendJson(response, 200, await runAChallanAutomation(payload));
+    return true;
+  }
+
+  response.writeHead(405, {
+    "Content-Type": "text/plain; charset=utf-8",
+    Allow: "POST",
+  });
+  response.end("Method not allowed");
+  return true;
+}
+
 async function handleApi(request, response) {
   const url = new URL(request.url, `http://${request.headers.host}`);
   const pathParts = url.pathname.split("/").filter(Boolean);
@@ -192,6 +212,10 @@ async function handleApi(request, response) {
 
     if (routeName === "admin") {
       return await handleAdminApi(request, response, pathParts, authContext);
+    }
+
+    if (routeName === "achallan") {
+      return await handleAChallanApi(request, response, pathParts, authContext);
     }
 
     if (!collectionName) {

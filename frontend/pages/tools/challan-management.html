@@ -38,6 +38,12 @@
             <button id="showChallanVerification" class="challan-tool-button" type="button">
               A-Challan Verification
             </button>
+            <button id="openPrepareAChallanModal" class="challan-tool-button" type="button">
+              Prepare A-Challan
+            </button>
+            <button id="openTinBinInfoModal" class="challan-tool-button" type="button">
+              TIN/BIN Info
+            </button>
             <button id="openEntryChallanModal" class="challan-tool-button" type="button">
               Record Challan
             </button>
@@ -101,6 +107,237 @@
             <p id="challanNumberError" class="challan-register-error" hidden></p>
           </form>
         </div>
+      </div>
+    </div>
+
+    <div id="tinBinInfoModal" class="challan-modal" hidden>
+      <div
+        class="challan-modal__dialog challan-modal__dialog--tin-bin"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="tinBinInfoTitle"
+      >
+        <div class="record-modal-header">
+          <h2 id="tinBinInfoTitle">TIN/BIN Info</h2>
+          <button
+            class="challan-modal__close"
+            type="button"
+            data-close-tin-bin-modal
+            aria-label="Close"
+          >
+            &times;
+          </button>
+        </div>
+
+        <form id="tinBinInfoForm" class="record-challan-form tin-bin-info-form" novalidate>
+          <div class="tin-bin-entry-grid">
+            <label class="record-field tin-bin-field--name" for="tinBinOrganizationName">
+              <span>Organization or Individual Name</span>
+              <input
+                id="tinBinOrganizationName"
+                name="tinBinOrganizationName"
+                type="text"
+                autocomplete="off"
+                placeholder="Write organization or individual name"
+                required
+              />
+            </label>
+
+            <label class="record-field" for="tinBinTinNumber">
+              <span>TIN Number</span>
+              <input
+                id="tinBinTinNumber"
+                name="tinBinTinNumber"
+                type="text"
+                inputmode="numeric"
+                autocomplete="off"
+                maxlength="12"
+                placeholder="12 digit TIN no."
+              />
+            </label>
+
+            <label class="record-field" for="tinBinBinNumber">
+              <span>BIN Number</span>
+              <input
+                id="tinBinBinNumber"
+                name="tinBinBinNumber"
+                type="text"
+                inputmode="numeric"
+                autocomplete="off"
+                maxlength="13"
+                placeholder="BIN no."
+              />
+            </label>
+          </div>
+
+          <p id="tinBinInfoError" class="challan-register-error" hidden></p>
+
+          <div class="record-form-actions tin-bin-info-actions">
+            <button class="record-save-button" type="submit">Save TIN/BIN</button>
+          </div>
+        </form>
+
+        <div class="tin-bin-table-panel">
+          <p id="tinBinInfoEmpty" class="challan-register-empty">No saved TIN/BIN info yet.</p>
+          <div id="tinBinInfoTableWrap" class="tin-bin-table-wrap" hidden>
+            <table class="tin-bin-table">
+              <thead>
+                <tr>
+                  <th scope="col">Organization / Individual</th>
+                  <th scope="col">TIN Number</th>
+                  <th scope="col">BIN Number</th>
+                  <th scope="col">Action</th>
+                </tr>
+              </thead>
+              <tbody id="tinBinInfoTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="prepareAChallanModal" class="challan-modal" hidden>
+      <div
+        class="challan-modal__dialog challan-modal__dialog--prepare"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="prepareAChallanTitle"
+      >
+        <div class="record-modal-header">
+          <h2 id="prepareAChallanTitle">Prepare A-Challan</h2>
+          <button
+            class="challan-modal__close"
+            type="button"
+            data-close-prepare-modal
+            aria-label="Close"
+          >
+            &times;
+          </button>
+        </div>
+
+        <form id="prepareAChallanForm" class="record-challan-form prepare-achallan-form" novalidate>
+          <div class="record-form-stack prepare-achallan-stack">
+            <label class="record-field" for="prepareChallanType">
+              <span>Challan Type</span>
+              <select id="prepareChallanType" name="prepareChallanType" required>
+                <option value="" disabled selected hidden>Select challan type</option>
+                <option value="Tax">Tax</option>
+                <option value="VAT">VAT</option>
+              </select>
+            </label>
+
+            <label class="record-field" for="prepareWithholdingArea">
+              <span>Withholding Area</span>
+              <select id="prepareWithholdingArea" name="prepareWithholdingArea" required>
+                <option value="" disabled selected hidden>Select withholding area</option>
+                <option value="Salary">Salary</option>
+                <option value="Rent">Rent</option>
+                <option value="Internet">Internet</option>
+                <option value="Audit Fee">Audit Fee</option>
+              </select>
+            </label>
+
+            <label class="record-field" for="prepareDeducteeParty">
+              <span>TIN Number of Deductee</span>
+              <select id="prepareDeducteeParty" name="prepareDeducteeParty" required>
+                <option value="" disabled selected hidden>Select party</option>
+              </select>
+            </label>
+
+            <label class="record-field" for="prepareDeducteeTin">
+              <span>Deductee TIN</span>
+              <input
+                id="prepareDeducteeTin"
+                name="prepareDeducteeTin"
+                type="text"
+                autocomplete="off"
+                maxlength="12"
+                placeholder="12 digit TIN no."
+                readonly
+                required
+              />
+            </label>
+
+            <label class="record-field" for="prepareDeductorParty">
+              <span>TIN Number of Deductor</span>
+              <select id="prepareDeductorParty" name="prepareDeductorParty" required>
+                <option value="" disabled selected hidden>Select party</option>
+              </select>
+            </label>
+
+            <label class="record-field" for="prepareDeductorTin">
+              <span>Deductor TIN</span>
+              <input
+                id="prepareDeductorTin"
+                name="prepareDeductorTin"
+                type="text"
+                autocomplete="off"
+                maxlength="12"
+                placeholder="12 digit TIN no."
+                readonly
+                required
+              />
+            </label>
+
+            <label class="record-field" for="prepareAssessmentYear">
+              <span>Assessment Year</span>
+              <select id="prepareAssessmentYear" name="prepareAssessmentYear" required>
+                <option value="" disabled hidden>Select assessment year</option>
+                <option value="2026-27">2026-27</option>
+                <option value="2025-26" selected>2025-26</option>
+                <option value="2024-25">2024-25</option>
+                <option value="2023-24">2023-24</option>
+                <option value="2022-23">2022-23</option>
+                <option value="2021-22">2021-22</option>
+                <option value="2020-21">2020-21</option>
+              </select>
+            </label>
+
+            <label class="record-field" for="prepareAmount">
+              <span>Amount</span>
+              <input
+                id="prepareAmount"
+                name="prepareAmount"
+                type="text"
+                inputmode="decimal"
+                autocomplete="off"
+                placeholder="XXX,XXX.XX"
+                required
+              />
+            </label>
+
+            <label class="record-field" for="preparePhoneNumber">
+              <span>Phone Number</span>
+              <input
+                id="preparePhoneNumber"
+                name="preparePhoneNumber"
+                type="text"
+                inputmode="numeric"
+                autocomplete="off"
+                maxlength="11"
+                placeholder="01XXXXXXXXX"
+                required
+              />
+            </label>
+
+            <label class="record-field prepare-achallan-field--full" for="prepareComment">
+              <span>Comment</span>
+              <textarea
+                id="prepareComment"
+                name="prepareComment"
+                rows="3"
+                placeholder="Comment if any"
+              ></textarea>
+            </label>
+          </div>
+
+          <p id="prepareAChallanError" class="challan-register-error" hidden></p>
+          <div id="prepareAChallanResult" class="prepare-achallan-result" hidden></div>
+
+          <div class="record-form-actions prepare-achallan-actions">
+            <button class="record-save-button" type="submit">Generate A-Challan</button>
+          </div>
+        </form>
       </div>
     </div>
 

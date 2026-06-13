@@ -1,7 +1,5 @@
 document.addEventListener("DOMContentLoaded", async () => {
-  const CHALLAN_STORAGE_KEY = "banikBooksChallanRegisterEntries";
-  const ORGANIZATION_STORAGE_KEY = "banikBooksChallanOrganizations";
-  const ORGANIZATION_DELETED_STORAGE_KEY = "banikBooksChallanDeletedOrganizations";
+  const TIN_BIN_INFO_SETTING_KEY = "challanTinBinInfo";
   const MANAGED_ENTRY_OPTION_CONFIGS = [
     {
       key: "withheldFy",
@@ -65,9 +63,34 @@ document.addEventListener("DOMContentLoaded", async () => {
   const quickError = document.getElementById("challanNumberError");
 
   const entryButton = document.getElementById("openEntryChallanModal");
+  const prepareAChallanButton = document.getElementById("openPrepareAChallanModal");
+  const tinBinInfoButton = document.getElementById("openTinBinInfoModal");
   const registerButton = document.getElementById("showChallanRegister");
   const toast = document.getElementById("challanToast");
 
+  const tinBinInfoModal = document.getElementById("tinBinInfoModal");
+  const tinBinInfoForm = document.getElementById("tinBinInfoForm");
+  const tinBinInfoError = document.getElementById("tinBinInfoError");
+  const tinBinOrganizationInput = document.getElementById("tinBinOrganizationName");
+  const tinBinTinInput = document.getElementById("tinBinTinNumber");
+  const tinBinBinInput = document.getElementById("tinBinBinNumber");
+  const tinBinInfoEmpty = document.getElementById("tinBinInfoEmpty");
+  const tinBinInfoTableWrap = document.getElementById("tinBinInfoTableWrap");
+  const tinBinInfoTableBody = document.getElementById("tinBinInfoTableBody");
+  const prepareAChallanModal = document.getElementById("prepareAChallanModal");
+  const prepareAChallanForm = document.getElementById("prepareAChallanForm");
+  const prepareAChallanError = document.getElementById("prepareAChallanError");
+  const prepareAChallanResult = document.getElementById("prepareAChallanResult");
+  const prepareDeducteeParty = document.getElementById("prepareDeducteeParty");
+  const prepareDeductorParty = document.getElementById("prepareDeductorParty");
+  const prepareDeducteeTin = document.getElementById("prepareDeducteeTin");
+  const prepareDeductorTin = document.getElementById("prepareDeductorTin");
+  const prepareTinInputs = Array.from(
+    document.querySelectorAll("#prepareDeducteeTin, #prepareDeductorTin")
+  );
+  const prepareAmountInput = document.getElementById("prepareAmount");
+  const preparePhoneInput = document.getElementById("preparePhoneNumber");
+  const prepareCommentInput = document.getElementById("prepareComment");
   const entryModal = document.getElementById("entryChallanModal");
   const registerModal = document.getElementById("registerChallanModal");
   const entryForm = document.getElementById("entryChallanForm");
@@ -98,7 +121,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   let managedEntryOptions = {};
   let deletedOrganizationKeys = [];
   let organizationNames = [];
-  let currentUserStoragePrefix = "banikBooks:signedOut:challan";
+  let tinBinInfoRecords = [];
   let registerFilters = {};
   let currentRegisterRows = [];
   let currentSort = {
@@ -108,53 +131,16 @@ document.addEventListener("DOMContentLoaded", async () => {
   let toastTimer = null;
   let didHydrateToolSettingsFromBackend = false;
 
-  function getScopedStorageKey(storageKey) {
-    return currentUserStoragePrefix + ":" + storageKey;
-  }
-
-  async function prepareUserScopedLocalState() {
-    try {
-      const user =
-        window.BanikData && typeof window.BanikData.getCurrentUser === "function"
-          ? await window.BanikData.getCurrentUser()
-          : null;
-
-      if (user && user.id) {
-        currentUserStoragePrefix = "banikBooks:" + user.id + ":challan";
-      }
-    } catch {
-      currentUserStoragePrefix = "banikBooks:signedOut:challan";
-    }
-
+  function initializeEmptyToolSettings() {
     managedEntryDeletedKeys = loadAllManagedEntryDeletedKeys();
     managedEntryOptions = loadAllManagedEntryOptions();
     deletedOrganizationKeys = loadDeletedOrganizationKeys();
     organizationNames = loadOrganizationNames();
   }
 
-  function persistToolSettingsLocally() {
-    MANAGED_ENTRY_OPTION_CONFIGS.forEach((config) => {
-      localStorage.setItem(
-        getScopedStorageKey(config.storageKey),
-        JSON.stringify(managedEntryOptions[config.key] || [])
-      );
-      localStorage.setItem(
-        getScopedStorageKey(config.deletedStorageKey),
-        JSON.stringify(managedEntryDeletedKeys[config.key] || [])
-      );
-    });
-    localStorage.setItem(
-      getScopedStorageKey(ORGANIZATION_STORAGE_KEY),
-      JSON.stringify(organizationNames)
-    );
-    localStorage.setItem(
-      getScopedStorageKey(ORGANIZATION_DELETED_STORAGE_KEY),
-      JSON.stringify(deletedOrganizationKeys)
-    );
-  }
-
   async function hydrateToolSettingsFromBackend() {
     if (!window.BanikApi || typeof window.BanikApi.getSetting !== "function") {
+      showToast("Backend data service is not ready. Challan settings were not loaded.", "error");
       return;
     }
 
@@ -182,9 +168,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         ? settings.deletedOrganizationKeys
         : deletedOrganizationKeys;
       didHydrateToolSettingsFromBackend = true;
-      persistToolSettingsLocally();
     } catch {
-      // Local helper lists remain available when backend settings are unavailable.
+      showToast("Could not load challan settings from backend.", "error");
     }
   }
 
@@ -205,8 +190,52 @@ document.addEventListener("DOMContentLoaded", async () => {
         deletedOrganizationKeys,
       });
     } catch {
-      // Local helper lists remain available when backend sync is unavailable.
+      showToast("Could not save challan settings to backend.", "error");
     }
+  }
+
+  function normalizeTinBinRecords(records) {
+    if (!Array.isArray(records)) {
+      return [];
+    }
+
+    return records
+      .map((record) => ({
+        id: String(record && record.id ? record.id : ""),
+        organizationName: normalizeOrganizationName(record && record.organizationName),
+        tinNumber: String((record && record.tinNumber) || "").replace(/\D/g, "").slice(0, 12),
+        binNumber: String((record && record.binNumber) || "").replace(/\D/g, "").slice(0, 13),
+        updatedAt: String((record && record.updatedAt) || ""),
+      }))
+      .filter((record) => record.id && record.organizationName)
+      .sort((leftRecord, rightRecord) =>
+        leftRecord.organizationName.localeCompare(rightRecord.organizationName)
+      );
+  }
+
+  async function loadTinBinInfoFromBackend() {
+    if (!window.BanikApi || typeof window.BanikApi.getSetting !== "function") {
+      tinBinInfoRecords = [];
+      return;
+    }
+
+    try {
+      const settings = await window.BanikApi.getSetting(TIN_BIN_INFO_SETTING_KEY);
+      tinBinInfoRecords = normalizeTinBinRecords(settings && settings.records);
+    } catch {
+      tinBinInfoRecords = [];
+      showToast("Could not load TIN/BIN info from backend.", "error");
+    }
+  }
+
+  async function saveTinBinInfoToBackend() {
+    if (!window.BanikApi || typeof window.BanikApi.saveSetting !== "function") {
+      throw new Error("Backend data service is not ready.");
+    }
+
+    await window.BanikApi.saveSetting(TIN_BIN_INFO_SETTING_KEY, {
+      records: tinBinInfoRecords,
+    });
   }
 
   function sortEntriesByCreatedAt(sourceEntries) {
@@ -219,18 +248,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     try {
       if (window.BanikApi && typeof window.BanikApi.list === "function") {
         entries = sortEntriesByCreatedAt(await window.BanikApi.list("challans"));
-        localStorage.removeItem(CHALLAN_STORAGE_KEY);
         return;
       }
 
-      if (!window.BanikData || typeof window.BanikData.listChallans !== "function") {
-        entries = [];
-        showToast("Backend data service is not ready. Please refresh after signing in.", "error");
-        return;
-      }
-
-      entries = sortEntriesByCreatedAt(await window.BanikData.listChallans());
-      localStorage.removeItem(CHALLAN_STORAGE_KEY);
+      entries = [];
+      showToast("Backend data service is not ready. Please refresh after signing in.", "error");
     } catch {
       entries = [];
       showToast("Could not load backend challans. Check sign-in and internet connection.", "error");
@@ -242,11 +264,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       return window.BanikApi.upsert("challans", entry.id, entry);
     }
 
-    if (!window.BanikData || typeof window.BanikData.saveChallan !== "function") {
-      throw new Error("Backend data service is not ready.");
-    }
-
-    return window.BanikData.saveChallan(entry);
+    throw new Error("Backend data service is not ready.");
   }
 
   async function deleteCloudEntry(entryId) {
@@ -255,11 +273,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       return;
     }
 
-    if (!window.BanikData || typeof window.BanikData.deleteChallan !== "function") {
-      throw new Error("Backend data service is not ready.");
-    }
-
-    await window.BanikData.deleteChallan(entryId);
+    throw new Error("Backend data service is not ready.");
   }
 
   function normalizeEntryOption(value) {
@@ -271,12 +285,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   function readStorageArray(storageKey) {
-    try {
-      const parsedItems = JSON.parse(localStorage.getItem(getScopedStorageKey(storageKey)) || "[]");
-      return Array.isArray(parsedItems) ? parsedItems : [];
-    } catch {
-      return [];
-    }
+    void storageKey;
+    return [];
   }
 
   function loadAllManagedEntryDeletedKeys() {
@@ -311,18 +321,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   function persistManagedEntryOptions(config) {
-    localStorage.setItem(
-      getScopedStorageKey(config.storageKey),
-      JSON.stringify(managedEntryOptions[config.key] || [])
-    );
+    void config;
     syncToolSettingsToBackend();
   }
 
   function persistManagedEntryDeletedKeys(config) {
-    localStorage.setItem(
-      getScopedStorageKey(config.deletedStorageKey),
-      JSON.stringify(managedEntryDeletedKeys[config.key] || [])
-    );
+    void config;
     syncToolSettingsToBackend();
   }
 
@@ -535,39 +539,17 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   function loadDeletedOrganizationKeys() {
-    try {
-      const parsedKeys = JSON.parse(
-        localStorage.getItem(getScopedStorageKey(ORGANIZATION_DELETED_STORAGE_KEY)) || "[]"
-      );
-      return Array.isArray(parsedKeys) ? parsedKeys : [];
-    } catch {
-      return [];
-    }
+    return [];
   }
 
   function persistDeletedOrganizationKeys() {
-    localStorage.setItem(
-      getScopedStorageKey(ORGANIZATION_DELETED_STORAGE_KEY),
-      JSON.stringify(deletedOrganizationKeys)
-    );
     syncToolSettingsToBackend();
   }
 
   function loadOrganizationNames() {
-    let storedNames = [];
-
-    try {
-      const parsedNames = JSON.parse(
-        localStorage.getItem(getScopedStorageKey(ORGANIZATION_STORAGE_KEY)) || "[]"
-      );
-      storedNames = Array.isArray(parsedNames) ? parsedNames : [];
-    } catch {
-      storedNames = [];
-    }
-
     return Array.from(
       new Map(
-        storedNames
+        []
           .map(normalizeOrganizationName)
           .filter(Boolean)
           .filter((name) => !deletedOrganizationKeys.includes(getOrganizationKey(name)))
@@ -577,10 +559,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   function persistOrganizationNames() {
-    localStorage.setItem(
-      getScopedStorageKey(ORGANIZATION_STORAGE_KEY),
-      JSON.stringify(organizationNames)
-    );
     syncToolSettingsToBackend();
   }
 
@@ -713,7 +691,11 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   function updateBodyModalState() {
     const hasVisibleModal =
-      !verificationModal.hidden || !entryModal.hidden || !registerModal.hidden;
+      !verificationModal.hidden ||
+      !tinBinInfoModal.hidden ||
+      !prepareAChallanModal.hidden ||
+      !entryModal.hidden ||
+      !registerModal.hidden;
     document.body.classList.toggle("modal-open", hasVisibleModal);
   }
 
@@ -858,6 +840,18 @@ document.addEventListener("DOMContentLoaded", async () => {
     }).format(numericValue);
   }
 
+  function formatAChallanAmount(value) {
+    const numericValue = Number(value);
+    if (!Number.isFinite(numericValue)) {
+      return "";
+    }
+
+    return new Intl.NumberFormat("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(numericValue);
+  }
+
   function unformatAmount(value) {
     return String(value).replace(/[^\d.]/g, "");
   }
@@ -918,6 +912,98 @@ document.addEventListener("DOMContentLoaded", async () => {
   function setEntryError(message) {
     entryError.textContent = message;
     entryError.hidden = !message;
+  }
+
+  function setPrepareAChallanError(message) {
+    prepareAChallanError.textContent = message;
+    prepareAChallanError.hidden = !message;
+  }
+
+  function setTinBinInfoError(message) {
+    tinBinInfoError.textContent = message;
+    tinBinInfoError.hidden = !message;
+  }
+
+  function renderTinBinInfoTable() {
+    if (tinBinInfoRecords.length === 0) {
+      tinBinInfoEmpty.hidden = false;
+      tinBinInfoTableWrap.hidden = true;
+      tinBinInfoTableBody.innerHTML = "";
+      return;
+    }
+
+    tinBinInfoEmpty.hidden = true;
+    tinBinInfoTableWrap.hidden = false;
+    tinBinInfoTableBody.innerHTML = tinBinInfoRecords
+      .map(
+        (record) => `
+          <tr>
+            <td>${escapeHtml(record.organizationName)}</td>
+            <td>${escapeHtml(record.tinNumber || "-")}</td>
+            <td>${escapeHtml(record.binNumber || "-")}</td>
+            <td>
+              <button
+                class="icon-action-button icon-action-button--danger"
+                type="button"
+                data-delete-tin-bin="${escapeHtml(record.id)}"
+                title="Delete TIN/BIN info"
+                aria-label="Delete TIN/BIN info for ${escapeHtml(record.organizationName)}"
+              >
+                ${trashIcon()}
+              </button>
+            </td>
+          </tr>
+        `
+      )
+      .join("");
+  }
+
+  function renderPreparePartyOptions() {
+    const options = tinBinInfoRecords.filter((record) => /^\d{12}$/.test(record.tinNumber));
+
+    [prepareDeducteeParty, prepareDeductorParty].forEach((select) => {
+      const selectedValue = select.value;
+      select.innerHTML = "";
+      const placeholder = new Option("Select party", "");
+      placeholder.disabled = true;
+      placeholder.hidden = true;
+      select.append(placeholder);
+      options.forEach((record) => {
+        const option = new Option(record.organizationName, record.id);
+        option.dataset.tinNumber = record.tinNumber;
+        select.append(option);
+      });
+      select.value = options.some((record) => record.id === selectedValue) ? selectedValue : "";
+    });
+  }
+
+  function getTinBinRecordById(recordId) {
+    return tinBinInfoRecords.find((record) => record.id === recordId) || null;
+  }
+
+  function updatePrepareTinFromParty(select, tinInput) {
+    const record = getTinBinRecordById(select.value);
+    tinInput.value = record ? record.tinNumber : "";
+    setPrepareAChallanError("");
+  }
+
+  function setPrepareAChallanResult(result) {
+    if (!result) {
+      prepareAChallanResult.hidden = true;
+      prepareAChallanResult.innerHTML = "";
+      return;
+    }
+
+    const lines = [
+      escapeHtml(result.message || "A-Challan automation completed."),
+      result.trackingNumber ? "Tracking Number: " + escapeHtml(result.trackingNumber) : "",
+      result.finalUrl
+        ? `<a href="${escapeHtml(result.finalUrl)}" target="_blank" rel="noopener">Open govt result page</a>`
+        : "",
+    ].filter(Boolean);
+
+    prepareAChallanResult.innerHTML = lines.join("<br />");
+    prepareAChallanResult.hidden = false;
   }
 
   function compareValues(leftValue, rightValue) {
@@ -1238,6 +1324,43 @@ document.addEventListener("DOMContentLoaded", async () => {
     updateBodyModalState();
   }
 
+  async function openPrepareAChallanModal() {
+    prepareAChallanModal.hidden = false;
+    setPrepareAChallanError("");
+    setPrepareAChallanResult(null);
+    updateBodyModalState();
+    await loadTinBinInfoFromBackend();
+    renderPreparePartyOptions();
+    window.setTimeout(() => {
+      document.getElementById("prepareChallanType").focus();
+    }, 0);
+  }
+
+  function closePrepareAChallanModal() {
+    prepareAChallanModal.hidden = true;
+    setPrepareAChallanError("");
+    setPrepareAChallanResult(null);
+    updateBodyModalState();
+  }
+
+  async function openTinBinInfoModal() {
+    tinBinInfoModal.hidden = false;
+    setTinBinInfoError("");
+    renderTinBinInfoTable();
+    updateBodyModalState();
+    await loadTinBinInfoFromBackend();
+    renderTinBinInfoTable();
+    window.setTimeout(() => {
+      tinBinOrganizationInput.focus();
+    }, 0);
+  }
+
+  function closeTinBinInfoModal() {
+    tinBinInfoModal.hidden = true;
+    setTinBinInfoError("");
+    updateBodyModalState();
+  }
+
   function resetEntryForm() {
     entryForm.reset();
     entryChallanInput.value = "";
@@ -1251,6 +1374,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   verificationButton.addEventListener("click", openVerificationModal);
+  prepareAChallanButton.addEventListener("click", openPrepareAChallanModal);
+  tinBinInfoButton.addEventListener("click", openTinBinInfoModal);
 
   quickInput.addEventListener("input", () => {
     quickInput.value = formatChallanValue(quickInput.value);
@@ -1282,6 +1407,16 @@ document.addEventListener("DOMContentLoaded", async () => {
       return;
     }
 
+    if (event.target.closest("[data-close-prepare-modal]")) {
+      closePrepareAChallanModal();
+      return;
+    }
+
+    if (event.target.closest("[data-close-tin-bin-modal]")) {
+      closeTinBinInfoModal();
+      return;
+    }
+
     if (event.target.closest("[data-close-entry-modal]")) {
       closeEntryModal();
       return;
@@ -1295,6 +1430,18 @@ document.addEventListener("DOMContentLoaded", async () => {
   verificationModal.addEventListener("click", (event) => {
     if (!event.target.closest(".challan-modal__dialog")) {
       closeVerificationModal();
+    }
+  });
+
+  prepareAChallanModal.addEventListener("click", (event) => {
+    if (!event.target.closest(".challan-modal__dialog")) {
+      closePrepareAChallanModal();
+    }
+  });
+
+  tinBinInfoModal.addEventListener("click", (event) => {
+    if (!event.target.closest(".challan-modal__dialog")) {
+      closeTinBinInfoModal();
     }
   });
 
@@ -1319,6 +1466,14 @@ document.addEventListener("DOMContentLoaded", async () => {
       closeVerificationModal();
     }
 
+    if (!prepareAChallanModal.hidden) {
+      closePrepareAChallanModal();
+    }
+
+    if (!tinBinInfoModal.hidden) {
+      closeTinBinInfoModal();
+    }
+
     if (!entryModal.hidden) {
       closeEntryModal();
     }
@@ -1326,6 +1481,213 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (!registerModal.hidden) {
       closeRegisterModal();
     }
+  });
+
+  prepareTinInputs.forEach((input) => {
+    input.addEventListener("input", () => {
+      input.value = input.value.replace(/\D/g, "").slice(0, 12);
+      setPrepareAChallanError("");
+    });
+  });
+
+  prepareDeducteeParty.addEventListener("change", () => {
+    updatePrepareTinFromParty(prepareDeducteeParty, prepareDeducteeTin);
+  });
+
+  prepareDeductorParty.addEventListener("change", () => {
+    updatePrepareTinFromParty(prepareDeductorParty, prepareDeductorTin);
+  });
+
+  preparePhoneInput.addEventListener("input", () => {
+    preparePhoneInput.value = preparePhoneInput.value.replace(/\D/g, "").slice(0, 11);
+    setPrepareAChallanError("");
+  });
+
+  prepareAmountInput.addEventListener("input", () => {
+    prepareAmountInput.value = sanitizeAmountInput(prepareAmountInput.value);
+    setPrepareAChallanError("");
+  });
+
+  prepareAmountInput.addEventListener("focus", () => {
+    prepareAmountInput.value = unformatAmount(prepareAmountInput.value);
+  });
+
+  prepareAmountInput.addEventListener("blur", () => {
+    const amount = normalizeAmount(prepareAmountInput.value);
+    prepareAmountInput.value = amount === null ? "" : formatAChallanAmount(amount);
+  });
+
+  prepareAChallanForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    const requiredControl = Array.from(
+      prepareAChallanForm.querySelectorAll("select[required], input[required]")
+    ).find((control) => !String(control.value || "").trim());
+
+    if (requiredControl) {
+      setPrepareAChallanError("Fill all fields before generating A-Challan.");
+      requiredControl.focus();
+      return;
+    }
+
+    const invalidTinInput = prepareTinInputs.find((input) => !/^\d{12}$/.test(input.value));
+
+    if (invalidTinInput) {
+      setPrepareAChallanError("TIN number must be exactly 12 digits.");
+      invalidTinInput.focus();
+      return;
+    }
+
+    if (!/^\d{11}$/.test(preparePhoneInput.value)) {
+      setPrepareAChallanError("Phone number must be exactly 11 digits.");
+      preparePhoneInput.focus();
+      return;
+    }
+
+    if (normalizeAmount(prepareAmountInput.value) === null) {
+      setPrepareAChallanError("Enter a valid amount.");
+      prepareAmountInput.focus();
+      return;
+    }
+
+    if (!window.BanikApi || typeof window.BanikApi.prepareAChallan !== "function") {
+      setPrepareAChallanError("Backend A-Challan automation is not ready.");
+      return;
+    }
+
+    const submitButton = prepareAChallanForm.querySelector('button[type="submit"]');
+    const originalButtonText = submitButton.textContent;
+    const deducteeRecord = getTinBinRecordById(prepareDeducteeParty.value);
+    const deductorRecord = getTinBinRecordById(prepareDeductorParty.value);
+
+    setPrepareAChallanError("");
+    setPrepareAChallanResult(null);
+    submitButton.disabled = true;
+    submitButton.textContent = "Generating...";
+
+    try {
+      const result = await window.BanikApi.prepareAChallan({
+        challanType: document.getElementById("prepareChallanType").value,
+        withholdingArea: document.getElementById("prepareWithholdingArea").value,
+        deducteeName: deducteeRecord ? deducteeRecord.organizationName : "",
+        deducteeTin: prepareDeducteeTin.value,
+        deductorName: deductorRecord ? deductorRecord.organizationName : "",
+        deductorTin: prepareDeductorTin.value,
+        assessmentYear: document.getElementById("prepareAssessmentYear").value,
+        amount: prepareAmountInput.value,
+        phoneNumber: preparePhoneInput.value,
+        comment: prepareCommentInput.value,
+      });
+
+      setPrepareAChallanResult(result);
+      showToast("A-Challan automation completed.", "success");
+    } catch (error) {
+      setPrepareAChallanError(
+        String(error.message || "A-Challan automation failed.").replace(/^API request failed:\s*/, "")
+      );
+      showToast("A-Challan automation failed.", "error");
+    } finally {
+      submitButton.disabled = false;
+      submitButton.textContent = originalButtonText;
+    }
+  });
+
+  [tinBinTinInput, tinBinBinInput].forEach((input) => {
+    input.addEventListener("input", () => {
+      input.value = input.value.replace(/\D/g, "").slice(0, Number(input.maxLength) || 13);
+      setTinBinInfoError("");
+    });
+  });
+
+  tinBinInfoForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    const organizationName = normalizeOrganizationName(tinBinOrganizationInput.value);
+    const tinNumber = tinBinTinInput.value.replace(/\D/g, "").slice(0, 12);
+    const binNumber = tinBinBinInput.value.replace(/\D/g, "").slice(0, 13);
+
+    if (!organizationName) {
+      setTinBinInfoError("Write organization or individual name.");
+      tinBinOrganizationInput.focus();
+      return;
+    }
+
+    if (!tinNumber && !binNumber) {
+      setTinBinInfoError("Enter TIN or BIN number.");
+      tinBinTinInput.focus();
+      return;
+    }
+
+    if (tinNumber && !/^\d{12}$/.test(tinNumber)) {
+      setTinBinInfoError("TIN number must be exactly 12 digits.");
+      tinBinTinInput.focus();
+      return;
+    }
+
+    const organizationKey = getOrganizationKey(organizationName);
+    const existingRecord = tinBinInfoRecords.find(
+      (record) => getOrganizationKey(record.organizationName) === organizationKey
+    );
+    const previousRecords = tinBinInfoRecords;
+    const nextRecord = {
+      id:
+        existingRecord?.id ||
+        (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+          ? crypto.randomUUID()
+          : String(Date.now()) + Math.random().toString(36).slice(2)),
+      organizationName,
+      tinNumber,
+      binNumber,
+      updatedAt: new Date().toISOString(),
+    };
+
+    tinBinInfoRecords = normalizeTinBinRecords([
+      nextRecord,
+      ...tinBinInfoRecords.filter((record) => record.id !== nextRecord.id),
+    ]);
+
+    try {
+      await saveTinBinInfoToBackend();
+    } catch {
+      tinBinInfoRecords = previousRecords;
+      setTinBinInfoError("Could not save TIN/BIN info to backend. Check sign-in and try again.");
+      showToast("TIN/BIN info was not saved.", "error");
+      return;
+    }
+
+    tinBinInfoForm.reset();
+    setTinBinInfoError("");
+    renderTinBinInfoTable();
+    renderPreparePartyOptions();
+    showToast("TIN/BIN info saved.", "success");
+  });
+
+  tinBinInfoTableBody.addEventListener("click", async (event) => {
+    const deleteButton = event.target.closest("[data-delete-tin-bin]");
+    if (!deleteButton) {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+    const recordId = deleteButton.dataset.deleteTinBin;
+    const previousRecords = tinBinInfoRecords;
+
+    tinBinInfoRecords = tinBinInfoRecords.filter((record) => record.id !== recordId);
+    renderTinBinInfoTable();
+
+    try {
+      await saveTinBinInfoToBackend();
+    } catch {
+      tinBinInfoRecords = previousRecords;
+      renderTinBinInfoTable();
+      renderPreparePartyOptions();
+      showToast("Could not delete TIN/BIN info from backend.", "error");
+      return;
+    }
+
+    renderPreparePartyOptions();
+    showToast("TIN/BIN info deleted.", "success");
   });
 
   MANAGED_ENTRY_OPTION_CONFIGS.forEach((config) => {
@@ -1479,13 +1841,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       return;
     }
 
-    if (entries.some((entry) => entry.challanNumber === challanNumber)) {
-      setEntryError("This A-Challan number already exists in the register.");
-      showToast("Duplicate A-Challan number. Entry was not saved.", "error");
-      entryChallanInput.focus();
-      return;
-    }
-
     if (!challanDate) {
       setEntryError("Select an A-Challan date.");
       return;
@@ -1611,8 +1966,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     showToast("Challan entry deleted.", "success");
   });
 
-  await prepareUserScopedLocalState();
+  initializeEmptyToolSettings();
   await hydrateToolSettingsFromBackend();
+  await loadTinBinInfoFromBackend();
+  renderPreparePartyOptions();
   renderAllManagedEntryOptions();
   renderOrganizationOptions("");
   toggleNewOrganizationField();

@@ -7,6 +7,34 @@ Do not change the public version number for this section.
 
 No unreleased local changes.
 
+## Version 1.1.8 - June 2026
+
+Release type: Challan Management backend storage and A-Challan prepare flow.
+
+Deployment status: Owner approved GitHub commit and push on June 13, 2026.
+
+### Highlights
+
+- Challan Management records, helper dropdowns, and TIN/BIN info are now
+  backend-backed per user so one account cannot see another account's entries.
+- Added TIN/BIN Info management for organization or individual names with
+  backend persistence.
+- Added Prepare A-Challan form fields for party-based Deductee/Deductor TIN,
+  phone number, comment, amount, assessment year, and challan type.
+- Added a backend A-Challan automation endpoint powered by Playwright for the
+  initial Tax prepare flow.
+- Challan Register now allows duplicate A-Challan numbers because one challan
+  may cover multiple people's tax payments.
+- Profile asset cards now align saved status text and remove buttons consistently
+  and show profile photo previews in the same card pattern.
+
+### Verification
+
+Passed locally on June 13, 2026:
+
+- `npm run check:js`
+- `npm run commercial:audit`
+
 ## Version 1.1.7 - June 2026
 
 Release type: Super Admin confirmation modal polish.

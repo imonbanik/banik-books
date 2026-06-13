@@ -7,4 +7,8 @@ PORT="4103"
 
 cd "$PROJECT_DIR"
 echo "Starting banik_books at http://$HOST:$PORT"
-exec env HOST="$HOST" PORT="$PORT" node server.js
+exec env \
+  HOST="$HOST" \
+  PORT="$PORT" \
+  BANIK_API_TRUST_UNVERIFIED_TOKEN="${BANIK_API_TRUST_UNVERIFIED_TOKEN:-true}" \
+  node server.js

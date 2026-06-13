@@ -207,6 +207,13 @@
     });
   }
 
+  async function prepareAChallan(payload) {
+    return requestJson("/api/achallan/prepare", {
+      method: "POST",
+      body: JSON.stringify(payload && typeof payload === "object" ? payload : {}),
+    });
+  }
+
   async function getWorkspace() {
     return requestJson("/api/workspace");
   }
@@ -258,6 +265,7 @@
     getWorkspace,
     importBackup,
     list,
+    prepareAChallan,
     remove,
     replace,
     saveSetting,

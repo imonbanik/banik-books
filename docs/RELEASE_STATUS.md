@@ -2,11 +2,12 @@
 
 ## Repository Status
 
-Current version: 1.1.7
+Current version: 1.1.8
 Current release: June 2026
 
-The local codebase architecture migration is complete. Version 1.1.7 includes
-centered in-app Super Admin confirmation modals with blurred background.
+The local codebase architecture migration is complete. Version 1.1.8 includes
+user-scoped Challan Management backend storage, TIN/BIN info, and the first
+backend A-Challan prepare automation endpoint.
 
 Completed inside the repository:
 
