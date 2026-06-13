@@ -1022,8 +1022,7 @@ body.challan-window {
   background: #fff8f7;
 }
 
-body.challan-window .page-shell,
-body.challan-window .challan-toast {
+body.challan-window .page-shell {
   display: none;
 }
 

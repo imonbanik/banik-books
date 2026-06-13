@@ -1998,8 +1998,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     entries = [savedEntry, ...entries.filter((entry) => entry.id !== savedEntry.id)];
     renderRegister();
-    resetEntryForm();
-    closeEntryModal();
+    setEntryError("");
     showToast("Challan entry saved successfully.", "success");
   });
 

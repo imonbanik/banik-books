@@ -7,6 +7,27 @@ Do not change the public version number for this section.
 
 No unreleased local changes.
 
+## Version 1.1.10 - June 2026
+
+Release type: Challan record save workflow polish.
+
+Deployment status: Owner approved GitHub commit and push on June 13, 2026.
+
+### Highlights
+
+- Record Challan no longer closes automatically after a successful save.
+- Saved Record Challan fields remain in place so the next challan can be
+  recorded by changing only the needed fields.
+- Separate Record Challan windows now keep the saved notification visible after
+  saving.
+
+### Verification
+
+Passed locally on June 13, 2026:
+
+- `npm run check:js`
+- `npm run commercial:audit`
+
 ## Version 1.1.9 - June 2026
 
 Release type: Challan Management popup workflow and party info polish.
