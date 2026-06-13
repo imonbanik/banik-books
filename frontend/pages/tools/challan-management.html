@@ -133,14 +133,13 @@
           <div class="tin-bin-entry-grid">
             <label class="record-field tin-bin-field--name" for="tinBinOrganizationName">
               <span>Organization or Individual Name</span>
-              <input
+              <select
                 id="tinBinOrganizationName"
                 name="tinBinOrganizationName"
-                type="text"
-                autocomplete="off"
-                placeholder="Write organization or individual name"
                 required
-              />
+              >
+                <option value="" disabled selected hidden>Select party</option>
+              </select>
             </label>
 
             <label class="record-field" for="tinBinTinNumber">
