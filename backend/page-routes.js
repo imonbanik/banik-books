@@ -1,6 +1,8 @@
 const PAGE_ROUTES = Object.freeze({
   "/": "/pages/auth/index.html",
   "/index.html": "/pages/auth/index.html",
+  "/team.html": "/pages/workspace/team.html",
+  "/accept-invite.html": "/pages/auth/accept-invite.html",
   "/signup.html": "/pages/auth/signup.html",
   "/workspace.html": "/pages/workspace/workspace.html",
   "/reports.html": "/pages/workspace/reports.html",

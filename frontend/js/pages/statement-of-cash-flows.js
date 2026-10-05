@@ -1,5 +1,5 @@
 const STORAGE_KEYS = {
-  journals: "banikBooksJournals",
+  journals: "banikBooksPostedJournals",
   chartOfAccounts: "banikBooksChartOfAccounts",
   ledgers: "banikBooksLedgers",
 };
@@ -78,7 +78,8 @@ const CASH_FLOW_MAPPINGS = {
 function safeReadArray(key) {
   try {
     const parsed = JSON.parse(localStorage.getItem(key) || "[]");
-    return Array.isArray(parsed) ? parsed : [];
+    const items = Array.isArray(parsed) ? parsed : [];
+    return key === STORAGE_KEYS.journals ? items.filter((journal) => journal && (!journal.status || journal.status === "posted")) : items;
   } catch {
     return [];
   }
@@ -162,7 +163,7 @@ function normalizeClassification(value) {
 }
 
 function getJournalSequence(number) {
-  const sequence = Number(String(number || "").split("/").pop());
+  const sequence = Number((String(number || "").match(/(\d+)$/) || [])[1]);
   return Number.isFinite(sequence) ? sequence : 0;
 }
 

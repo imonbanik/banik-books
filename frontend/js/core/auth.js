@@ -1,3 +1,4 @@
+import "../services/api-client.js";
 import {
   getApp,
   getApps,
@@ -8,6 +9,7 @@ import {
   getAuth,
   onAuthStateChanged,
   sendEmailVerification,
+  sendPasswordResetEmail,
   signInWithEmailAndPassword,
   signOut,
   updateProfile,
@@ -43,7 +45,7 @@ const PROFILE_SYNC_TIMEOUT_MS = 8000;
 const ACCOUNT_SERIAL_PREFIX = "BB-2606";
 
 const BANIK_MODULES = Object.freeze([
-  { key: "journal-entry", label: "Journal Entry", pages: ["journal-entry.html"] },
+  { key: "journal-entry", label: "Journal Entry", pages: ["journal-entry.html", "journal-register.html"] },
   { key: "chart-of-accounts", label: "Chart of Accounts", pages: ["chart-of-accounts.html"] },
   { key: "party-management", label: "Party Management", pages: ["party-management.html"] },
   { key: "necessary-tools", label: "Necessary Tools", pages: ["necessary-tools.html"] },
@@ -105,10 +107,64 @@ const db = app ? getFirestore(app) : null;
 
 let cachedCurrentUser = null;
 let authReadyPromise = Promise.resolve(null);
+let identityReadyResolve;
+const identityReadyPromise = new Promise((resolve) => { identityReadyResolve = resolve; });
+let profileRequest = null;
+let profileRequestUserId = "";
+let availableCompanies = [];
+
+async function loadCompanyUser(firebaseUser) {
+  if (!firebaseUser || auth.currentUser && auth.currentUser.uid !== firebaseUser.uid) throw createFriendlyError("Your sign-in changed. Please try again.");
+  if (profileRequest && profileRequestUserId === firebaseUser.uid) return profileRequest;
+  profileRequestUserId = firebaseUser.uid;
+  const request = (async () => {
+    const user = await withTimeout(ensureUserProfile(firebaseUser), PROFILE_SYNC_TIMEOUT_MS, "Could not verify your account profile. Please try signing in again.");
+    if (!auth.currentUser || auth.currentUser.uid !== firebaseUser.uid) throw createFriendlyError("Your sign-in changed. Please try again.");
+    if (user.disabled) throw createFriendlyError("Your account has been disabled. Contact the administrator.");
+    const actorChanged = window.BanikApi.setIdentity(user.id);
+    availableCompanies = await window.BanikApi.getCompanies();
+    if (!auth.currentUser || auth.currentUser.uid !== firebaseUser.uid) throw createFriendlyError("Your sign-in changed. Please try again.");
+    if (!availableCompanies.length) {
+      // A revoked or not-yet-accepted membership must not retain the previous company's cached permissions or records.
+      window.BanikApi.clearBusinessCache();
+      localStorage.setItem("banikBooksActiveContext", JSON.stringify({ userId: user.id, companyId: "" }));
+      return { ...user, companyRole: "", companyId: "", companyPermissions: {}, permissions: createPermissionMap(false) };
+    }
+    let selected = {};
+    try { selected = JSON.parse(localStorage.getItem("banikBooksActiveContext") || "{}"); } catch {}
+    const company = availableCompanies.find((entry) => entry.id === selected.companyId) || availableCompanies[0];
+    const context = await window.BanikApi.selectCompany(company.id, { reload: false });
+    if (!auth.currentUser || auth.currentUser.uid !== firebaseUser.uid) throw createFriendlyError("Your sign-in changed. Please try again.");
+    if ((actorChanged || selected.companyId !== company.id) && !["index.html", "accept-invite.html"].includes(getCurrentPageName())) {
+      // Legacy page scripts can read browser caches before asynchronous authentication finishes.
+      // Reload after changing the storage owner so their in-memory data belongs to this company.
+      window.location.reload();
+    }
+    const companyProfile = context.companyProfile || {};
+    const modules = context.companyModules || {};
+    const modulePermissions = Array.isArray(modules) ? Object.fromEntries(modules.map((key) => [key, true])) : { ...modules };
+    const actionPermissions = context.permissions || {};
+    const pageActions = { "journal-entry": ["journals.viewAll", "journals.create", "journals.editOwn", "journals.submit", "journals.approve", "journals.post"], "chart-of-accounts": ["chartOfAccounts.view"], "party-management": ["parties.view"], "reports": ["reports.view", "reports.general-ledger", "reports.party-wise-transaction", "reports.trial-balance", "reports.statement-of-financial-position", "reports.statement-of-profit-loss-and-oci", "reports.statement-of-changes-in-equity", "reports.statement-of-cash-flows", "reports.notes-to-the-accounts"], "challan-management": ["challans.view"] };
+    Object.keys(modulePermissions).forEach((key) => {
+      const actions = pageActions[key] || [`tools.${key}`];
+      modulePermissions[key] = Boolean(modulePermissions[key]) && actions.some((permission) => actionPermissions[permission] === true);
+    });
+    return { ...user, ...companyProfile, id: user.id, email: user.email, fullName: user.fullName, role: user.role,
+      companyId: context.companyId || company.id, companyRole: context.companyRole || company.role,
+      companyName: context.companyName || company.name || companyProfile.companyName || user.companyName,
+      companyPermissions: context.permissions || {},
+      permissions: modulePermissions,
+      profileCompleted: (context.companyRole || company.role) !== "owner" || user.profileCompleted,
+    };
+  })().finally(() => { if (profileRequest === request) { profileRequest = null; profileRequestUserId = ""; } });
+  profileRequest = request;
+  return request;
+}
 
 if (auth) {
   authReadyPromise = new Promise((resolve) => {
     onAuthStateChanged(auth, async (firebaseUser) => {
+      identityReadyResolve(firebaseUser);
       if (!firebaseUser) {
         cachedCurrentUser = null;
         resolve(null);
@@ -122,16 +178,13 @@ if (auth) {
       }
 
       try {
-        cachedCurrentUser = await withTimeout(
-          ensureUserProfile(firebaseUser),
-          PROFILE_SYNC_TIMEOUT_MS,
-          "Signed in, but profile sync did not finish. Check Firestore rules/network, then try again."
-        );
-      } catch {
-        cachedCurrentUser = createFallbackUser(firebaseUser, {
-          profileCompleted: true,
-          permissions: createPermissionMap(true),
-        });
+        const loaded = await loadCompanyUser(firebaseUser);
+        if (auth.currentUser && auth.currentUser.uid === firebaseUser.uid) cachedCurrentUser = loaded;
+      } catch (error) {
+        if (!auth.currentUser || auth.currentUser.uid !== firebaseUser.uid) { resolve(null); return; }
+        console.error("Could not verify company access.", error);
+        cachedCurrentUser = null;
+        window.BANIK_AUTH_CONTEXT_ERROR = error.message || "Could not verify company access. Please sign in again.";
       }
       resolve(cachedCurrentUser);
     });
@@ -253,6 +306,7 @@ function normalizeUserDoc(id, data) {
 
   return {
     id,
+    accountType: data.accountType || "owner",
     email,
     companyName: data.companyName || "",
     fullName: data.fullName || "",
@@ -533,6 +587,7 @@ async function getCurrentBanikUser() {
 }
 
 async function getCurrentIdToken(forceRefresh = false) {
+  if (auth) await identityReadyPromise;
   const configStatus = assertFirebaseConfigured();
 
   if (!configStatus.ok || !auth || !auth.currentUser || !auth.currentUser.emailVerified) {
@@ -570,11 +625,16 @@ function getFriendlyAuthMessage(error) {
   return messages[code] || "Authentication failed. Please try again.";
 }
 
-async function sendBanikVerificationEmail(firebaseUser) {
-  await sendEmailVerification(firebaseUser);
+async function sendBanikVerificationEmail(firebaseUser, invitationToken = "") {
+  const token = invitationToken || (getCurrentPageName() === "accept-invite.html" ? new URLSearchParams(window.location.search).get("token") || "" : "");
+  if (token) {
+    const continueUrl = new URL("/accept-invite.html", window.location.origin);
+    continueUrl.searchParams.set("token", token);
+    await sendEmailVerification(firebaseUser, { url: continueUrl.href });
+  } else await sendEmailVerification(firebaseUser);
 }
 
-async function registerBanikUser({ email, password, companyName, fullName = "" }) {
+async function registerBanikUser({ email, password, companyName, fullName = "", invitationToken = "" }) {
   const configStatus = assertFirebaseConfigured();
 
   if (!configStatus.ok) {
@@ -592,7 +652,13 @@ async function registerBanikUser({ email, password, companyName, fullName = "" }
     await updateProfile(credential.user, {
       displayName: String(fullName || fallbackName).trim(),
     });
-    await sendBanikVerificationEmail(credential.user);
+    if (invitationToken) {
+      await setDoc(doc(db, "users", credential.user.uid), {
+        email: normalizedEmail, fullName: String(fullName || fallbackName).trim(), accountType: "invited",
+        role: "user", profileCompleted: false, emailVerified: false, permissions: createPermissionMap(false), createdAt: serverTimestamp(),
+      });
+    }
+    await sendBanikVerificationEmail(credential.user, invitationToken);
     await signOut(auth);
     cachedCurrentUser = null;
     return {
@@ -644,33 +710,41 @@ async function loginBanikUser(email, password) {
       };
     }
 
-    try {
-      cachedCurrentUser = await withTimeout(
-        ensureUserProfile(credential.user),
-        PROFILE_SYNC_TIMEOUT_MS,
-        "Sign-in succeeded, but Firestore profile sync did not finish."
-      );
-    } catch (profileError) {
-      console.warn("BANIK Books profile sync fallback used.", profileError);
-      cachedCurrentUser = createFallbackUser(credential.user, {
-        profileCompleted: true,
-        permissions: createPermissionMap(true),
-      });
-    }
+    cachedCurrentUser = await loadCompanyUser(credential.user);
+    window.BANIK_AUTH_CONTEXT_ERROR = "";
 
-    return { ok: true, user: cachedCurrentUser };
+    return { ok: true, user: cachedCurrentUser, companies: availableCompanies };
   } catch (error) {
-    return { ok: false, message: getFriendlyAuthMessage(error) };
+    return { ok: false, message: error.code ? getFriendlyAuthMessage(error) : error.message || "Could not verify your company access." };
   }
 }
 
-async function logoutBanikUser() {
+async function logoutBanikUser({ redirect = true } = {}) {
+  try {
+    window.BanikApi.clearBusinessCache();
+    localStorage.removeItem("banikBooksActiveContext");
+  } catch (error) {
+    // Preserve the only browser copy if recovery storage is full, but never prevent sign-out.
+    console.warn(error.message);
+  }
   if (auth) {
     await signOut(auth);
   }
 
   cachedCurrentUser = null;
-  window.location.href = "/index.html";
+  if (redirect) window.location.href = "/index.html";
+}
+
+async function resetBanikPassword(email) {
+  const configStatus = assertFirebaseConfigured();
+  if (!configStatus.ok) return configStatus;
+  try {
+    await sendPasswordResetEmail(auth, normalizeAuthEmail(email));
+    return { ok: true, message: "If this email has an account, a password reset link has been sent. Check your inbox." };
+  } catch (error) {
+    if (error.code === "auth/user-not-found") return { ok: true, message: "If this email has an account, a password reset link has been sent. Check your inbox." };
+    return { ok: false, message: getFriendlyAuthMessage(error) };
+  }
 }
 
 async function getAuthUsers() {
@@ -795,6 +869,8 @@ async function updateCurrentUserProfile(profile) {
   if (!user) {
     return { ok: false, message: "Please log in first." };
   }
+  if (user.companyRole !== "owner") return { ok: false, message: "Only the company owner can change company settings." };
+
 
   const profileData = {
     fullName: String(profile.fullName || "").trim(),
@@ -878,6 +954,8 @@ async function saveCurrentUserLetterhead(payload) {
   if (!user) {
     return { ok: false, message: "Please log in first." };
   }
+  if (user.companyRole !== "owner") return { ok: false, message: "Only the company owner can change company settings." };
+
 
   const normalized = normalizeLetterheadPayload(payload);
 
@@ -952,55 +1030,12 @@ async function saveCurrentUserLetterhead(payload) {
 }
 
 async function getCurrentUserLetterhead() {
-  const configStatus = assertFirebaseConfigured();
-
-  if (!configStatus.ok) {
-    return configStatus;
-  }
-
-  const user = await getCurrentBanikUser();
-
-  if (!user) {
-    return { ok: false, message: "Please log in first." };
-  }
-
   try {
-    const { metaRef, chunksRef } = getLetterheadRefs(user.id);
-    const metaSnapshot = await getDoc(metaRef);
-
-    if (!metaSnapshot.exists()) {
-      return { ok: true, letterhead: null };
-    }
-
-    const meta = metaSnapshot.data() || {};
-    const chunkSnapshot = await getDocs(chunksRef);
-    const dataUrl = chunkSnapshot.docs
-      .map((chunkDoc) => chunkDoc.data() || {})
-      .sort((left, right) => Number(left.order || 0) - Number(right.order || 0))
-      .map((chunk) => String(chunk.data || ""))
-      .join("");
-
-    return {
-      ok: true,
-      letterhead: {
-        name: meta.name || "organization-letterhead",
-        type: meta.type || "",
-        size: Number(meta.size || 0),
-        width: Number(meta.width || 0),
-        height: Number(meta.height || 0),
-        aspectRatio: Number(meta.aspectRatio || 0),
-        extension: meta.extension || "",
-        chunkCount: Number(meta.chunkCount || chunkSnapshot.docs.length),
-        dataLength: Number(meta.dataLength || dataUrl.length),
-        pageSize: meta.pageSize || "A4",
-        uploadedAt: normalizeTimestamp(meta.uploadedAt) || meta.uploadedAtIso || "",
-        uploadedAtIso: meta.uploadedAtIso || "",
-        dataUrl,
-      },
-    };
-  } catch {
-    return { ok: false, message: "Could not load letterhead." };
-  }
+    const user = await getCurrentBanikUser();
+    if (!user || !user.companyId) return { ok: false, message: "Please log in first." };
+    const payload = await window.BanikApi.request("/api/company-profile/assets/letterhead");
+    return { ok: true, letterhead: payload.asset || null };
+  } catch (error) { return { ok: false, message: error.message || "Could not load company letterhead." }; }
 }
 
 async function removeCurrentUserLetterhead() {
@@ -1015,6 +1050,8 @@ async function removeCurrentUserLetterhead() {
   if (!user) {
     return { ok: false, message: "Please log in first." };
   }
+  if (user.companyRole !== "owner") return { ok: false, message: "Only the company owner can change company settings." };
+
 
   try {
     const { metaRef, chunksRef } = getLetterheadRefs(user.id);
@@ -1055,6 +1092,8 @@ async function saveCurrentUserESign(payload) {
   if (!user) {
     return { ok: false, message: "Please log in first." };
   }
+  if (user.companyRole !== "owner") return { ok: false, message: "Only the company owner can change company settings." };
+
 
   const normalized = normalizeESignPayload(payload);
 
@@ -1139,6 +1178,8 @@ async function getCurrentUserESign() {
     return { ok: false, message: "Please log in first." };
   }
 
+  if (user.companyRole !== "owner") return { ok: true, eSign: null };
+
   try {
     const { metaRef, chunksRef } = getESignRefs(user.id);
     const metaSnapshot = await getDoc(metaRef);
@@ -1188,6 +1229,8 @@ async function removeCurrentUserESign() {
   if (!user) {
     return { ok: false, message: "Please log in first." };
   }
+  if (user.companyRole !== "owner") return { ok: false, message: "Only the company owner can change company settings." };
+
 
   try {
     const { metaRef, chunksRef } = getESignRefs(user.id);
@@ -1228,6 +1271,8 @@ async function saveProfileImageAsset(assetKey, payload, metaField, fallbackName)
   if (!user) {
     return { ok: false, message: "Please log in first." };
   }
+  if (user.companyRole !== "owner") return { ok: false, message: "Only the company owner can change company settings." };
+
 
   const normalized = normalizeProfileImagePayload(payload, fallbackName);
 
@@ -1312,6 +1357,13 @@ async function getProfileImageAsset(assetKey, fallbackName) {
     return { ok: false, message: "Please log in first." };
   }
 
+  if (assetKey === "companyLogo") {
+    try {
+      const payload = await window.BanikApi.request("/api/company-profile/assets/companyLogo");
+      return { ok: true, image: payload.asset || null };
+    } catch (error) { return { ok: false, message: error.message || "Could not load company logo." }; }
+  }
+
   try {
     const { metaRef, chunksRef } = getProfileImageRefs(user.id, assetKey);
     const metaSnapshot = await getDoc(metaRef);
@@ -1361,6 +1413,8 @@ async function removeProfileImageAsset(assetKey, metaField) {
   if (!user) {
     return { ok: false, message: "Please log in first." };
   }
+  if (user.companyRole !== "owner") return { ok: false, message: "Only the company owner can change company settings." };
+
 
   try {
     const { metaRef, chunksRef } = getProfileImageRefs(user.id, assetKey);
@@ -1423,31 +1477,27 @@ function getModuleForPage(pageName) {
 }
 
 function canUserAccessPage(user, pageName) {
-  if (pageName === "index.html") {
-    return true;
-  }
+  if (["index.html", "accept-invite.html"].includes(pageName)) return true;
 
   if (!user) {
     return false;
   }
 
-  if (pageName === "signup.html") {
-    return true;
-  }
+  if (pageName === "signup.html") return user.companyRole === "owner";
+  if (pageName === "team.html") return user.companyRole === "owner" || Boolean(user.companyPermissions && (user.companyPermissions["activity.view"] || user.companyPermissions["team.manage"]));
+  if (!user.companyId) return false;
 
   if (!user.profileCompleted) {
     return false;
   }
 
-  if (user.role === "admin" || pageName === "workspace.html") {
-    return true;
-  }
-
-  if (pageName === "admin.html") {
-    return false;
-  }
+  if (pageName === "admin.html") return user.role === "admin";
+  if (pageName === "workspace.html") return true;
 
   const module = getModuleForPage(pageName);
+  if (module && module.key === "reports" && pageName !== "reports.html") {
+    return Boolean(user.permissions && user.permissions.reports && user.companyPermissions && (user.companyPermissions["reports.view"] || user.companyPermissions[`reports.${pageName.replace(/\.html$/, "")}`]));
+  }
   return module ? Boolean(user.permissions && user.permissions[module.key]) : true;
 }
 
@@ -1502,18 +1552,25 @@ async function protectBanikPage() {
     return null;
   }
 
-  if (pageName === "index.html") {
-    return null;
-  }
+  if (["index.html", "accept-invite.html"].includes(pageName)) return null;
 
   const user = await getCurrentBanikUser();
 
   if (!user) {
+    if (window.BANIK_AUTH_CONTEXT_ERROR) {
+      renderAccessDenied("company access. Please sign in again or contact your company owner");
+      return null;
+    }
     window.location.href = "/index.html";
     return null;
   }
 
-  if (!user.profileCompleted && pageName !== "signup.html") {
+  if (!user.companyId) {
+    renderAccessDenied("this company. Open your invitation link to join, or contact your company owner");
+    return null;
+  }
+
+  if (!user.profileCompleted && user.companyRole === "owner" && pageName !== "signup.html") {
     window.location.href = "/signup.html";
     return null;
   }
@@ -1543,25 +1600,47 @@ function renderAuthControls(user) {
         ? '<a class="auth-link" href="/admin.html">Admin Panel</a>'
         : "";
 
-    target.innerHTML = `
-      <span class="auth-user-chip">${user.role === "admin" ? "Admin" : user.companyName}</span>
-      ${adminLink}
-      ${logoutButton}
-    `;
+    target.replaceChildren();
+    const chip = document.createElement("span");
+    chip.className = "auth-user-chip";
+    chip.textContent = `${user.companyName || "Company"} · ${user.fullName || user.email}`;
+    target.append(chip);
+    if (availableCompanies.length > 1) {
+      const select = document.createElement("select");
+      select.className = "auth-company-select";
+      select.setAttribute("aria-label", "Switch company");
+      availableCompanies.forEach((company) => {
+        const option = document.createElement("option"); option.value = company.id; option.textContent = company.name || company.id;
+        option.selected = company.id === user.companyId; select.append(option);
+      });
+      select.addEventListener("change", async () => {
+        select.disabled = true;
+        try { await window.BanikApi.selectCompany(select.value); }
+        catch (error) { window.alert(error.message); select.value = user.companyId; select.disabled = false; }
+      });
+      target.append(select);
+    }
+    if (user.companyRole === "owner" || user.companyPermissions["team.manage"] || user.companyPermissions["activity.view"]) {
+      const teamLink = document.createElement("a"); teamLink.className = "auth-link"; teamLink.href = "/team.html"; teamLink.textContent = "Team & Access"; target.append(teamLink);
+    }
+    target.insertAdjacentHTML("beforeend", `${adminLink}${logoutButton}`);
   });
 }
 
 function applyWorkspacePermissions(user) {
-  if (!user || user.role === "admin") {
+  if (!user) {
     return;
   }
 
   document.querySelectorAll("a[href]").forEach((link) => {
     const href = link.getAttribute("href") || "";
-    const pageName = href.replace("./", "").split("#")[0].split("?")[0];
+    let targetUrl;
+    try { targetUrl = new URL(href, window.location.href); } catch { return; }
+    if (targetUrl.origin !== window.location.origin) return;
+    const pageName = targetUrl.pathname.split("/").pop();
     const module = getModuleForPage(pageName);
 
-    if (!module || canUserAccessPage(user, pageName)) {
+    if ((!module && !["signup.html", "team.html"].includes(pageName)) || canUserAccessPage(user, pageName)) {
       return;
     }
 
@@ -1573,6 +1652,38 @@ function applyWorkspacePermissions(user) {
     });
   });
 }
+
+function setupExportPermissions() {
+  const isExportControl = (element) => {
+    if (!element.matches("button, input[type=button], input[type=submit], a[download]")) return false;
+    if (element.matches("a[download]")) return true;
+    return /export|download|print|excel/i.test([element.id, element.getAttribute("aria-label"), element.getAttribute("title"), element.textContent, element.value].join(" "));
+  };
+  const apply = () => {
+    const allowed = window.BanikApi.can("exports.download");
+    document.querySelectorAll("button, input[type=button], input[type=submit], a[download]").forEach((element) => {
+      if (!isExportControl(element)) return;
+      if (!allowed) element.dataset.banikExportBlocked = "true";
+      else delete element.dataset.banikExportBlocked;
+    });
+  };
+  document.addEventListener("click", (event) => {
+    const element = event.target.closest("button, input[type=button], input[type=submit], a[download]");
+    if (element && isExportControl(element) && !window.BanikApi.can("exports.download")) {
+      event.preventDefault(); event.stopImmediatePropagation();
+    }
+  }, true);
+  const observer = new MutationObserver(apply);
+  observer.observe(document.documentElement, { childList: true, subtree: true, attributes: true, attributeFilter: ["hidden", "disabled"] });
+  window.addEventListener("banik-company-ready", apply);
+  window.addEventListener("banik-cache-cleared", apply);
+  apply();
+}
+setupExportPermissions();
+window.addEventListener("banik-access-denied", () => {
+  cachedCurrentUser = null;
+  renderAccessDenied("this company action. Please sign in again or contact your company owner");
+});
 
 function setupSmartDateInputs() {
   const dateInputs = document.querySelectorAll('input[type="date"]');
@@ -1634,6 +1745,8 @@ window.BanikAuth = {
   getIdToken: getCurrentIdToken,
   register: registerBanikUser,
   login: loginBanikUser,
+  resetPassword: resetBanikPassword,
+  refreshCompany: async () => { cachedCurrentUser = await loadCompanyUser(auth.currentUser); return cachedCurrentUser; },
   logout: logoutBanikUser,
   updateUserPermission,
   updateProfile: updateCurrentUserProfile,

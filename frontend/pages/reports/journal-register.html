@@ -43,7 +43,11 @@
               <span>To</span>
               <input id="journal-register-to" type="date" />
             </label>
+            <label><span>Status</span><select id="journal-register-status"><option value="">All statuses</option><option value="draft">Draft</option><option value="submitted">Awaiting approval</option><option value="returned">Returned</option><option value="posted">Posted</option></select></label>
+            <label><span>Created by</span><select id="journal-register-creator"><option value="">All creators</option></select></label>
+            <button class="journal-button journal-button--ghost" id="journal-register-refresh" type="button">Refresh</button>
           </div>
+          <p id="journal-register-message" role="status"></p>
         </section>
 
         <section class="journal-register-card" aria-label="Journal register table">
@@ -59,7 +63,11 @@
                 <div>Description</div>
                 <div>Name</div>
                 <div>Journal Note</div>
-                <div>Delete</div>
+                <div>Status</div>
+                <div>Created by / time</div>
+                <div>Approved by / time</div>
+                <div>Posted by / time</div>
+                <div>Actions</div>
               </div>
 
               <div id="journal-register-rows"></div>
@@ -68,9 +76,13 @@
                 <div></div>
                 <div></div>
                 <div></div>
-                <div>Total</div>
+                <div>Posted total</div>
                 <div id="journal-register-total-debit">0.00</div>
                 <div id="journal-register-total-credit">0.00</div>
+                <div></div>
+                <div></div>
+                <div></div>
+                <div></div>
                 <div></div>
                 <div></div>
                 <div></div>
@@ -83,8 +95,8 @@
 
       <div class="journal-popup" id="journal-register-delete-confirm" hidden>
         <div class="journal-popup__dialog" role="alertdialog" aria-modal="true" aria-labelledby="journal-register-delete-title">
-          <h2 id="journal-register-delete-title">Delete Journal</h2>
-          <p>Are you sure you want to delete this Journal?</p>
+          <h2 id="journal-register-delete-title">Archive draft</h2>
+          <p>Archive this draft? Its activity history will be retained.</p>
           <div class="journal-confirm-actions">
             <button class="journal-button journal-button--danger" id="journal-register-delete-yes" type="button">Yes</button>
             <button class="journal-button journal-button--ghost" id="journal-register-delete-no" type="button">No</button>

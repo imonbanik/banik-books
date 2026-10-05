@@ -1,12 +1,12 @@
 {
   "name": "banik-books",
-  "version": "1.1.12",
+  "version": "1.2.0",
   "private": true,
   "description": "Browser-based accounting and business tools app.",
   "scripts": {
     "start": "node server.js",
     "dev": "./local-server.sh",
-    "check": "npm run check:secrets && npm run check:js && npm run check:api && npm run check:storage && npm run check:smoke",
+    "check": "npm run check:secrets && npm run check:js && npm run check:api && npm run check:team && npm run check:storage && npm run check:smoke",
     "commercial:audit": "npm run check && npm run check:api:http && node scripts/commercial-audit.mjs",
     "migrate:file-to-adapter": "node scripts/migrate-file-to-adapter.mjs",
     "check:production-config": "node scripts/check-production-config.mjs",
@@ -15,7 +15,9 @@
     "check:api": "node scripts/check-api.mjs",
     "check:api:http": "node scripts/check-api-http.mjs",
     "check:storage": "node scripts/audit-local-storage.mjs",
-    "check:smoke": "node scripts/smoke-check.mjs"
+    "check:smoke": "node scripts/smoke-check.mjs",
+    "check:team": "node scripts/check-team.mjs && node scripts/check-company-client.mjs && node scripts/check-auth-onboarding.mjs && node scripts/check-journal-client.mjs && node scripts/check-company-accounting.mjs && node scripts/check-firebase-contract.mjs",
+    "check:browser": "node scripts/check-journal-browser.mjs"
   },
   "dependencies": {
     "firebase-admin": "^13.10.0",

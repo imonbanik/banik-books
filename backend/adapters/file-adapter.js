@@ -1,223 +1,107 @@
 const fs = require("node:fs/promises");
 const path = require("node:path");
+const { randomUUID } = require("node:crypto");
 
-const DATA_DIR = path.join(__dirname, "..", "..", "data");
-const DATA_FILE = process.env.BANIK_DATA_FILE || path.join(DATA_DIR, "app-data.json");
-const DEFAULT_DATA = Object.freeze({
-  journals: [],
-  parties: [],
-  chartOfAccounts: [],
-  challans: [],
-  settings: [],
-  scopes: {},
-  updatedAt: "",
-});
-
+const DATA_FILE = process.env.BANIK_DATA_FILE || path.join(__dirname, "..", "..", "data", "app-data.json");
+const COLLECTIONS = ["journals", "parties", "chartOfAccounts", "challans", "settings"];
+const emptyScope = () => Object.fromEntries([...COLLECTIONS, "activity"].map((key) => [key, []]));
 let writeQueue = Promise.resolve();
 
-async function ensureDataFile() {
-  await fs.mkdir(path.dirname(DATA_FILE), { recursive: true });
-
-  try {
-    await fs.access(DATA_FILE);
-  } catch {
-    await fs.writeFile(DATA_FILE, JSON.stringify(DEFAULT_DATA, null, 2));
-  }
-}
-
 async function readData() {
-  await ensureDataFile();
-
   try {
-    const parsed = JSON.parse(await fs.readFile(DATA_FILE, "utf8"));
-    return {
-      ...DEFAULT_DATA,
-      ...(parsed && typeof parsed === "object" ? parsed : {}),
-    };
-  } catch {
-    return { ...DEFAULT_DATA };
+    return JSON.parse(await fs.readFile(DATA_FILE, "utf8"));
+  } catch (error) {
+    if (error.code === "ENOENT") return { ...emptyScope(), scopes: {} };
+    throw error; // Never replace an unreadable ledger with an empty database.
   }
 }
 
-function getScopeKey(authContext) {
-  const userId = String((authContext && authContext.userId) || "local-dev").trim() || "local-dev";
-  const workspaceId = String((authContext && authContext.workspaceId) || "default").trim() || "default";
-  return `${userId}::${workspaceId}`;
+function getScopeKey(context = {}) {
+  return `${context.storageUserId || context.userId || "local-dev"}::${context.storageWorkspaceId || context.workspaceId || "default"}`;
 }
 
-function getScopedData(data, authContext) {
-  const scopeKey = getScopeKey(authContext);
-  const scopes = data.scopes && typeof data.scopes === "object" ? data.scopes : {};
-  const scopedData = scopes[scopeKey];
-
-  if (scopedData && typeof scopedData === "object") {
-    return {
-      ...DEFAULT_DATA,
-      ...scopedData,
-    };
-  }
-
-  if (scopeKey === "local-dev::default") {
-    return data;
-  }
-
-  return { ...DEFAULT_DATA };
+function getScopedData(data, context) {
+  const key = getScopeKey(context);
+  return { ...emptyScope(), ...(data.scopes?.[key] || (key === "local-dev::default" ? data : {})) };
 }
 
-function setScopedData(data, authContext, scopedData) {
-  const scopeKey = getScopeKey(authContext);
-  const scopes = data.scopes && typeof data.scopes === "object" ? data.scopes : {};
-  const cleanScopedData = {
-    journals: Array.isArray(scopedData.journals) ? scopedData.journals : [],
-    parties: Array.isArray(scopedData.parties) ? scopedData.parties : [],
-    chartOfAccounts: Array.isArray(scopedData.chartOfAccounts) ? scopedData.chartOfAccounts : [],
-    challans: Array.isArray(scopedData.challans) ? scopedData.challans : [],
-    settings: Array.isArray(scopedData.settings) ? scopedData.settings : [],
-  };
-
-  return {
-    ...data,
-    scopes: {
-      ...scopes,
-      [scopeKey]: cleanScopedData,
-    },
-  };
+async function transaction(context, mutate) {
+  const operation = writeQueue.then(async () => {
+    const data = await readData();
+    const scope = getScopedData(data, context);
+    const result = await mutate(scope);
+    const next = { ...data, scopes: { ...data.scopes, [getScopeKey(context)]: scope }, updatedAt: new Date().toISOString() };
+    await fs.mkdir(path.dirname(DATA_FILE), { recursive: true });
+    const temporaryPath = `${DATA_FILE}.${randomUUID()}.tmp`;
+    try {
+      await fs.writeFile(temporaryPath, JSON.stringify(next, null, 2), { mode: 0o600 });
+      await fs.rename(temporaryPath, DATA_FILE);
+    } finally {
+      await fs.rm(temporaryPath, { force: true });
+    }
+    return result;
+  });
+  writeQueue = operation.catch(() => {});
+  return operation;
 }
 
-async function writeData(nextData) {
-  await ensureDataFile();
+const getItemId = (item) => String(item?.id || item?.number || "").trim();
 
-  const payload = {
-    ...DEFAULT_DATA,
-    ...nextData,
-    updatedAt: new Date().toISOString(),
-  };
-
-  writeQueue = writeQueue.then(() =>
-    fs.writeFile(DATA_FILE, JSON.stringify(payload, null, 2))
-  );
+async function listCollection(collectionName, context) {
   await writeQueue;
-  return payload;
+  return getScopedData(await readData(), context)[collectionName] || [];
 }
 
-async function listCollection(collectionName, authContext) {
-  const data = await readData();
-  const scopedData = getScopedData(data, authContext);
-  return Array.isArray(scopedData[collectionName]) ? scopedData[collectionName] : [];
+async function getItem(collectionName, itemId, context) {
+  return (await listCollection(collectionName, context)).find((item) => getItemId(item) === itemId) || null;
 }
 
-async function getItem(collectionName, itemId, authContext) {
-  const normalizedId = String(itemId || "").trim();
-
-  if (!normalizedId) {
-    throw new Error("Missing item id.");
-  }
-
-  const items = await listCollection(collectionName, authContext);
-  return items.find((entry) => getItemId(entry) === normalizedId) || null;
+// Mutation and append-only event commit in one atomic file replacement.
+async function mutateCollection(collectionName, context, mutate) {
+  return transaction(context, async (scope) => {
+    const change = await mutate(structuredClone(scope[collectionName] || []));
+    scope[collectionName] = change.items;
+    if (change.event) scope.activity.push(change.event);
+    if (change.events) scope.activity.push(...change.events);
+    return change.result;
+  });
 }
 
-async function replaceCollection(collectionName, items, authContext) {
-  const data = await readData();
-  const scopedData = getScopedData(data, authContext);
-  const nextItems = Array.isArray(items) ? items : [];
-  await writeData(
-    setScopedData(data, authContext, {
-      ...scopedData,
-      [collectionName]: nextItems,
-    })
-  );
-  return nextItems;
+async function replaceCollection(collectionName, items, context) {
+  return mutateCollection(collectionName, context, () => ({ items, result: items }));
 }
 
-function getItemId(item) {
-  if (!item || typeof item !== "object") {
-    return "";
-  }
-
-  return String(item.id || item.number || "").trim();
+async function upsertItem(collectionName, itemId, item, context) {
+  return mutateCollection(collectionName, context, (items) => {
+    const index = items.findIndex((entry) => getItemId(entry) === itemId);
+    const next = { ...(index >= 0 ? items[index] : {}), ...item };
+    if (index >= 0) items[index] = next;
+    else items.push(next);
+    return { items, result: next };
+  });
 }
 
-async function upsertItem(collectionName, itemId, item, authContext) {
-  const data = await readData();
-  const scopedData = getScopedData(data, authContext);
-  const items = Array.isArray(scopedData[collectionName]) ? scopedData[collectionName] : [];
-  const normalizedId = String(itemId || getItemId(item)).trim();
-
-  if (!normalizedId) {
-    throw new Error("Missing item id.");
-  }
-
-  const nextItem = {
-    ...(item && typeof item === "object" ? item : {}),
-  };
-  const existingIndex = items.findIndex((entry) => getItemId(entry) === normalizedId);
-  const nextItems = [...items];
-
-  if (existingIndex >= 0) {
-    nextItems[existingIndex] = {
-      ...nextItems[existingIndex],
-      ...nextItem,
-    };
-  } else {
-    nextItems.push(nextItem);
-  }
-
-  await writeData(
-    setScopedData(data, authContext, {
-      ...scopedData,
-      [collectionName]: nextItems,
-    })
-  );
-
-  return nextItems.find((entry) => getItemId(entry) === normalizedId) || nextItem;
+async function deleteItem(collectionName, itemId, context) {
+  return mutateCollection(collectionName, context, (items) => {
+    const next = items.filter((item) => getItemId(item) !== itemId);
+    return { items: next, result: next };
+  });
 }
 
-async function deleteItem(collectionName, itemId, authContext) {
-  const data = await readData();
-  const scopedData = getScopedData(data, authContext);
-  const items = Array.isArray(scopedData[collectionName]) ? scopedData[collectionName] : [];
-  const normalizedId = String(itemId || "").trim();
-
-  if (!normalizedId) {
-    throw new Error("Missing item id.");
-  }
-
-  const nextItems = items.filter((entry) => getItemId(entry) !== normalizedId);
-  await writeData(
-    setScopedData(data, authContext, {
-      ...scopedData,
-      [collectionName]: nextItems,
-    })
-  );
-  return nextItems;
+async function exportScope(context) {
+  await writeQueue;
+  const scope = getScopedData(await readData(), context);
+  return Object.fromEntries(COLLECTIONS.map((key) => [key, scope[key] || []]));
 }
 
-async function exportScope(authContext) {
-  const data = await readData();
-  const scopedData = getScopedData(data, authContext);
-
-  return {
-    journals: Array.isArray(scopedData.journals) ? scopedData.journals : [],
-    parties: Array.isArray(scopedData.parties) ? scopedData.parties : [],
-    chartOfAccounts: Array.isArray(scopedData.chartOfAccounts) ? scopedData.chartOfAccounts : [],
-    challans: Array.isArray(scopedData.challans) ? scopedData.challans : [],
-    settings: Array.isArray(scopedData.settings) ? scopedData.settings : [],
-  };
+async function importScope(data, context, event) {
+  return transaction(context, (scope) => {
+    const before = Object.fromEntries(COLLECTIONS.map((key) => [key, structuredClone(scope[key] || [])]));
+    const nextData = typeof data === "function" ? data(before) : data;
+    for (const key of COLLECTIONS) scope[key] = Array.isArray(nextData[key]) ? nextData[key] : [];
+    if (event) scope.activity.push(typeof event === "function" ? event(before, nextData) : event);
+    return Object.fromEntries(COLLECTIONS.map((key) => [key, scope[key]]));
+  });
 }
 
-async function importScope(scopedData, authContext) {
-  const data = await readData();
-  await writeData(setScopedData(data, authContext, scopedData));
-  return exportScope(authContext);
-}
-
-module.exports = {
-  deleteItem,
-  exportScope,
-  getItem,
-  importScope,
-  listCollection,
-  replaceCollection,
-  upsertItem,
-};
+module.exports = { deleteItem, exportScope, getItem, importScope, listCollection, replaceCollection, upsertItem, mutateCollection };

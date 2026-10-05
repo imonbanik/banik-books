@@ -192,7 +192,18 @@ async function run() {
   const strictContext = await resolveAuthContext(createRequest());
   assert.equal(strictContext.error.statusCode, 401);
   assert.equal(strictContext.error.message, "Authentication is required.");
+  process.env.BANIK_API_TRUST_UNVERIFIED_TOKEN = "true";
+  const forgedToken = `e30.${Buffer.from(JSON.stringify({ sub: "forged", email: "owner@example.com", email_verified: true })).toString("base64url")}.invalid`;
+  const forgedContext = await resolveAuthContext(createRequest({ authorization: `Bearer ${forgedToken}` }));
+  assert.ok(forgedContext.error, "required authentication must never trust a decoded-only token");
+  delete process.env.BANIK_API_TRUST_UNVERIFIED_TOKEN;
   delete process.env.BANIK_API_REQUIRE_AUTH;
+
+  process.env.BANIK_API_AUTH_PROVIDER = "unsupported-test-provider";
+  const rejectedLocalIdentity = await resolveAuthContext(createRequest({ authorization: "Bearer rejected-token" }));
+  assert.ok(rejectedLocalIdentity.error, "failed token verification must not fall back to a local administrator");
+  assert.equal(rejectedLocalIdentity.role, undefined);
+  delete process.env.BANIK_API_AUTH_PROVIDER;
 
   process.env.BANIK_STORAGE_ADAPTER = "missing";
   assert.throws(() => getStorageAdapter(), /Unsupported BANIK_STORAGE_ADAPTER/);

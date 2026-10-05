@@ -2,6 +2,7 @@ const {
   getFirebaseAdminAuth,
   getFirebaseAdminFirestore,
 } = require("./firebase-admin-client");
+const { assertUserAccountCanBeDeleted } = require("./company-service");
 
 const COLLECTION_DELETE_BATCH_SIZE = 100;
 
@@ -131,6 +132,7 @@ async function setUserDisabled(targetUserId, disabled, authContext) {
 
 async function deleteUserAccount(targetUserId, authContext) {
   const userId = assertTargetUser(authContext, targetUserId);
+  await assertUserAccountCanBeDeleted(userId);
   const auth = getFirebaseAdminAuth();
   const db = getFirebaseAdminFirestore();
   let authDeleted = true;

@@ -1,4 +1,5 @@
 (function () {
+  if (window.BanikApi) return;
   const ENDPOINTS = Object.freeze({
     journals: "/api/journals",
     parties: "/api/parties",
@@ -12,9 +13,103 @@
   const collectionCache = new Map();
   const collectionRequests = new Map();
   const collectionCacheVersions = new Map();
+  const collectionRevisions = new Map();
   const itemCache = new Map();
+  const itemVersions = new Map();
   const itemRequests = new Map();
   let authHeadersRequest = null;
+  let workspaceContext = null;
+  let contextGeneration = 0;
+  const CONTEXT_KEY = "banikBooksActiveContext";
+
+  function clearBusinessCache({ preserve = true, ownerId = "", companyId = "" } = {}) {
+    let previous = {};
+    try { previous = JSON.parse(localStorage.getItem(CONTEXT_KEY) || "null") || {}; } catch {}
+    const keys = Object.keys(localStorage).filter((key) =>
+      /^banikBooks/i.test(key) && ![CONTEXT_KEY, "banikBooksWorkspaceId"].includes(key) && !key.startsWith("banikBooksRecovery:"));
+    const verified = Boolean(previous.userId && previous.companyId);
+    // Verified accounting caches are read from the server. Keep only browser-only drafts/options on later switches.
+    // Untagged legacy records still receive a full recovery copy before any cache is removed.
+    const serverCacheKeys = new Set(["banikBooksJournals", "banikBooksPostedJournals", "banikBooksParties", "banikBooksChartOfAccounts", "banikBooksLedgers", "banikBooksAccountingPreferences", "banikBooksChallans", "banikBooksChallanRegisterEntries"]);
+    const recoveryKeys = keys.filter((key) => key !== "banikBooksSettings" && (!verified || !serverCacheKeys.has(key)));
+    try {
+      if (preserve && recoveryKeys.length) {
+        const snapshot = { ownerId: previous.userId || ownerId || "unknown", ownershipVerified: verified, originalOwnerId: previous.userId || "unknown", companyId: previous.companyId || companyId || "unknown", capturedAt: new Date().toISOString(), items: {} };
+        const latestKey = `banikBooksRecovery:${snapshot.ownerId}:${encodeURIComponent(snapshot.companyId)}:latest`;
+        let existing = null;
+        if (verified) {
+          try { existing = JSON.parse(localStorage.getItem(latestKey) || "null"); } catch {}
+          Object.assign(snapshot.items, existing && existing.items || {});
+        }
+        recoveryKeys.sort().forEach((key) => { snapshot.items[key] = localStorage.getItem(key); });
+        const content = JSON.stringify(snapshot.items);
+        const duplicate = existing && JSON.stringify(existing.items) === content || !verified && Object.keys(localStorage).some((key) => {
+          if (!key.startsWith(`banikBooksRecovery:${snapshot.ownerId}:`)) return false;
+          try { const saved = JSON.parse(localStorage.getItem(key)); return !saved.ownershipVerified && JSON.stringify(saved.items) === content; } catch { return false; }
+        });
+        if (!duplicate) {
+          // Never discard an unknown legacy copy. Known companies keep one latest browser-draft recovery copy.
+          try { localStorage.setItem(verified ? latestKey : `banikBooksRecovery:${snapshot.ownerId}:${Date.now()}`, JSON.stringify(snapshot)); }
+          catch { throw new Error("Browser recovery storage is full. Your existing data has been preserved. Download and remove old recovery copies in Team & Access before switching companies."); }
+        }
+      }
+      keys.forEach((key) => localStorage.removeItem(key));
+    } finally {
+      // A full browser store must never keep a revoked permission or an in-flight request alive.
+      contextGeneration += 1;
+      collectionCache.clear(); collectionRequests.clear(); collectionCacheVersions.clear(); collectionRevisions.clear();
+      itemCache.clear(); itemVersions.clear(); itemRequests.clear();
+      authHeadersRequest = null;
+      workspaceContext = null;
+      window.dispatchEvent(new Event("banik-cache-cleared"));
+    }
+  }
+
+  function setIdentity(userId) {
+    let previous = {};
+    try { previous = JSON.parse(localStorage.getItem(CONTEXT_KEY) || "{}"); } catch {}
+    if (previous.userId !== userId) {
+      clearBusinessCache({ ownerId: previous.userId || userId });
+      localStorage.setItem(CONTEXT_KEY, JSON.stringify({ userId, companyId: "" }));
+      return true;
+    }
+    return false;
+  }
+
+  function setWorkspaceContext(context) {
+    workspaceContext = context;
+    window.dispatchEvent(new CustomEvent("banik-company-ready", { detail: context }));
+    return context;
+  }
+
+  function getContext() { return workspaceContext; }
+  function can(permission) { return Boolean(workspaceContext && workspaceContext.permissions && workspaceContext.permissions[permission] === true); }
+
+  async function getCompanies() {
+    const payload = await requestJson("/api/companies");
+    return Array.isArray(payload.companies) ? payload.companies : [];
+  }
+
+  async function selectCompany(companyId, { reload = true } = {}) {
+    const companies = await getCompanies();
+    if (!companies.some((company) => company.id === companyId)) throw new Error("Company access is not available.");
+    let previous = {};
+    try { previous = JSON.parse(localStorage.getItem(CONTEXT_KEY) || "{}"); } catch {}
+    if (previous.companyId !== companyId) {
+      clearBusinessCache({ ownerId: previous.userId, companyId: previous.companyId });
+      localStorage.setItem(CONTEXT_KEY, JSON.stringify({ userId: previous.userId, companyId }));
+    }
+    const context = await getWorkspace();
+    if (reload) window.location.assign("/workspace.html");
+    return context;
+  }
+
+  window.addEventListener("storage", (event) => {
+    if (event.key === CONTEXT_KEY) {
+      // All legacy pages share browser business keys. Reload other tabs before they can use a different company's cache.
+      window.location.reload();
+    }
+  });
 
   function now() {
     return window.performance && typeof window.performance.now === "function"
@@ -63,6 +158,7 @@
   }
 
   function clearCollectionCache(collectionName) {
+    collectionRevisions.delete(collectionName);
     collectionCache.delete(collectionName);
     collectionRequests.delete(collectionName);
     collectionCacheVersions.set(
@@ -99,6 +195,7 @@
   }
 
   function writeItemCache(collectionName, itemId, item) {
+    itemVersions.set(getItemCacheKey(collectionName, itemId), item ? Number(item.version || 0) : null);
     itemCache.set(getItemCacheKey(collectionName, itemId), {
       cachedAt: now(),
       item: cloneItem(item),
@@ -134,10 +231,6 @@
     }
 
     try {
-      if (typeof authService.getCurrentUser === "function") {
-        await authService.getCurrentUser();
-      }
-
       const token = await authService.getIdToken(forceRefresh);
       logPerf("auth headers", startedAt, { forceRefresh, hasToken: Boolean(token) });
       return token ? { Authorization: `Bearer ${token}` } : {};
@@ -167,58 +260,96 @@
       document.documentElement.dataset.workspaceId ||
       "default";
 
+    let selected = {};
+    try { selected = JSON.parse(localStorage.getItem(CONTEXT_KEY) || "{}"); } catch {}
     return {
       "X-Banik-Workspace-Id": workspaceId,
+      ...(selected.companyId ? { "X-Banik-Company-Id": selected.companyId } : {}),
     };
   }
 
-  async function getApiErrorMessage(response) {
+  async function getApiErrorDetails(response) {
     try {
       const contentType = response.headers.get("content-type") || "";
 
       if (contentType.includes("application/json")) {
         const payload = await response.json();
-        return payload && (payload.error || payload.message) ? payload.error || payload.message : "";
+        return { message: payload && (payload.error || payload.message) || "", code: payload && payload.code || "" };
       }
 
-      return (await response.text()).trim();
+      return { message: (await response.text()).trim(), code: "" };
     } catch {
-      return "";
+      return { message: "", code: "" };
     }
   }
 
   function fetchJson(url, options, authHeaders) {
     return fetch(url, {
+      ...options,
+      cache: "no-store",
       headers: {
         "Content-Type": "application/json",
         ...authHeaders,
         ...getWorkspaceHeaders(),
         ...(options.headers || {}),
       },
-      ...options,
     });
   }
 
   async function requestJson(url, options = {}) {
     const startedAt = now();
     const method = options.method || "GET";
+    const initialGeneration = contextGeneration;
+    const hadContext = Boolean(workspaceContext);
+    const initializationRoute = /^\/api\/(companies(?:\?|$)|workspace(?:\?|$)|invitations(?:\/|$)|admin(?:\/|$))/.test(url);
+    if (!initializationRoute) {
+      const authService = await waitForBanikAuth();
+      const user = authService && typeof authService.getCurrentUser === "function" ? await authService.getCurrentUser() : null;
+      if (!user || !(user.companyId || workspaceContext && workspaceContext.companyId)) {
+        const error = new Error("Sign in and select a company before accessing its data."); error.status = 401; throw error;
+      }
+      let selected = {};
+      try { selected = JSON.parse(localStorage.getItem(CONTEXT_KEY) || "{}"); } catch {}
+      if (user.companyId && selected.companyId && user.companyId !== selected.companyId) throw new Error("Company changed. Please open the company again before saving.");
+      if (hadContext && initialGeneration !== contextGeneration) throw new Error("Company changed while the request was waiting. Please try again.");
+    }
+    const generation = contextGeneration;
+    if (options.body && typeof options.body === "object") options = { ...options, body: JSON.stringify(options.body) };
     let authHeaders = await getAuthHeaders();
+    if (!authHeaders.Authorization) {
+      const error = new Error("Please sign in with a verified account before accessing company data.");
+      error.status = 401;
+      throw error;
+    }
+    if (generation !== contextGeneration) throw new Error("Company changed while the request was waiting. Please try again.");
     let response = await fetchJson(url, options, authHeaders);
 
     if (response.status === 401) {
       authHeaders = await getAuthHeaders({ forceRefresh: true });
-      response = await fetchJson(url, options, authHeaders);
+      if (generation !== contextGeneration) throw new Error("Company changed while the request was waiting. Please try again.");
+      if (authHeaders.Authorization) response = await fetchJson(url, options, authHeaders);
     }
 
     if (!response.ok) {
-      const errorMessage = await getApiErrorMessage(response);
+      const details = await getApiErrorDetails(response);
+      const errorMessage = details.message;
       logPerf(`${method} ${url}`, startedAt, { status: response.status, ok: false });
-      throw new Error(
-        `API request failed: ${response.status}${errorMessage ? ` - ${errorMessage}` : ""}`
-      );
+      const error = new Error(errorMessage || `API request failed: ${response.status}`);
+      error.status = response.status;
+      error.code = details.code;
+      if (response.status === 401 || details.code === "COMPANY_ACCESS_DENIED" || response.status === 403 && url === "/api/workspace") {
+        try { clearBusinessCache(); }
+        catch (cacheError) { collectionCache.clear(); itemCache.clear(); workspaceContext = null; console.warn(cacheError.message); }
+        window.dispatchEvent(new CustomEvent("banik-access-denied", { detail: { status: response.status } }));
+      } else if (response.status === 403) {
+        const entry = Object.entries(ENDPOINTS).find(([, endpoint]) => url === endpoint || url.startsWith(`${endpoint}/`) || url.startsWith(`${endpoint}?`));
+        if (entry) clearCollectionCache(entry[0]);
+      }
+      throw error;
     }
 
-    const payload = await response.json();
+    const payload = response.status === 204 ? {} : await response.json();
+    if (generation !== contextGeneration) throw new Error("Company changed while the request was running. Please try again.");
     logPerf(`${method} ${url}`, startedAt, { status: response.status, ok: true });
     return payload;
   }
@@ -243,6 +374,7 @@
           .then((payload) => {
             const items = Array.isArray(payload.items) ? payload.items : [];
             if ((collectionCacheVersions.get(collectionName) || 0) === cacheVersion) {
+              if (payload.revision) collectionRevisions.set(collectionName, payload.revision);
               writeCollectionCache(collectionName, items);
               items.forEach((item) => {
                 if (item && item.id) {
@@ -303,10 +435,17 @@
       throw new Error(`Unknown API collection: ${collectionName}`);
     }
 
+    if (!collectionRevisions.has(collectionName)) {
+      const current = await requestJson(endpoint);
+      if (!current.revision) throw new Error("Could not verify the current company data version. Refresh before saving.");
+      collectionRevisions.set(collectionName, current.revision);
+    }
     const payload = await requestJson(endpoint, {
       method: "PUT",
-      body: JSON.stringify({ items: Array.isArray(items) ? items : [] }),
+      body: JSON.stringify({ items: Array.isArray(items) ? items : [], expectedRevision: collectionRevisions.get(collectionName) }),
     });
+    if (payload.revision) collectionRevisions.set(collectionName, payload.revision);
+    else collectionRevisions.delete(collectionName);
     const savedItems = Array.isArray(payload.items) ? payload.items : [];
     writeCollectionCache(collectionName, savedItems);
     savedItems.forEach((item) => {
@@ -328,9 +467,16 @@
       throw new Error("Missing API item id.");
     }
 
+    let saveItem = item;
+    if (!Number.isInteger(item && item.version)) {
+      const versionKey = getItemCacheKey(collectionName, itemId);
+      if (!itemVersions.has(versionKey)) await getItem(collectionName, itemId);
+      const version = itemVersions.get(versionKey);
+      if (Number.isInteger(version)) saveItem = { ...item, version };
+    }
     const payload = await requestJson(`${endpoint}/${encodeURIComponent(itemId)}`, {
       method: "PUT",
-      body: JSON.stringify({ item }),
+      body: JSON.stringify({ item: saveItem }),
     });
     clearCollectionCache(collectionName);
     writeItemCache(collectionName, itemId, payload.item || item);
@@ -348,12 +494,17 @@
       throw new Error("Missing API item id.");
     }
 
+    const versionKey = getItemCacheKey(collectionName, itemId);
+    if (!itemVersions.has(versionKey)) await getItem(collectionName, itemId);
     const payload = await requestJson(`${endpoint}/${encodeURIComponent(itemId)}`, {
       method: "DELETE",
+      body: JSON.stringify({ expectedVersion: Number(itemVersions.get(versionKey) || 0) }),
     });
     const savedItems = Array.isArray(payload.items) ? payload.items : [];
     writeCollectionCache(collectionName, savedItems);
+    collectionRevisions.delete(collectionName);
     itemCache.delete(getItemCacheKey(collectionName, itemId));
+    itemVersions.delete(getItemCacheKey(collectionName, itemId));
     return cloneItems(savedItems);
   }
 
@@ -367,24 +518,9 @@
   }
 
   async function hydrate(collectionName, storageKey, filterItems = (items) => items) {
-    try {
-      const remoteItems = filterItems(await list(collectionName));
-      const localItems = filterItems(readLocalArray(storageKey));
-
-      if (remoteItems.length) {
-        localStorage.setItem(storageKey, JSON.stringify(remoteItems));
-        return remoteItems;
-      }
-
-      if (localItems.length) {
-        await replace(collectionName, localItems);
-      }
-
-      return localItems;
-    } catch (error) {
-      console.warn(`Could not hydrate ${collectionName}.`, error);
-      return readLocalArray(storageKey);
-    }
+    const remoteItems = filterItems(await list(collectionName));
+    localStorage.setItem(storageKey, JSON.stringify(remoteItems));
+    return remoteItems;
   }
 
   async function getSetting(settingId) {
@@ -408,7 +544,7 @@
   }
 
   async function getWorkspace() {
-    return requestJson("/api/workspace");
+    return setWorkspaceContext(await requestJson("/api/workspace"));
   }
 
   async function exportBackup() {
@@ -450,6 +586,13 @@
   }
 
   window.BanikApi = {
+    request: requestJson,
+    can,
+    getContext,
+    getCompanies,
+    selectCompany,
+    setIdentity,
+    clearBusinessCache,
     deleteAdminUser,
     setAdminUserDisabled,
     hydrate,

@@ -3,16 +3,17 @@
 Browser-based accounting and business tools app using Firebase Auth and
 Firestore.
 
-Current release: June 2026
-Current version: 1.1.1
+Current release: October 2026
+Current version: 1.2.0
 
 ## What This App Contains
 
 - Firebase Auth and user profile setup.
 - Admin module access control.
-- User-scoped Firestore data helpers.
+- Company-scoped accounting data with independent staff logins.
+- Team invitations, action/report permissions and activity history.
 - Workspace navigation.
-- Journal Entry and Chart of Accounts.
+- Journal drafts, approval/posting, reversal and Chart of Accounts.
 - Challan Management.
 - Business tools: Payroll Tax, Withholding VAT/Tax, Tax/VAT/Customs Rates, EMI
   Calculator, Cheque Printer, and Invoice Generator.

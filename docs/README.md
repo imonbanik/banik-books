@@ -73,3 +73,5 @@ For local data or generated output:
 3. Keep generated exports in `../outputs/`.
 4. Do not commit those folders unless a file has been deliberately sanitized and
    moved to a source/docs location.
+
+- `COMPANY_TEAM_ACCESS.md` — company teams, invitations, journal review/audit and deployment requirements.

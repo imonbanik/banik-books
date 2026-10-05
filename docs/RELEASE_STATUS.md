@@ -2,14 +2,12 @@
 
 ## Repository Status
 
-Current version: 1.1.12
-Current release: June 2026
+Current version: 1.2.0
+Current release: October 2026
 
-The local codebase architecture migration is complete. Version 1.1.12 includes
-user-scoped Challan Management backend storage, Party Management sourced
-TIN/BIN quick view data, separate-window support for Challan Management popups,
-continuous Record Challan entry after save, and Challan Register edit/update
-actions, plus frontend/backend request performance optimizations.
+The local codebase architecture migration is complete. Version 1.2.0 adds
+company teams, independent staff logins, configurable permissions, journal
+review/history and shared accounting while retaining existing owner data scopes.
 
 Completed inside the repository:
 
@@ -22,6 +20,14 @@ Completed inside the repository:
 - Root duplicate HTML files and compatibility shim folders are removed.
 - Commercial architecture audit is available through `npm run commercial:audit`.
 - Frontend visual design is protected by `NO_VISUAL_REGRESSION_POLICY.md`.
+
+## Company Team Release
+
+Company memberships, staff invitations/login, action/report permissions, journal
+review/history, posted-only reports and owner backups are implemented locally.
+The owner approved GitHub commit and push on October 5, 2026. Live deployment
+and Firebase rules rollout have not been verified. Read `COMPANY_TEAM_ACCESS.md`
+for coordinated backend/frontend/rules deployment and staging verification.
 
 ## External Tasks Still Required
 

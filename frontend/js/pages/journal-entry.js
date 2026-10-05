@@ -75,7 +75,25 @@ document.body.append(journalPreviewModal);
 let attachments = [];
 let chartItems = [];
 let saveToastTimer = 0;
-let currentEditingJournalNumber = "";
+let currentJournal = null;
+let journalItems = [];
+let workspaceContext = null;
+let journalBusy = false;
+let createRequestId = "";
+let pendingJournalAction = "";
+const workflowSummary = document.querySelector("#journal-workflow-summary");
+const submitJournalButton = document.querySelector("#submit-journal-btn");
+const postJournalButton = document.querySelector("#post-journal-btn");
+const returnJournalButton = document.querySelector("#return-journal-btn");
+const reverseJournalButton = document.querySelector("#reverse-journal-btn");
+const historyButton = document.querySelector("#journal-history-btn");
+const historyModal = document.querySelector("#journal-history-modal");
+const historyList = document.querySelector("#journal-history-list");
+const historyMoreButton = document.querySelector("#journal-history-more");
+let historyCursor = "";
+let historyEntityId = "";
+const actionModal = document.querySelector("#journal-action-modal");
+const actionReason = document.querySelector("#journal-action-reason");
 let activeJournalSearch = {
   journals: [],
   index: -1,
@@ -117,90 +135,20 @@ function getSavedParties() {
   return safeReadArray(STORAGE_KEYS.parties).filter((party) => PARTY_TYPES.includes(party && party.type));
 }
 
-function saveParties(parties, changedParty = null) {
-  localStorage.setItem(STORAGE_KEYS.parties, JSON.stringify(parties));
-
-  if (changedParty && changedParty.id) {
-    upsertItemToBackend("parties", changedParty.id, changedParty, parties);
-    return;
-  }
-
-  syncCollectionToBackend("parties", parties);
-}
-
-async function syncCollectionToBackend(collectionName, items) {
-  if (!window.BanikApi || typeof window.BanikApi.replace !== "function") {
-    return;
-  }
-
-  try {
-    await window.BanikApi.replace(collectionName, items);
-  } catch (error) {
-    console.warn(`Could not sync ${collectionName} to backend.`, error);
-  }
-}
-
-async function upsertItemToBackend(collectionName, itemId, item, fallbackItems = []) {
-  if (!window.BanikApi) {
-    return;
-  }
-
-  try {
-    if (typeof window.BanikApi.upsert === "function") {
-      await window.BanikApi.upsert(collectionName, itemId, item);
-      return;
-    }
-
-    if (typeof window.BanikApi.replace === "function") {
-      await window.BanikApi.replace(collectionName, fallbackItems);
-    }
-  } catch (error) {
-    console.warn(`Could not save ${collectionName} item to backend.`, error);
-  }
-}
-
-async function removeItemFromBackend(collectionName, itemId, fallbackItems = []) {
-  if (!window.BanikApi) {
-    return;
-  }
-
-  try {
-    if (typeof window.BanikApi.remove === "function") {
-      await window.BanikApi.remove(collectionName, itemId);
-      return;
-    }
-
-    if (typeof window.BanikApi.replace === "function") {
-      await window.BanikApi.replace(collectionName, fallbackItems);
-    }
-  } catch (error) {
-    console.warn(`Could not delete ${collectionName} item from backend.`, error);
-  }
+async function saveParties(parties, changedParty) {
+  if (!changedParty || !changedParty.id) throw new Error("A party is required.");
+  const saved = await window.BanikApi.upsert("parties", changedParty.id, changedParty);
+  localStorage.setItem(STORAGE_KEYS.parties, JSON.stringify(parties.map((party) => party.id === saved.id ? saved : party)));
+  return saved;
 }
 
 async function hydrateCollectionFromBackend(collectionName, storageKey, filterItems = (items) => items) {
-  if (!window.BanikApi || typeof window.BanikApi.list !== "function") {
-    return safeReadArray(storageKey);
-  }
-
-  try {
-    const remoteItems = filterItems(await window.BanikApi.list(collectionName));
-    const localItems = filterItems(safeReadArray(storageKey));
-
-    if (remoteItems.length) {
-      localStorage.setItem(storageKey, JSON.stringify(remoteItems));
-      return remoteItems;
-    }
-
-    if (localItems.length) {
-      await window.BanikApi.replace(collectionName, localItems);
-    }
-
-    return localItems;
-  } catch (error) {
-    console.warn(`Could not load ${collectionName} from backend.`, error);
-    return safeReadArray(storageKey);
-  }
+  localStorage.removeItem(storageKey);
+  if (!window.BanikApi) throw new Error("The company data service is unavailable. Please refresh.");
+  const items = filterItems(await window.BanikApi.list(collectionName));
+  localStorage.setItem(storageKey, JSON.stringify(items));
+  if (collectionName === "journals") journalItems = items;
+  return items;
 }
 
 function filterParties(items) {
@@ -253,7 +201,7 @@ function getPartyPickerRows(query = "") {
 
   const seen = new Set();
   return [
-    { type: "add", label: "Add Party" },
+    ...(hasJournalPermission("parties.manage") ? [{ type: "add", label: "Add Party" }] : []),
     ...rows.filter((row) => {
       const key = normalizeSearchText(row.label);
       if (seen.has(key)) return false;
@@ -264,7 +212,7 @@ function getPartyPickerRows(query = "") {
 }
 
 function getSavedJournals() {
-  return safeReadArray(STORAGE_KEYS.journals);
+  return [...journalItems];
 }
 
 function getLatestJournalDateForNewEntry() {
@@ -371,50 +319,12 @@ function collectChartLedgers(items, ledgers = []) {
   return ledgers;
 }
 
-function waitForBanikData() {
-  if (window.BanikData && typeof window.BanikData.getChartOfAccounts === "function") {
-    return Promise.resolve();
-  }
-
-  return new Promise((resolve) => {
-    let attempts = 0;
-    const intervalId = window.setInterval(() => {
-      attempts += 1;
-
-      if (
-        (window.BanikData && typeof window.BanikData.getChartOfAccounts === "function") ||
-        attempts >= 20
-      ) {
-        window.clearInterval(intervalId);
-        resolve();
-      }
-    }, 100);
-  });
-}
-
 async function refreshLedgersFromChartOfAccounts() {
-  chartItems = normalizeChartNodes(safeReadArray(STORAGE_KEYS.chartOfAccounts));
-  await waitForBanikData();
-
-  if (!window.BanikData || typeof window.BanikData.getChartOfAccounts !== "function") {
-    return;
-  }
-
-  try {
-    const remoteChartItems = normalizeChartNodes(await window.BanikData.getChartOfAccounts());
-    const ledgers = collectChartLedgers(remoteChartItems);
-    chartItems = remoteChartItems;
-
-    if (Array.isArray(remoteChartItems)) {
-      localStorage.setItem(STORAGE_KEYS.chartOfAccounts, JSON.stringify(remoteChartItems));
-    }
-
-    if (ledgers.length) {
-      localStorage.setItem(STORAGE_KEYS.ledgers, JSON.stringify(ledgers));
-    }
-  } catch {
-    // Local ledger data remains available if backend sync is unavailable.
-  }
+  localStorage.removeItem(STORAGE_KEYS.chartOfAccounts);
+  localStorage.removeItem(STORAGE_KEYS.ledgers);
+  chartItems = normalizeChartNodes(await window.BanikApi.list("chartOfAccounts"));
+  localStorage.setItem(STORAGE_KEYS.chartOfAccounts, JSON.stringify(chartItems));
+  localStorage.setItem(STORAGE_KEYS.ledgers, JSON.stringify(collectChartLedgers(chartItems)));
 }
 
 function formatMoney(value) {
@@ -453,67 +363,14 @@ function formatDateForInput(date) {
   return `${year}-${month}-${day}`;
 }
 
-function getFiscalYear(dateValue) {
-  if (window.BanikAccounting) {
-    return window.BanikAccounting.getFiscalPeriod(dateValue);
-  }
-
-  const selectedDate = new Date(`${dateValue}T00:00:00`);
-  const year = selectedDate.getFullYear();
-  return { prefix: `FY/${String(year).slice(-2)}-${String(year + 1).slice(-2)}`, startYear: year, endYear: year + 1 };
-}
-
-function getNextJournalNumber(dateValue) {
-  const fiscalYear = getFiscalYear(dateValue);
-  const prefix = `${fiscalYear.prefix}/`;
-  const savedJournals = getSavedJournals();
-
-  const nextSequence =
-    savedJournals
-      .filter((journal) => typeof journal.number === "string" && journal.number.startsWith(prefix))
-      .map((journal) => Number(journal.number.split("/").pop()))
-      .filter((value) => Number.isFinite(value))
-      .reduce((largest, value) => Math.max(largest, value), 0) + 1;
-
-  return `${prefix}${String(nextSequence).padStart(4, "0")}`;
-}
-
 function getJournalSequence(number) {
-  const sequence = Number(String(number || "").split("/").pop());
+  const sequence = Number((String(number || "").match(/(\d+)$/) || [])[1]);
   return Number.isFinite(sequence) ? sequence : 0;
 }
 
-function getJournalNumberParts(dateValue) {
-  const fiscalYear = getFiscalYear(dateValue);
-  const prefix = `${fiscalYear.prefix}/`;
-  const usedSequences = getSavedJournals()
-    .filter((journal) => typeof journal.number === "string" && journal.number.startsWith(prefix))
-    .map((journal) => getJournalSequence(journal.number))
-    .filter((sequence) => sequence > 0);
-  const largestSequence = usedSequences.reduce((largest, sequence) => Math.max(largest, sequence), 0);
-  const usedSequenceSet = new Set(usedSequences);
-  const unusedNumbers = [];
-
-  for (let sequence = 1; sequence <= largestSequence; sequence += 1) {
-    if (!usedSequenceSet.has(sequence)) {
-      unusedNumbers.push(`${prefix}${String(sequence).padStart(4, "0")}`);
-    }
-  }
-
-  return {
-    prefix,
-    latestNumber: `${prefix}${String(largestSequence + 1).padStart(4, "0")}`,
-    unusedNumbers,
-  };
-}
-
 function updateJournalNumber() {
-  if (!journalDateInput.value) {
-    journalDateInput.value = formatDateForInput(new Date());
-  }
-
-  journalNumberInput.value = getJournalNumberParts(journalDateInput.value).latestNumber;
-  currentEditingJournalNumber = "";
+  if (!journalDateInput.value) journalDateInput.value = formatDateForInput(new Date());
+  if (!currentJournal) journalNumberInput.value = "Assigned when saved";
 }
 
 function hideJournalNumberMenu() {
@@ -525,58 +382,9 @@ function hideJournalNumberMenu() {
   journalNumberMenu.innerHTML = "";
 }
 
-function selectJournalNumber(number) {
-  journalNumberInput.value = number;
-  currentEditingJournalNumber = "";
-  hideJournalNumberMenu();
-}
-
-function createJournalNumberSection(title, numbers) {
-  const section = document.createElement("div");
-  section.className = "journal-number-menu__section";
-
-  const heading = document.createElement("div");
-  heading.className = "journal-number-menu__title";
-  heading.textContent = title;
-  section.append(heading);
-
-  if (!numbers.length) {
-    const empty = document.createElement("div");
-    empty.className = "journal-number-menu__empty";
-    empty.textContent = "No unused journal no.";
-    section.append(empty);
-    return section;
-  }
-
-  numbers.forEach((number) => {
-    const option = document.createElement("button");
-    option.className = "journal-number-menu__option";
-    option.type = "button";
-    option.textContent = number;
-    option.classList.toggle("is-selected", number === journalNumberInput.value);
-    option.addEventListener("click", () => selectJournalNumber(number));
-    section.append(option);
-  });
-
-  return section;
-}
-
 function showJournalNumberMenu() {
-  if (!journalNumberMenu) {
-    return;
-  }
-
-  if (!journalDateInput.value) {
-    journalDateInput.value = formatDateForInput(new Date());
-  }
-
-  const { unusedNumbers, latestNumber } = getJournalNumberParts(journalDateInput.value);
-  journalNumberMenu.innerHTML = "";
-  journalNumberMenu.append(
-    createJournalNumberSection("Unused Journal No.", unusedNumbers),
-    createJournalNumberSection("Latest Journal No.", [latestNumber])
-  );
-  journalNumberMenu.hidden = false;
+  // Company-wide numbers are reserved by the server when the draft is saved.
+  hideJournalNumberMenu();
 }
 
 function updateLedgerAvailabilityNote() {
@@ -825,7 +633,7 @@ function showLedgerMenu(input, menu) {
       .join(" ");
     option.setAttribute("role", row.isSelectable ? "option" : "presentation");
     option.setAttribute("aria-selected", "false");
-    option.innerHTML = `<span>${row.name}</span>`;
+    option.innerHTML = `<span>${escapeHtml(row.name)}</span>`;
 
     if (row.isSelectable) {
       const selectableIndex = selectableRows.findIndex((selectableRow) => selectableRow === row);
@@ -1182,6 +990,7 @@ function isPreviousJournal(journal, currentDate, currentNumber) {
     return false;
   }
 
+  if (!currentJournal || ["draft", "returned"].includes(currentJournal.status)) return true;
   return getJournalSequence(journal.number) < getJournalSequence(currentNumber);
 }
 
@@ -1192,6 +1001,7 @@ function getOpenReceivablePayableEntries(row, rule) {
   const shouldFilterParty = Boolean(rowData.partyId || rowData.name);
   const buckets = new Map();
   const savedJournals = getSavedJournals()
+    .filter((journal) => !journal.status || journal.status === "posted")
     .filter((journal) => isPreviousJournal(journal, journalDateInput.value, journalNumberInput.value))
     .sort((left, right) => {
       return String(left.journalDate || "").localeCompare(String(right.journalDate || "")) ||
@@ -1709,7 +1519,7 @@ function renderAttachments() {
     item.className = "attachment-item";
     item.innerHTML = `
       <div>
-        <strong>${file.name}</strong>
+        <strong>${escapeHtml(file.name)}</strong>
         <span>${bytesToMbText(file.size)}</span>
       </div>
       <button class="line-action line-action--delete" type="button" data-remove-attachment="${index}">Remove</button>
@@ -1823,8 +1633,10 @@ function loadJournalIntoForm(journal) {
     return;
   }
 
+  currentJournal = journal;
+  createRequestId = "";
   journalDateInput.value = journal.journalDate || formatDateForInput(new Date());
-  journalNumberInput.value = journal.number || getJournalNumberParts(journalDateInput.value).latestNumber;
+  journalNumberInput.value = journal.number || "Unnumbered record";
   journalDescription.value = journal.description || "";
   attachments = Array.isArray(journal.attachments) ? journal.attachments.map((file) => ({ ...file })) : [];
   journalLines.innerHTML = "";
@@ -1838,12 +1650,12 @@ function loadJournalIntoForm(journal) {
     journalLines.append(buildRow());
   }
 
-  currentEditingJournalNumber = journalNumberInput.value;
   clearCopyNotice();
   renumberRows();
   renderAttachments();
   updateTotalsAndState();
   closeAllJournalsModal();
+  applyWorkflowState();
   showSaveToast(`Journal Number ${journalNumberInput.value} loaded`);
 }
 
@@ -1874,7 +1686,7 @@ function renderAllJournals() {
     option.setAttribute("aria-selected", index === 0 ? "true" : "false");
     option.classList.toggle("is-active", index === 0);
     option.innerHTML = `
-      <strong>${escapeHtml(journal.number || "-")}</strong>
+      <strong>${escapeHtml(journal.number || "-")} · ${escapeHtml(journal.status || "posted")}</strong>
       <span>${escapeHtml(formatPrintDate(journal.journalDate) || "-")}${firstLine ? ` | ${escapeHtml(firstLine.account)}` : ""}</span>
     `;
     option.addEventListener("click", () => loadJournalIntoForm(journal));
@@ -1882,12 +1694,20 @@ function renderAllJournals() {
   });
 }
 
-function openAllJournalsModal() {
-  allJournalsSearch.value = "";
-  renderAllJournals();
-  allJournalsModal.hidden = false;
-  document.body.classList.add("modal-open");
-  allJournalsSearch.focus();
+async function openAllJournalsModal() {
+  if (journalBusy) return;
+  try {
+    const payload = await window.BanikApi.request("/api/journals");
+    journalItems = filterJournals(payload.items);
+    cacheJournals();
+    allJournalsSearch.value = "";
+    renderAllJournals();
+    allJournalsModal.hidden = false;
+    document.body.classList.add("modal-open");
+    allJournalsSearch.focus();
+  } catch (error) {
+    showJournalAlert(error.message || "Company journals could not be loaded.");
+  }
 }
 
 function closeAllJournalsModal() {
@@ -1905,7 +1725,7 @@ function loadJournalFromUrlParams() {
     return;
   }
 
-  const journal = getSavedJournals().find((entry) => entry.number === targetNumber);
+  const journal = getSavedJournals().find((entry) => entry.number === targetNumber || entry.id === targetNumber);
 
   if (!journal) {
     showJournalAlert("Could not find this journal.");
@@ -1952,14 +1772,10 @@ function hideJournalAlert() {
 }
 
 function showDeleteConfirm() {
-  const targetNumber = journalNumberInput.value;
-  const journalExists = getSavedJournals().some((journal) => journal.number === targetNumber);
-
-  if (!journalExists) {
-    showJournalAlert("This journal has not been saved yet.");
+  if (!currentJournal || !canEditJournal(currentJournal)) {
+    showJournalAlert("Only an editable draft can be archived. Posted journals can be reversed with permission.");
     return;
   }
-
   deleteConfirmModal.hidden = false;
   document.body.classList.add("modal-open");
   deleteConfirmYes.focus();
@@ -1970,28 +1786,25 @@ function hideDeleteConfirm() {
   document.body.classList.remove("modal-open");
 }
 
-function deleteCurrentJournal() {
-  const targetNumber = journalNumberInput.value;
-  const savedJournals = getSavedJournals();
-  const nextJournals = savedJournals.filter((journal) => journal.number !== targetNumber);
-
-  if (nextJournals.length === savedJournals.length) {
+async function deleteCurrentJournal() {
+  if (!currentJournal || journalBusy || !canEditJournal(currentJournal)) return;
+  const target = currentJournal;
+  setJournalBusy(true);
+  try {
+    await window.BanikApi.request(`/api/journals/${encodeURIComponent(target.id || target.number)}`, {
+      method: "DELETE", body: { expectedVersion: target.version ?? 0 },
+    });
+    journalItems = journalItems.filter((item) => (item.id || item.number) !== (target.id || target.number));
+    cacheJournals();
     hideDeleteConfirm();
-    showJournalAlert("This journal has not been saved yet.");
-    return;
+    resetJournalForm();
+    showSaveToast(`Draft ${target.number} archived`);
+  } catch (error) {
+    hideDeleteConfirm();
+    showJournalAlert(error.message || "The draft could not be archived.");
+  } finally {
+    setJournalBusy(false);
   }
-
-  localStorage.setItem(STORAGE_KEYS.journals, JSON.stringify(nextJournals));
-  removeItemFromBackend("journals", targetNumber, nextJournals);
-  hideDeleteConfirm();
-  resetRows();
-  journalDescription.value = "";
-  currentEditingJournalNumber = "";
-  clearCopyNotice();
-  clearAttachments();
-  journalNumberInput.value = targetNumber;
-  updateTotalsAndState();
-  showSaveToast(`Journal Number ${targetNumber} deleted`);
 }
 
 function showSaveToast(message) {
@@ -2014,62 +1827,53 @@ function isJournalBalanced() {
   return getFilledLines().length > 0 && Math.abs(totals.debit - totals.credit) < 0.005;
 }
 
-function persistJournal() {
-  const savedJournals = getSavedJournals();
-  const existingIndex = savedJournals.findIndex((journal) => journal.number === journalNumberInput.value);
-  const duplicateNumberExists = savedJournals.some(
-    (journal) =>
-      journal.number === journalNumberInput.value &&
-      journal.number !== currentEditingJournalNumber
-  );
-
-  if (duplicateNumberExists || (existingIndex >= 0 && currentEditingJournalNumber !== journalNumberInput.value)) {
-    showJournalAlert("Duplicate can't create. This journal number is already saved.");
-    return false;
+async function persistJournal(status = "draft") {
+  if (journalBusy || !canEditJournal(currentJournal)) return null;
+  if (!journalDateInput.value || !getFilledLines().length) {
+    showJournalAlert("Add a journal date and at least one journal line.");
+    return null;
   }
-
-  const journalEntry = {
-    number: journalNumberInput.value,
+  if (status === "posted" && !isJournalBalanced()) {
+    showJournalAlert("Debit and credit must be equal before posting.");
+    return null;
+  }
+  const item = {
     journalDate: journalDateInput.value,
     accountingBasis: appSettings.accountingBasis,
     description: journalDescription.value.trim(),
-    lines: getFilledLines().map((line) => ({
-      ...line,
-      debit: parseAmount(line.debit),
-      credit: parseAmount(line.credit),
-    })),
-    attachments: attachments.map((file) => ({
-      name: file.name,
-      size: file.size,
-      type: file.type,
-    })),
-    savedAt: new Date().toISOString(),
+    lines: getFilledLines().map((line) => ({ ...line, debit: parseAmount(line.debit), credit: parseAmount(line.credit) })),
+    attachments: attachments.map((file) => ({ name: file.name, size: file.size, type: file.type })),
   };
-
-  if (existingIndex >= 0) {
-    savedJournals[existingIndex] = {
-      ...savedJournals[existingIndex],
-      ...journalEntry,
-      updatedAt: new Date().toISOString(),
-    };
-  } else {
-    savedJournals.push(journalEntry);
+  const existing = currentJournal;
+  if (existing) item.number = existing.number;
+  else item.status = status;
+  if (!existing && !createRequestId) createRequestId = createId();
+  setJournalBusy(true);
+  try {
+    const payload = await window.BanikApi.request(existing ? `/api/journals/${encodeURIComponent(existing.id || existing.number)}` : "/api/journals", {
+      method: existing ? "PATCH" : "POST",
+      body: existing ? { item, expectedVersion: existing.version ?? 0 } : { item, requestId: createRequestId },
+    });
+    if (!payload.item) throw new Error("The server did not confirm this journal. Please reload before retrying.");
+    rememberJournal(payload.item);
+    loadJournalIntoForm(payload.item);
+    showSaveToast(`Journal ${payload.item.number} ${payload.item.status === "posted" ? "posted" : "saved"}`);
+    return payload.item;
+  } catch (error) {
+    showJournalAlert(error.message || "The journal was not saved. Your entries remain in the form.");
+    return null;
+  } finally {
+    setJournalBusy(false);
   }
-
-  localStorage.setItem(STORAGE_KEYS.journals, JSON.stringify(savedJournals));
-  upsertItemToBackend("journals", journalEntry.number, journalEntry, savedJournals);
-  currentEditingJournalNumber = journalNumberInput.value;
-  clearCopyNotice();
-  showSaveToast(`Journal Number ${journalNumberInput.value} saved`);
-  return true;
 }
 
 function resetJournalForm() {
+  currentJournal = null;
+  createRequestId = "";
   const lastDate = journalDateInput.value || formatDateForInput(new Date());
   resetRows();
   journalDateInput.value = lastDate;
   journalDescription.value = "";
-  currentEditingJournalNumber = "";
   clearCopyNotice();
   clearAttachments();
   updateJournalNumber();
@@ -2084,53 +1888,244 @@ function startNewJournal() {
   showSaveToast(`New Journal ${journalNumberInput.value} ready`);
 }
 
-function handleSave(event) {
-  if (event) {
-    event.preventDefault();
-  }
-
+async function handleSave(event) {
+  if (event) event.preventDefault();
   updateTotalsAndState();
+  await persistJournal();
+}
 
-  if (!getFilledLines().length) {
-    showJournalAlert("Please add a journal line.");
+function hasJournalPermission(permission) {
+  if (!workspaceContext) return false;
+  return Boolean(window.BanikApi && window.BanikApi.can(permission));
+}
+
+function canEditJournal(journal) {
+  if (!journal) return hasJournalPermission("journals.create");
+  if (!["draft", "returned"].includes(journal.status)) return false;
+  return hasJournalPermission("journals.editAll") ||
+    (hasJournalPermission("journals.editOwn") && journal.createdBy === workspaceContext.userId);
+}
+
+function formatActivityTime(value) {
+  if (!value) return "Time unavailable";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "Time unavailable";
+  return new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Asia/Dhaka", year: "numeric", month: "short", day: "2-digit",
+    hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: true,
+  }).format(date) + " (BDT)";
+}
+
+function applyWorkflowState() {
+  const editable = canEditJournal(currentJournal);
+  const status = currentJournal ? currentJournal.status || "posted" : "draft";
+  const ownEntry = Boolean(currentJournal && workspaceContext && currentJournal.createdBy === workspaceContext.userId);
+  const canApprove = status === "submitted" && hasJournalPermission("journals.approve") && !ownEntry;
+  const canPost = ["draft", "returned"].includes(status) && editable && hasJournalPermission("journals.post");
+  saveButton.hidden = !editable;
+  saveButton.textContent = currentJournal ? "Save changes" : "Save draft";
+  submitJournalButton.hidden = !editable || !hasJournalPermission("journals.submit");
+  postJournalButton.hidden = !(canPost || canApprove);
+  postJournalButton.textContent = canApprove ? "Approve & post" : "Post journal";
+  returnJournalButton.hidden = !canApprove;
+  reverseJournalButton.hidden = status !== "posted" || !hasJournalPermission("journals.reverse") ||
+    Boolean(currentJournal && (currentJournal.reversedByJournalId || currentJournal.reversalJournalId || currentJournal.reversedAt));
+  historyButton.hidden = !currentJournal || !hasJournalPermission("activity.view");
+  deleteJournalButton.hidden = !currentJournal || !editable;
+  newJournalButton.hidden = !hasJournalPermission("journals.create");
+  copyJournalButton.hidden = !hasJournalPermission("journals.create");
+  createLedgerButton.hidden = !hasJournalPermission("chartOfAccounts.manage");
+  [journalDateInput, journalDescription, attachmentInput, addLineButton, clearLinesButton, createLedgerButton]
+    .forEach((input) => { input.disabled = journalBusy || !editable; });
+  journalLines.querySelectorAll("input, select, textarea, button").forEach((input) => {
+    input.disabled = journalBusy || !editable;
+  });
+  attachmentList.querySelectorAll("button").forEach((button) => { button.disabled = journalBusy || !editable; });
+  [saveButton, submitJournalButton, postJournalButton, returnJournalButton, reverseJournalButton,
+    historyButton, deleteJournalButton, newJournalButton, copyJournalButton, allJournalsButton]
+    .forEach((button) => { button.disabled = journalBusy || !workspaceContext; });
+  deleteConfirmYes.disabled = journalBusy;
+  document.querySelector("#journal-action-confirm").disabled = journalBusy;
+  if (!workspaceContext) {
+    workflowSummary.textContent = "Company access is not ready. Reload if this message remains.";
     return;
   }
-
-  if (!isJournalBalanced()) {
-    showJournalAlert("Debit Credit is not Equal, please check.");
+  if (!currentJournal) {
+    workflowSummary.textContent = "New draft · A number will be assigned when saved. Drafts do not affect reports.";
     return;
   }
+  const journal = currentJournal;
+  const creator = journal.createdByName || journal.createdBy || "Legacy record — creator unavailable";
+  const approver = journal.approvedByName || journal.approvedBy;
+  const poster = journal.postedByName || journal.postedBy;
+  workflowSummary.innerHTML = `<strong class="journal-workflow-status">${escapeHtml(status)}</strong>
+    <span>Created by ${escapeHtml(creator)}${journal.createdAt ? ` · ${escapeHtml(formatActivityTime(journal.createdAt))}` : ""}</span>
+    ${approver ? `<span>Approved by ${escapeHtml(approver)} · ${escapeHtml(formatActivityTime(journal.approvedAt))}</span>` : ""}
+    ${poster ? `<span>Posted by ${escapeHtml(poster)} · ${escapeHtml(formatActivityTime(journal.postedAt))}</span>` : ""}
+    ${journal.returnReason ? `<span>Returned: ${escapeHtml(journal.returnReason)}</span>` : ""}
+    ${journal.reversalOf ? `<span>Reversal of ${escapeHtml(journal.reversalOf)}</span>` : ""}
+    <span>${status === "posted" ? "Included in reports. Corrections require a reversal." : "Not included in financial reports."}</span>`;
+}
 
-  const didSave = persistJournal();
+function setJournalBusy(value) {
+  journalBusy = value;
+  journalForm.setAttribute("aria-busy", String(value));
+  applyWorkflowState();
+}
 
-  if (!didSave) {
+function cacheJournals() {
+  localStorage.setItem(STORAGE_KEYS.journals, JSON.stringify(journalItems));
+  localStorage.removeItem("banikBooksPostedJournals");
+}
+
+function rememberJournal(journal) {
+  const id = journal.id || journal.number;
+  journalItems = journalItems.filter((item) => (item.id || item.number) !== id);
+  journalItems.push(journal);
+  cacheJournals();
+}
+
+function openJournalAction(action) {
+  if (!currentJournal || journalBusy) return;
+  pendingJournalAction = action;
+  document.querySelector("#journal-action-title").textContent = action === "reverse" ? "Reverse posted journal" : "Return for correction";
+  document.querySelector("#journal-action-description").textContent = action === "reverse"
+    ? "A new posted journal dated today with opposite debit and credit amounts will be created. The original and its history are retained."
+    : "The creator can correct this draft and submit it again.";
+  actionReason.value = "";
+  actionModal.hidden = false;
+  document.body.classList.add("modal-open");
+  actionReason.focus();
+}
+
+function closeJournalAction() {
+  actionModal.hidden = true;
+  pendingJournalAction = "";
+  document.body.classList.remove("modal-open");
+}
+
+const journalActionRequests = new Map();
+
+async function performJournalAction(action, reason = "") {
+  if (journalBusy) return;
+  if (["submit", "post"].includes(action) && (!currentJournal || ["draft", "returned"].includes(currentJournal.status))) {
+    if (!isJournalBalanced()) {
+      showJournalAlert("Debit and credit must be equal before submitting or posting.");
+      return;
+    }
+    const directPost = action === "post" && !currentJournal;
+    const saved = await persistJournal(directPost ? "posted" : "draft");
+    if (!saved || directPost) return;
+  }
+  if (!currentJournal) return;
+  if (["return", "reverse"].includes(action) && !reason.trim()) {
+    actionReason.setCustomValidity("Enter a reason for this action.");
+    actionReason.reportValidity();
     return;
+  }
+  actionReason.setCustomValidity("");
+  const target = currentJournal;
+  const key = `${target.id || target.number}:${target.version}:${action}`;
+  if (!journalActionRequests.has(key)) journalActionRequests.set(key, createId());
+  setJournalBusy(true);
+  try {
+    const payload = await window.BanikApi.request(`/api/journals/${encodeURIComponent(target.id || target.number)}/actions`, {
+      method: "POST", body: { action, reason: reason.trim(), expectedVersion: target.version ?? 0, requestId: journalActionRequests.get(key) },
+    });
+    if (!payload.item) throw new Error("The server did not confirm the journal action. Reload before retrying.");
+    rememberJournal(payload.item);
+    if (payload.reversal) rememberJournal(payload.reversal);
+    loadJournalIntoForm(payload.item);
+    closeJournalAction();
+    showSaveToast(action === "reverse" ? "Reversal posted; original history retained" : action === "return" ? "Returned for correction" : action === "submit" ? "Submitted for approval" : "Journal posted");
+  } catch (error) {
+    showJournalAlert(error.message || "The journal action could not be completed.");
+  } finally {
+    setJournalBusy(false);
   }
 }
 
-function incrementJournalNumber(number) {
-  const parts = String(number || "").split("/");
-  const serial = Number(parts.pop());
-
-  if (!Number.isFinite(serial)) {
-    return getNextJournalNumber(journalDateInput.value);
+async function showJournalHistory(append = false) {
+  if (!currentJournal) return;
+  const entityId = currentJournal.id || currentJournal.number;
+  historyModal.hidden = false;
+  document.body.classList.add("modal-open");
+  if (!append) {
+    historyEntityId = entityId;
+    historyCursor = "";
+    historyList.textContent = "Loading history…";
+    historyMoreButton.hidden = true;
+    document.querySelector("#journal-history-close").focus();
   }
+  historyMoreButton.disabled = true;
+  try {
+    const payload = await window.BanikApi.request(`/api/activity?entityId=${encodeURIComponent(entityId)}${append && historyCursor ? `&cursor=${encodeURIComponent(historyCursor)}` : ""}`);
+    if (historyEntityId !== entityId) return;
+    const events = Array.isArray(payload.items) ? payload.items : [];
+    historyCursor = payload.nextCursor || "";
+    historyMoreButton.hidden = !historyCursor;
+    if (!events.length && !append) {
+      historyList.textContent = "No recorded activity. Historical activity before this feature was enabled is unavailable.";
+      return;
+    }
+    const actionLabels = {
+      "journal.created": "Draft created", "journal.updated": "Draft updated",
+      "journal.submitted": "Submitted for approval", "journal.posted": "Journal posted",
+      "journal.created-and-posted": "Journal created and posted", "journal.returned": "Returned for correction",
+      "journal.reversed": "Journal reversed", "journal.reversal-created": "Reversal posted", "journal.archived": "Draft archived",
+    };
+    const eventMarkup = events.map((entry) => {
+      const actor = entry.actorName || entry.actorDisplayName || entry.actorEmail || entry.actorId || entry.actorUserId || "System";
+      const time = entry.createdAt || entry.timestamp || entry.at;
+      const changes = describeHistoryChanges(entry.before, entry.after);
+      return `<article class="journal-history-event"><strong>${escapeHtml(actionLabels[entry.action] || entry.action || "Updated")} · ${escapeHtml(actor)}</strong>
+        <small>${escapeHtml(formatActivityTime(time))}</small>
+        ${entry.reason ? `<p>${escapeHtml(entry.reason)}</p>` : ""}
+        ${changes ? `<details><summary>View changes</summary>${changes}</details>` : ""}</article>`;
+    }).join("");
+    if (append) historyList.insertAdjacentHTML("beforeend", eventMarkup);
+    else historyList.innerHTML = eventMarkup;
+  } catch (error) {
+    if (append) showJournalAlert(error.message || "Earlier history could not be loaded. Please try again.");
+    else historyList.textContent = error.message || "History could not be loaded.";
+  } finally {
+    historyMoreButton.disabled = false;
+  }
+}
 
-  return `${parts.join("/")}/${String(serial + 1).padStart(4, "0")}`;
+function describeHistoryChanges(before, after) {
+  const fields = { journalDate: "Journal date", status: "Status", description: "Journal note", lines: "Journal lines", attachments: "Attachments" };
+  function display(key, value) {
+    if (value === undefined || value === null || value === "") return "—";
+    if (key === "lines") {
+      const lines = Array.isArray(value) ? value : [];
+      const totalDebit = lines.reduce((sum, line) => sum + parseAmount(line.debit), 0);
+      const totalCredit = lines.reduce((sum, line) => sum + parseAmount(line.credit), 0);
+      return [`Total debit ${formatPlainMoney(totalDebit)} · Total credit ${formatPlainMoney(totalCredit)}`, ...lines.map((line) =>
+        `${line.account || "No account"} · Debit ${formatPlainMoney(line.debit)} · Credit ${formatPlainMoney(line.credit)}${line.name ? ` · ${line.name}` : ""}${line.description ? `\n${line.description}` : ""}`)].join("\n");
+    }
+    if (key === "attachments") return (Array.isArray(value) ? value : []).map((file) => file.name || "Attachment").join("\n") || "—";
+    return String(value);
+  }
+  return Object.entries(fields).filter(([key]) => JSON.stringify(before?.[key]) !== JSON.stringify(after?.[key]))
+    .map(([key, label]) => `<div class="journal-history-change"><strong>${escapeHtml(label)}</strong><small>Before</small><pre>${escapeHtml(display(key, before?.[key]))}</pre><small>After</small><pre>${escapeHtml(display(key, after?.[key]))}</pre></div>`).join("");
+}
+
+function closeJournalHistory() {
+  historyModal.hidden = true;
+  document.body.classList.remove("modal-open");
+  historyButton.focus();
 }
 
 function copyJournal() {
-  const sourceNumber = journalNumberInput.value || getNextJournalNumber(journalDateInput.value);
-  const currentDate = journalDateInput.value || formatDateForInput(new Date());
-  const generatedNumber = getNextJournalNumber(currentDate);
-  const nextNumber =
-    generatedNumber === journalNumberInput.value ? incrementJournalNumber(journalNumberInput.value) : generatedNumber;
-
-  journalDateInput.value = currentDate;
-  journalNumberInput.value = nextNumber;
-  currentEditingJournalNumber = "";
+  if (!hasJournalPermission("journals.create") || journalBusy) return;
+  const sourceNumber = currentJournal ? currentJournal.number : "unsaved journal";
+  currentJournal = null;
+  createRequestId = "";
+  updateJournalNumber();
   showCopyNotice(sourceNumber);
-  showSaveToast(`Copied as ${nextNumber}`);
+  applyWorkflowState();
+  showSaveToast("Copied into a new draft. Save to assign a journal number.");
 }
 
 function escapeHtml(value) {
@@ -2395,6 +2390,7 @@ async function printJournal() {
 
           <section class="print-meta">
             <div>Journal Date: ${escapeHtml(formatPrintDate(journalDateInput.value))}</div>
+            <div>Status: ${escapeHtml(currentJournal ? currentJournal.status || "posted" : "unsaved draft")}</div>
             <div>Journal No.: ${escapeHtml(journalNumberInput.value)}</div>
           </section>
 
@@ -2456,6 +2452,7 @@ function populateQuickLedgerParent() {
 }
 
 function openQuickLedgerModal() {
+  if (!hasJournalPermission("chartOfAccounts.manage")) return;
   populateQuickLedgerParent();
   quickLedgerForm.reset();
   quickLedgerModal.hidden = false;
@@ -2487,6 +2484,7 @@ function insertLedgerIntoChart(ledger, parentId) {
 
 async function saveQuickLedger(event) {
   event.preventDefault();
+  if (!hasJournalPermission("chartOfAccounts.manage")) return;
   const name = quickLedgerName.value.trim();
 
   if (!name) {
@@ -2507,17 +2505,17 @@ async function saveQuickLedger(event) {
     classification: quickLedgerClassification.value.trim(),
   };
 
+  const previousChart = structuredClone(chartItems);
   insertLedgerIntoChart(ledger, quickLedgerParent.value);
+  try {
+    await window.BanikApi.replace("chartOfAccounts", chartItems);
+  } catch (error) {
+    chartItems = previousChart;
+    showJournalAlert(error.message || "The ledger could not be created.");
+    return;
+  }
   localStorage.setItem(STORAGE_KEYS.chartOfAccounts, JSON.stringify(chartItems));
   localStorage.setItem(STORAGE_KEYS.ledgers, JSON.stringify(collectChartLedgers(chartItems)));
-
-  if (window.BanikData && typeof window.BanikData.saveChartOfAccounts === "function") {
-    try {
-      await window.BanikData.saveChartOfAccounts(chartItems);
-    } catch {
-      setStatus("Ledger added locally, but backend sync failed.", "error");
-    }
-  }
 
   closeQuickLedgerModal();
   refreshOpenLedgerPicker();
@@ -2525,6 +2523,7 @@ async function saveQuickLedger(event) {
 }
 
 function openJournalPartyModal() {
+  if (!hasJournalPermission("parties.manage")) return;
   journalPartyForm.reset();
   journalPartyType.value = "Customer";
   renderJournalPartyFields(journalPartyType.value);
@@ -2758,8 +2757,9 @@ function collectJournalPartyFormData() {
   };
 }
 
-function saveJournalParty(event) {
+async function saveJournalParty(event) {
   event.preventDefault();
+  if (!hasJournalPermission("parties.manage")) return;
   if (!journalPartyForm.reportValidity()) return;
 
   const now = new Date().toISOString();
@@ -2771,7 +2771,12 @@ function saveJournalParty(event) {
   };
   const parties = getSavedParties();
   parties.push(party);
-  saveParties(parties, party);
+  try {
+    await saveParties(parties, party);
+  } catch (error) {
+    showJournalAlert(error.message || "The party could not be created.");
+    return;
+  }
 
   const displayName = getPartyDisplayLabel(party, parties);
   if (pendingPartyNameInput && displayName) {
@@ -2862,7 +2867,7 @@ attachmentDropzone.addEventListener("dragleave", () => {
 attachmentDropzone.addEventListener("drop", (event) => {
   event.preventDefault();
   attachmentDropzone.classList.remove("attachment-dropzone--active");
-  addAttachments([...event.dataTransfer.files]);
+  if (canEditJournal(currentJournal) && !journalBusy) addAttachments([...event.dataTransfer.files]);
 });
 
 journalDateInput.addEventListener("change", () => {
@@ -2883,6 +2888,18 @@ clearLinesButton.addEventListener("click", () => {
 });
 
 journalForm.addEventListener("submit", handleSave);
+submitJournalButton.addEventListener("click", () => performJournalAction("submit"));
+postJournalButton.addEventListener("click", () => performJournalAction("post"));
+returnJournalButton.addEventListener("click", () => openJournalAction("return"));
+reverseJournalButton.addEventListener("click", () => openJournalAction("reverse"));
+historyButton.addEventListener("click", () => showJournalHistory());
+historyMoreButton.addEventListener("click", () => showJournalHistory(true));
+document.querySelector("#journal-history-close").addEventListener("click", closeJournalHistory);
+document.querySelector("#journal-action-cancel").addEventListener("click", closeJournalAction);
+document.querySelector("#journal-action-confirm").addEventListener("click", () => performJournalAction(pendingJournalAction, actionReason.value));
+actionReason.addEventListener("input", () => actionReason.setCustomValidity(""));
+historyModal.addEventListener("click", (event) => { if (event.target === historyModal) closeJournalHistory(); });
+actionModal.addEventListener("click", (event) => { if (event.target === actionModal && !journalBusy) closeJournalAction(); });
 allJournalsButton.addEventListener("click", openAllJournalsModal);
 allJournalsClose.addEventListener("click", closeAllJournalsModal);
 allJournalsSearch.addEventListener("input", renderAllJournals);
@@ -2948,6 +2965,9 @@ document.addEventListener("keydown", (event) => {
   if (event.key !== "Escape") {
     return;
   }
+
+  if (!historyModal.hidden) closeJournalHistory();
+  if (!actionModal.hidden && !journalBusy) closeJournalAction();
 
   if (!journalAlert.hidden) {
     hideJournalAlert();
@@ -3060,18 +3080,25 @@ receivablePayablePanel.addEventListener("blur", (event) => {
 }, true);
 
 document.addEventListener("DOMContentLoaded", async () => {
-  if (window.BanikAccounting) {
-    await window.BanikAccounting.ready();
+  applyWorkflowState();
+  try {
+    workspaceContext = await window.BanikApi.getWorkspace();
+    if (window.BanikAccounting) await window.BanikAccounting.ready();
+    await hydrateCollectionFromBackend("parties", STORAGE_KEYS.parties, filterParties);
+    await hydrateCollectionFromBackend("journals", STORAGE_KEYS.journals, filterJournals);
+    await refreshLedgersFromChartOfAccounts();
+    updateBackButtonFromUrlParams();
+    renderJournalPartyFields(journalPartyType.value);
+    journalDateInput.value = getLatestJournalDateForNewEntry();
+    updateJournalNumber();
+    updateLedgerAvailabilityNote();
+    resetRows();
+    renderAttachments();
+    loadJournalFromUrlParams();
+    applyWorkflowState();
+  } catch (error) {
+    workspaceContext = null;
+    applyWorkflowState();
+    showJournalAlert(error.message || "Company journals could not be loaded. Please refresh.");
   }
-  await hydrateCollectionFromBackend("parties", STORAGE_KEYS.parties, filterParties);
-  await hydrateCollectionFromBackend("journals", STORAGE_KEYS.journals, filterJournals);
-  updateBackButtonFromUrlParams();
-  renderJournalPartyFields(journalPartyType.value);
-  journalDateInput.value = getLatestJournalDateForNewEntry();
-  updateJournalNumber();
-  await refreshLedgersFromChartOfAccounts();
-  updateLedgerAvailabilityNote();
-  resetRows();
-  renderAttachments();
-  loadJournalFromUrlParams();
 });

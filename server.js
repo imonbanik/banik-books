@@ -34,21 +34,15 @@ function getContentType(filePath) {
 
 function resolveStaticFilePath(safePath) {
   const pathParts = safePath.split(/[\\/]/).filter(Boolean);
-  const firstPart = pathParts[0] || "";
-  const frontendPath =
-    safePath === "styles.css" || FRONTEND_PUBLIC_PREFIXES.has(firstPart)
-      ? path.join(FRONTEND_DIR, safePath)
-      : "";
-  const rootPath = path.join(ROOT_DIR, safePath);
-  const candidates = frontendPath ? [frontendPath, rootPath] : [rootPath];
-
-  return candidates.find((candidatePath) => {
-    return (
-      candidatePath.startsWith(ROOT_DIR) &&
-      fs.existsSync(candidatePath) &&
-      !fs.statSync(candidatePath).isDirectory()
-    );
-  });
+  if (pathParts.some((part) => part.startsWith("."))) return undefined;
+  if (safePath !== "styles.css" && !FRONTEND_PUBLIC_PREFIXES.has(pathParts[0])) return undefined;
+  const candidate = path.resolve(FRONTEND_DIR, safePath);
+  if (!candidate.startsWith(FRONTEND_DIR + path.sep)) return undefined;
+  try {
+    const real = fs.realpathSync(candidate);
+    if (!real.startsWith(FRONTEND_DIR + path.sep) || !fs.statSync(real).isFile()) return undefined;
+    return real;
+  } catch { return undefined; }
 }
 
 function sendStatic(request, response) {
@@ -76,7 +70,7 @@ function sendStatic(request, response) {
     return;
   }
 
-  response.writeHead(200, { "Content-Type": getContentType(filePath) });
+  response.writeHead(200, { "Content-Type": getContentType(filePath), "X-Content-Type-Options": "nosniff", "Cache-Control": "no-cache" });
   fs.createReadStream(filePath).pipe(response);
 }
 
@@ -145,18 +139,15 @@ function sendRateCsv(request, response) {
 }
 
 async function handleRequest(request, response) {
-  const url = new URL(request.url, `http://${request.headers.host}`);
-
-  if (await handleApi(request, response)) {
-    return;
+  try {
+    const url = new URL(request.url, `http://${request.headers.host || "localhost"}`);
+    if (await handleApi(request, response)) return;
+    if (url.pathname === "/rate-finder-csv") { sendRateCsv(request, response); return; }
+    sendStatic(request, response);
+  } catch (error) {
+    if (!response.headersSent) response.writeHead(error instanceof URIError || error instanceof TypeError ? 400 : 500, { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-store" });
+    response.end("The request could not be processed.");
   }
-
-  if (url.pathname === "/rate-finder-csv") {
-    sendRateCsv(request, response);
-    return;
-  }
-
-  sendStatic(request, response);
 }
 
 if (require.main === module) {

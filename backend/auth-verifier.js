@@ -23,6 +23,7 @@ function getFirebaseVerifier() {
 async function verifyFirebaseToken(token) {
   const auth = getFirebaseVerifier();
   const decodedToken = await auth.verifyIdToken(token, true);
+  if (decodedToken.email_verified !== true) throw createError(403, "Verify your email before accessing the API.");
   const userId = decodedToken.uid || decodedToken.user_id || decodedToken.sub;
 
   if (!userId) {
@@ -32,6 +33,8 @@ async function verifyFirebaseToken(token) {
   return {
     userId: String(userId),
     email: decodedToken.email || "",
+    emailVerified: decodedToken.email_verified === true,
+    fullName: decodedToken.name || "",
     source: "firebase-admin",
     token,
   };

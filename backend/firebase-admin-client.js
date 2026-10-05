@@ -56,7 +56,7 @@ function initializeFirebaseAdminApp(appModule) {
     return;
   }
 
-  appModule.initializeApp(appModule.applicationDefault());
+  appModule.initializeApp({ credential: appModule.applicationDefault() });
 }
 
 function loadFirebaseAdmin() {

@@ -1270,38 +1270,21 @@ function restoreFormDraft() {
 }
 
 async function persistRemote() {
-  let didSaveToApi = false;
-
   try {
-    didSaveToApi = await saveChartViaApi();
+    if (!window.BanikApi?.can("chartOfAccounts.manage")) throw new Error("You have read-only access to the chart of accounts.");
+    await saveChartViaApi();
+    persistLocal();
+    setStatus("Saved. The company chart of accounts is updated.", "success");
   } catch (error) {
-    console.warn("Could not sync chart of accounts to backend API.", error);
-  }
-
-  if (!window.BanikData || typeof window.BanikData.saveChartOfAccounts !== "function") {
-    setStatus(
-      didSaveToApi
-        ? "Saved. Backend API chart is updated."
-        : "Saved in this browser. Backend sync is not available on this page.",
-      "success"
-    );
-    return;
-  }
-
-  try {
-    await window.BanikData.saveChartOfAccounts(chartItems);
-    const didSyncDefault = await syncDefaultTemplate(true);
-    setStatus(
-      `Saved. Journal Entry ledger dropdown is updated.${didSyncDefault ? " Default template updated." : ""}`,
-      "success"
-    );
-  } catch (error) {
-    setStatus(error.message || "Saved locally, but backend sync failed.", "error");
+    setStatus(error.message || "The chart was not saved. Reload before retrying.", "error");
   }
 }
 
 function saveChart() {
-  persistLocal();
+  if (!window.BanikApi?.can("chartOfAccounts.manage")) {
+    setStatus("You have read-only access to the chart of accounts.", "error");
+    return;
+  }
   window.clearTimeout(saveTimer);
   saveTimer = window.setTimeout(persistRemote, 250);
 }
@@ -1919,89 +1902,33 @@ function handleDrop(event) {
 }
 
 async function loadChart() {
-  await loadProfileNumberFormat();
-  const localItems = readLocalTree();
-  chartItems = localItems.length ? localItems : createDefaultChartItems();
+  chartItems = [];
   renderTree();
-
-  if (localItems.length) {
-    setStatus("Loaded saved chart from this browser.", "success");
-  } else {
-    setStatus("Default chart of accounts loaded.", "success");
-  }
-
+  setStatus("Loading company chart of accounts...", "pending");
   await waitForBanikData();
   await revealDefaultTemplateButton();
-
   try {
-    const apiItems = await loadChartViaApi();
-
-    if (apiItems.length) {
-      chartItems = apiItems;
-      persistLocal();
-      markDefaultChartApplied();
-      renderTree();
-      setStatus("Loaded saved chart of accounts from backend API.", "success");
-      restoreFormDraft();
-      return;
-    }
-
-    if (localItems.length) {
+    await window.BanikApi.getWorkspace();
+    await loadProfileNumberFormat();
+    chartItems = await loadChartViaApi();
+    if (!chartItems.length && window.BanikApi.can("chartOfAccounts.manage")) {
+      chartItems = await loadDefaultChartItems();
       await saveChartViaApi();
     }
-  } catch (error) {
-    console.warn("Could not load backend API chart.", error);
-  }
-
-  if (!window.BanikData || typeof window.BanikData.getChartOfAccounts !== "function") {
-    try {
-      await saveChartViaApi();
-    } catch {
-      // Local chart remains available if API sync is unavailable.
-    }
-
-    if (!chartItems.length) {
-      setStatus("Create your first group or ledger to start.", "pending");
-    }
-    restoreFormDraft();
-    return;
-  }
-
-  try {
-    const rawRemoteItems = await window.BanikData.getChartOfAccounts();
-    const hadDiscardedNodes = containsDiscardedChartNode(rawRemoteItems);
-    const remoteTreeResult = applyChartStructureRules(rawRemoteItems);
-    const remoteItems = remoteTreeResult.items;
-
-    if (remoteItems.length) {
-      chartItems = remoteItems;
-      persistLocal();
-      markDefaultChartApplied();
-      renderTree();
-      if (hadDiscardedNodes || remoteTreeResult.changed) {
-        await window.BanikData.saveChartOfAccounts(chartItems);
-      }
-      const didSyncDefault = await syncDefaultTemplate(true);
-      setStatus(
-        `Loaded saved chart of accounts.${didSyncDefault ? " Default template updated." : ""}`,
-        "success"
-      );
-      restoreFormDraft();
-      return;
-    }
-
-    chartItems = await loadDefaultChartItems();
     persistLocal();
-    markDefaultChartApplied();
     renderTree();
-    await saveChartViaApi();
-    await window.BanikData.saveChartOfAccounts(chartItems);
-    setStatus("Default chart of accounts saved.", "success");
+    if (!window.BanikApi.can("chartOfAccounts.manage")) {
+      document.querySelectorAll('main button, main input, main select, main textarea, [draggable="true"]').forEach((element) => {
+        if (element.matches('[draggable="true"]')) element.draggable = false;
+        else if (!/export|print|download|collapse|expand/i.test(element.id || "")) element.disabled = true;
+      });
+    }
+    setStatus("Company chart of accounts loaded.", "success");
+    restoreFormDraft();
   } catch (error) {
-    setStatus(error.message || "Could not load backend chart. Local data is available.", "error");
+    chartItems = []; renderTree();
+    setStatus(error.message || "Could not load company chart of accounts.", "error");
   }
-
-  restoreFormDraft();
 }
 
 function waitForBanikData() {

@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <base href="/" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="referrer" content="no-referrer" />
+  <title>Join your company | BANIK Books</title>
+  <link rel="stylesheet" href="./styles.css" />
+  <script src="./js/core/auth.js" type="module"></script>
+  <script src="./js/pages/accept-invite.js" defer></script>
+</head>
+<body>
+  <main class="invite-shell"><section class="invite-card">
+    <a class="brand" href="./index.html"><span class="brand-mark"><img src="./assets/banik-logo.svg" alt="" /></span><span class="brand-copy__title">BANIK Books</span></a>
+    <h1 id="invite-title">Join your company</h1>
+    <p id="invite-summary">Checking your invitation…</p>
+    <p id="invite-status" class="auth-form-status" role="status" aria-live="polite"></p>
+    <form id="invite-auth-form" hidden>
+      <label>Email address<input id="invite-email" type="email" autocomplete="email" readonly required /></label>
+      <label id="invite-name-label" hidden>Your name<input id="invite-name" autocomplete="name" maxlength="120" /></label>
+      <label>Password<input id="invite-password" type="password" autocomplete="current-password" minlength="6" required /></label>
+      <button id="invite-submit" class="primary-button" type="submit">Sign in &amp; join</button>
+    </form>
+    <div class="invite-actions" id="invite-auth-actions" hidden><button type="button" class="secondary-button" id="invite-mode">Create your login</button><button type="button" class="secondary-button" id="invite-reset">Forgot password?</button></div>
+    <button type="button" id="invite-accept" class="primary-button" hidden>Join company</button>
+    <button type="button" id="invite-signout" class="secondary-button" hidden>Sign in with invited email</button>
+    <p><a href="./index.html">Back to sign in</a></p>
+  </section></main>
+</body>
+</html>

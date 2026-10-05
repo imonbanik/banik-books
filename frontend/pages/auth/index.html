@@ -96,10 +96,15 @@
               <span class="sr-only">Password</span>
               <input id="home-auth-password" type="password" placeholder="Password" autocomplete="current-password" required />
             </label>
+            <a href="#" id="home-auth-forgot">Forgot password?</a>
             <p class="auth-form-status" id="home-auth-status" aria-live="polite"></p>
             <button id="home-auth-submit" type="submit">Sign In</button>
           </form>
 
+          <form class="signup-form" id="home-company-form" hidden>
+            <label class="field"><span>Choose your company</span><select id="home-company-select" required aria-label="Company"></select></label>
+            <button type="submit" id="home-company-submit">Open company</button>
+          </form>
           <div class="signup-links">
             <span>New to BANIK Books?</span>
             <a href="#" id="home-auth-mode-toggle">Create a new account</a>

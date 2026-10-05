@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <base href="/" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Team &amp; Access | BANIK Books</title>
+  <link rel="stylesheet" href="./styles.css" />
+  <script src="./js/config/app-config.js" defer></script>
+  <script src="./js/core/auth.js" type="module"></script>
+  <script src="./js/pages/team.js" defer></script>
+</head>
+<body>
+  <div class="page-shell team-page">
+    <header class="topbar">
+      <a class="brand" href="./workspace.html"><span class="brand-mark"><img src="./assets/banik-logo.svg" alt="" /></span><span class="brand-copy"><span class="brand-copy__title">BANIK Books</span><span class="brand-copy__tag">Company workspace</span></span></a>
+      <div class="auth-controls" data-auth-controls></div>
+    </header>
+    <main>
+      <a class="team-back" href="./workspace.html">← Workspace</a>
+      <div class="team-heading"><div><span class="eyebrow">Your people, your permissions</span><h1>Team &amp; Access</h1><p id="team-company">Loading company access…</p></div><a class="secondary-button" id="team-company-settings" href="./signup.html" hidden>Company settings</a></div>
+      <p id="team-status" class="auth-form-status" role="status" aria-live="polite"></p>
+      <section class="team-card" id="team-invite-section" hidden>
+        <h2>Invite a colleague</h2><p>They sign in with their own email and password. Invitations expire after 72 hours.</p>
+        <form id="team-invite-form">
+          <div class="team-fields"><label>Full name<input name="name" required maxlength="120" autocomplete="name" /></label><label>Email address<input name="email" type="email" required autocomplete="email" /></label><label>Role<select name="role"><option value="junior">Junior accountant</option><option value="accountant">Accountant — direct posting</option><option value="viewer">Viewer</option><option value="custom">Custom permissions</option></select></label></div>
+          <details class="team-permission-details"><summary>Choose permissions</summary><p>Junior accountants prepare and submit their own drafts for review. The Accountant preset includes direct posting and reversing; review permissions before inviting.</p><div class="team-permissions" id="invite-permissions"></div></details>
+          <button class="primary-button" type="submit">Create invitation</button>
+        </form>
+        <div id="team-invite-result" class="team-invite-result" hidden><p id="team-invite-delivery"></p><label>Invitation link<input id="team-invite-url" readonly /></label><button class="secondary-button" id="team-copy-invite" type="button">Copy link</button></div>
+      </section>
+      <section class="team-card" id="team-members-section" hidden><h2>Members &amp; invitations</h2><div class="team-table-wrap"><table class="team-table"><thead><tr><th>Person</th><th>Role</th><th>Status</th><th>Actions</th></tr></thead><tbody id="team-members"></tbody></table></div></section>
+      <section class="team-card" id="team-activity-section" hidden>
+        <h2>Activity log</h2><p>Times are shown in Bangladesh time. Voucher dates are separate from the time an action was performed.</p>
+        <form id="activity-filter" class="team-fields"><label>Person<select name="actorId" id="activity-person"><option value="">Everyone</option></select></label><label>From<input name="from" type="date" /></label><label>Through<input name="to" type="date" /></label><label>Voucher or record ID<input name="entityId" placeholder="Record ID" /></label><label>Action<select name="action" id="activity-action"><option value="">All actions</option></select></label><button class="secondary-button" type="submit">Apply filters</button></form>
+        <div class="team-table-wrap"><table class="team-table"><thead><tr><th>Date &amp; time</th><th>Person</th><th>Action</th><th>Record</th><th>Changes</th></tr></thead><tbody id="activity-items"></tbody></table></div><p id="activity-more" class="team-muted"></p><button type="button" class="secondary-button" id="activity-load-more" hidden>Load more activity</button>
+      </section>
+      <section class="team-card" id="team-backup-section" hidden>
+        <h2>Company backup</h2><p>Download a backup of this company's accounting records. Restoring a backup replaces the current accounting records; save a current backup before restoring.</p>
+        <button class="secondary-button" id="team-export-backup" type="button">Download company backup</button>
+        <form id="team-restore-form" class="team-fields"><label>Choose a BANIK Books backup<input type="file" id="team-backup-file" accept=".json,application/json" required /></label><button class="secondary-button" type="submit">Review &amp; restore backup</button></form>
+        <p id="team-backup-status" role="status" aria-live="polite"></p>
+      </section>
+      <section class="team-card" id="team-recovery-section" hidden><h2>Browser recovery copies</h2><p>Previous browser data was preserved when your account or company changed. Download a copy for review. Untagged legacy copies are retained; known companies keep the latest browser-only drafts. Download and verify a copy before deleting it to free browser space. Recovery copies are never imported automatically.</p><div id="team-recovery-list"></div></section>
+    </main>
+  </div>
+  <dialog id="member-dialog" class="team-dialog"><form id="member-form"><div class="team-heading"><h2 id="member-title">Edit member access</h2><button type="button" id="member-close" class="secondary-button">Close</button></div><label>Role<select name="role"><option value="junior">Junior accountant</option><option value="accountant">Accountant — direct posting</option><option value="viewer">Viewer</option><option value="custom">Custom permissions</option></select></label><div id="member-permissions" class="team-permissions"></div><p id="member-status" role="status"></p><button type="submit" class="primary-button">Save access</button></form></dialog>
+</body>
+</html>

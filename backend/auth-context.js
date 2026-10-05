@@ -120,7 +120,7 @@ function getWorkspaceId(request) {
 }
 
 async function resolveAuthContext(request) {
-  const requireAuth = String(process.env.BANIK_API_REQUIRE_AUTH || "").toLowerCase() === "true";
+  const requireAuth = process.env.NODE_ENV === "production" || String(process.env.BANIK_API_REQUIRE_AUTH || "").toLowerCase() === "true";
   const trustUnverifiedToken =
     String(process.env.BANIK_API_TRUST_UNVERIFIED_TOKEN || "").toLowerCase() === "true";
   const token = getBearerToken(request);
@@ -160,20 +160,19 @@ async function resolveAuthContext(request) {
       }, request);
     }
   } catch (error) {
-    if (requireAuth) {
-      return {
-        error: {
-          statusCode: error.statusCode || 401,
-          message: error.message || "Token verification failed.",
-        },
-      };
-    }
+    // A rejected real identity must never become the local development admin.
+    return {
+      error: {
+        statusCode: error.statusCode || 401,
+        message: error.message || "Token verification failed.",
+      },
+    };
   }
 
   const decodedPayload = decodeJwtPayload(token);
   const tokenUserId = decodedPayload && (decodedPayload.user_id || decodedPayload.sub || decodedPayload.uid);
 
-  if (trustUnverifiedToken && tokenUserId) {
+  if (!requireAuth && trustUnverifiedToken && tokenUserId) {
     return withRole({
       userId: String(tokenUserId),
       workspaceId: workspaceContext.workspaceId,

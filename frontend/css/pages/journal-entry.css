@@ -1107,3 +1107,29 @@
     margin-right: 0;
   }
 }
+/* Company journal workflow and attributable history. */
+.journal-workflow-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 18px;
+  padding: 12px 14px;
+  margin-bottom: 18px;
+  background: #f7f8fa;
+  border: 1px solid #d8dee8;
+  color: #334155;
+  font-size: 0.85rem;
+  line-height: 1.6;
+}
+.journal-workflow-status { text-transform: capitalize; color: #14532d; }
+.journal-history-list { display: grid; gap: 12px; max-height: 58vh; overflow: auto; }
+.journal-history-event { display: grid; gap: 6px; padding: 14px; border: 1px solid #d8dee8; text-align: left; }
+.journal-history-event small { color: #475569; }
+.journal-history-event p { margin: 0; }
+.journal-history-event pre { overflow: auto; max-height: 280px; padding: 10px; background: #f8fafc; font-size: 0.75rem; white-space: pre-wrap; overflow-wrap: anywhere; }
+.journal-history-event summary { cursor: pointer; }
+.journal-history-change { display: grid; gap: 4px; margin-top: 12px; }
+.journal-history-change pre { margin: 0; }
+.journal-submit-actions { flex-wrap: wrap; }
+.journal-button:disabled { opacity: 0.55; cursor: not-allowed; }
+.journal-submit-actions [hidden] { display: none !important; }

@@ -1,287 +1,182 @@
-const {
-  getItem,
-  listItems,
-  removeItem,
-  replaceItems,
-  saveItem,
-} = require("./collection-service");
+const { getItem, listItems, removeItem, replaceItems, saveItem, revisionOf } = require("./collection-service");
 const { resolveAuthContext } = require("./auth-context");
 const { deleteUserAccount, setUserDisabled } = require("./admin-user-service");
 const { runAChallanAutomation } = require("./achallan-automation");
 const { exportBackup, importBackup } = require("./backup-service");
-const { assertCollectionAccess, assertRole } = require("./permissions");
+const { assertRole } = require("./permissions");
 const { assertRateLimit } = require("./rate-limit");
+const { resolveCompanyContext, listTeamActivity } = require("./company-service");
+const { handleTeamApi, isPublicTeamRoute, isTeamRoute } = require("./team-api");
+const { hasCompanyPermission: can, assertCompanyPermission: requirePermission, companyError } = require("./company-permissions");
+const { listJournals, getJournal, createJournal, updateJournal, actOnJournal, canRead } = require("./journal-service");
 
-const COLLECTIONS = Object.freeze({
-  journals: "journals",
-  parties: "parties",
-  "chart-of-accounts": "chartOfAccounts",
-  challans: "challans",
-  settings: "settings",
-});
-
-function sendJson(response, statusCode, payload) {
-  response.writeHead(statusCode, {
-    "Content-Type": "application/json; charset=utf-8",
-    "Cache-Control": "no-store",
-  });
+const COLLECTIONS = { parties: "parties", "chart-of-accounts": "chartOfAccounts", challans: "challans", settings: "settings" };
+function sendJson(response, code, payload) {
+  response.writeHead(code, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" });
   response.end(JSON.stringify(payload));
 }
-
-function sendJsonHead(response, statusCode) {
-  response.writeHead(statusCode, {
-    "Content-Type": "application/json; charset=utf-8",
-    "Cache-Control": "no-store",
-  });
-  response.end();
-}
-
 function readJsonBody(request) {
   return new Promise((resolve, reject) => {
     let body = "";
-
     request.on("data", (chunk) => {
       body += chunk;
-
-      if (body.length > 5 * 1024 * 1024) {
-        const error = new Error("Payload too large.");
-        error.statusCode = 413;
-        reject(error);
-        request.destroy();
-      }
+      if (Buffer.byteLength(body) > 5 * 1024 * 1024) { reject(companyError(413, "Payload too large.")); request.destroy(); }
     });
-
     request.on("end", () => {
-      if (!body.trim()) {
-        resolve({});
-        return;
-      }
-
-      try {
-        resolve(JSON.parse(body));
-      } catch {
-        const error = new Error("Invalid JSON payload.");
-        error.statusCode = 400;
-        reject(error);
-      }
+      try { const parsed = body.trim() ? JSON.parse(body) : {}; resolve(parsed); }
+      catch { reject(companyError(400, "Invalid JSON payload.")); }
     });
-
     request.on("error", reject);
   });
 }
-
-function normalizeItems(payload) {
-  if (Array.isArray(payload)) {
-    return payload;
-  }
-
-  if (payload && Array.isArray(payload.items)) {
-    return payload.items;
-  }
-
-  return [];
+function methodError() { throw companyError(405, "Method not allowed."); }
+function workspacePayload(context) {
+  return Object.fromEntries(["userId", "workspaceId", "role", "source", "companyId", "companyRole", "companyName", "companyProfile", "companyModules", "permissions"].map((key) => [key, context[key]]));
 }
-
-async function handleBackupApi(request, response, pathParts, authContext) {
-  const backupAction = pathParts[2] || "";
-
-  if (backupAction === "export" && request.method === "GET") {
-    assertRole(authContext, "user");
-    sendJson(response, 200, await exportBackup(authContext));
-    return true;
+const anyReport = (ctx) => Object.entries(ctx.permissions || {}).some(([key, value]) => key.startsWith("reports.") && value);
+const journalLookup = (ctx) => ["journals.create", "journals.editOwn", "journals.editAll", "journals.submit"].some((key) => can(ctx, key));
+function assertDataAccess(context, name, method, id) {
+  const read = ["GET", "HEAD"].includes(method);
+  if (name === "settings") {
+    if (read && id === "accountingPreferences") return;
+    const permission = id === "chequePrinterPayees" ? "tools.cheque-printer" : ["challanManagementOptions", "tinBinInfo", "challanTinBinInfo"].includes(id) ? "challans.manage" : "company.settings";
+    requirePermission(context, permission); return;
   }
-
-  if (backupAction === "import" && request.method === "PUT") {
-    assertRole(authContext, "admin");
-    const payload = await readJsonBody(request);
-    sendJson(response, 200, await importBackup(payload, authContext));
-    return true;
-  }
-
-  response.writeHead(405, {
-    "Content-Type": "text/plain; charset=utf-8",
-    Allow: "GET, PUT",
-  });
-  response.end("Method not allowed");
-  return true;
+  if (read && ["parties", "chartOfAccounts"].includes(name) && (journalLookup(context) || anyReport(context))) return;
+  requirePermission(context, `${name}.${read ? "view" : "manage"}`);
 }
-
-function handleWorkspaceApi(request, response, authContext) {
-  if (request.method === "GET" || request.method === "HEAD") {
-    const payload = {
-      userId: authContext.userId,
-      workspaceId: authContext.workspaceId,
-      role: authContext.role,
-      source: authContext.source,
-    };
-
-    if (request.method === "HEAD") {
-      sendJsonHead(response, 200);
-    } else {
-      sendJson(response, 200, payload);
-    }
-    return true;
+function projectLookup(context, name, item) {
+  if (!item || can(context, `${name}.view`) || can(context, `${name}.manage`) || anyReport(context)) return item;
+  if (name === "parties") {
+    const fields = item.fields || {};
+    return { id: item.id, type: item.type, fields: Object.fromEntries(["customerName", "supplierName", "partyName", "employeeName"].map((key) => [key, fields[key] || ""])) };
   }
-
-  response.writeHead(405, {
-    "Content-Type": "text/plain; charset=utf-8",
-    Allow: "GET, HEAD",
-  });
-  response.end("Method not allowed");
-  return true;
+  if (name === "chartOfAccounts") {
+    return { id: item.id, type: item.type, name: item.name, code: item.code, classification: item.classification,
+      ...(item.children ? { children: item.children.map((child) => projectLookup(context, name, child)) } : {}) };
+  }
+  return item;
 }
-
-async function handleAdminApi(request, response, pathParts, authContext) {
-  assertRole(authContext, "admin");
-
-  const resourceName = pathParts[2] || "";
-  const itemId = pathParts.length > 3 ? decodeURIComponent(pathParts.slice(3).join("/")) : "";
-
-  if (resourceName === "users" && itemId && request.method === "PATCH") {
-    const payload = await readJsonBody(request);
-
-    if (!Object.prototype.hasOwnProperty.call(payload, "disabled")) {
-      sendJson(response, 400, { error: "Disabled state is required." });
-      return true;
-    }
-
-    sendJson(response, 200, { user: await setUserDisabled(itemId, payload.disabled, authContext) });
-    return true;
-  }
-
-  if (resourceName === "users" && itemId && request.method === "DELETE") {
-    sendJson(response, 200, { user: await deleteUserAccount(itemId, authContext) });
-    return true;
-  }
-
-  response.writeHead(405, {
-    "Content-Type": "text/plain; charset=utf-8",
-    Allow: "PATCH, DELETE",
-  });
-  response.end("Method not allowed");
-  return true;
-}
-
-async function handleAChallanApi(request, response, pathParts, authContext) {
-  assertRole(authContext, "user");
-
-  const actionName = pathParts[2] || "";
-
-  if (actionName === "prepare" && request.method === "POST") {
-    const payload = await readJsonBody(request);
-    sendJson(response, 200, await runAChallanAutomation(payload));
-    return true;
-  }
-
-  response.writeHead(405, {
-    "Content-Type": "text/plain; charset=utf-8",
-    Allow: "POST",
-  });
-  response.end("Method not allowed");
-  return true;
-}
-
-async function handleApi(request, response) {
-  const url = new URL(request.url, `http://${request.headers.host}`);
-  const pathParts = url.pathname.split("/").filter(Boolean);
-  const isApiRequest = pathParts[0] === "api";
-  const routeName = isApiRequest ? pathParts[1] : "";
-  const collectionName = isApiRequest ? COLLECTIONS[routeName] : "";
-  const itemId = pathParts.length > 2 ? decodeURIComponent(pathParts.slice(2).join("/")) : "";
-
-  if (!isApiRequest) {
-    return false;
-  }
-
-  try {
-    const authContext = await resolveAuthContext(request);
-
-    if (authContext.error) {
-      sendJson(response, authContext.error.statusCode, { error: authContext.error.message });
-      return true;
-    }
-
-    assertRateLimit(request, authContext);
-
-    if (routeName === "backups") {
-      return await handleBackupApi(request, response, pathParts, authContext);
-    }
-
-    if (routeName === "workspace") {
-      return handleWorkspaceApi(request, response, authContext);
-    }
-
-    if (routeName === "admin") {
-      return await handleAdminApi(request, response, pathParts, authContext);
-    }
-
-    if (routeName === "achallan") {
-      return await handleAChallanApi(request, response, pathParts, authContext);
-    }
-
-    if (!collectionName) {
-      sendJson(response, 404, { error: "Unknown API endpoint." });
-      return true;
-    }
-
-    assertCollectionAccess(authContext, request.method);
-
-    if (request.method === "HEAD") {
-      sendJsonHead(response, 200);
-      return true;
-    }
-
-    if (request.method === "GET") {
-      if (itemId) {
-        sendJson(response, 200, { item: await getItem(collectionName, itemId, authContext) });
-      } else {
-        sendJson(response, 200, { items: await listItems(collectionName, authContext) });
-      }
-      return true;
-    }
-
-    if ((request.method === "POST" || request.method === "PATCH") && itemId) {
-      const payload = await readJsonBody(request);
-      const itemPayload = payload.item || payload;
-      const item = await saveItem(collectionName, itemId, itemPayload, authContext);
-      sendJson(response, 200, { item });
-      return true;
-    }
-
-    if (request.method === "PUT") {
-      const payload = await readJsonBody(request);
-      if (itemId) {
-        const itemPayload = payload.item || payload;
-        const item = await saveItem(collectionName, itemId, itemPayload, authContext);
-        sendJson(response, 200, { item });
-      } else {
-        const nextItems = normalizeItems(payload);
-        const items = await replaceItems(collectionName, nextItems, authContext);
-        sendJson(response, 200, { items });
-      }
-      return true;
-    }
-
-    if (request.method === "DELETE" && itemId) {
-      const items = await removeItem(collectionName, itemId, authContext);
-      sendJson(response, 200, { items });
-      return true;
-    }
-
-    response.writeHead(405, {
-      "Content-Type": "text/plain; charset=utf-8",
-      Allow: "GET, HEAD, POST, PUT, PATCH, DELETE",
+async function activity(context, url) {
+  requirePermission(context, "activity.view");
+  let items = await listItems("activity", context);
+  const teamEvents = can(context, "team.manage") ? await listTeamActivity(context) : [];
+  if (context.companyRole !== "owner") {
+    items = items.filter((event) => {
+      if (event.collection === "journals") return canRead(context, event.after || event.before || {});
+      if (["parties", "chartOfAccounts", "challans"].includes(event.collection)) return can(context, `${event.collection}.view`) || can(context, `${event.collection}.manage`);
+      return can(context, "company.settings");
     });
-    response.end("Method not allowed");
+  }
+  items.push(...teamEvents);
+  const from = url.searchParams.get("from"); const to = url.searchParams.get("to");
+  const start = from && Date.parse(/^\d{4}-\d{2}-\d{2}$/.test(from) ? `${from}T00:00:00+06:00` : from);
+  const end = to && Date.parse(/^\d{4}-\d{2}-\d{2}$/.test(to) ? `${to}T23:59:59.999+06:00` : to);
+  for (const [key, field] of [["actorId", "actorId"], ["entityId", "entityId"], ["action", "action"]]) {
+    const value = url.searchParams.get(key);
+    if (value) items = items.filter((event) => event[field] === value || key === "entityId" && [event.entityNumber, event.targetId].includes(value));
+  }
+  items = items.filter((event) => (!start || Date.parse(event.timestamp) >= start) && (!end || Date.parse(event.timestamp) <= end));
+  items.sort((a, b) => String(b.timestamp).localeCompare(String(a.timestamp)) || String(b.id).localeCompare(String(a.id)));
+  const cursor = url.searchParams.get("cursor");
+  if (cursor) { const index = items.findIndex((item) => item.id === cursor); items = index < 0 ? [] : items.slice(index + 1); }
+  const limit = Math.min(200, Math.max(1, Number(url.searchParams.get("limit")) || 100));
+  return { items: items.slice(0, limit), nextCursor: items.length > limit ? items[limit - 1].id : null };
+}
+async function handleApi(request, response) {
+  let pathParts;
+  try {
+    const url = new URL(request.url, `http://${request.headers.host || "localhost"}`);
+    pathParts = url.pathname.split("/").filter(Boolean).map(decodeURIComponent);
+    if (pathParts[0] !== "api") return false;
+    if (isPublicTeamRoute(pathParts, request.method)) {
+      assertRateLimit(request, { userId: "public-invitation" });
+      return await handleTeamApi(request, response, pathParts, null);
+    }
+    let context = await resolveAuthContext(request);
+    if (context.error) { sendJson(response, context.error.statusCode, { error: context.error.message }); return true; }
+    assertRateLimit(request, context);
+    const route = pathParts[1];
+    const id = pathParts[2] || "";
+    if (isTeamRoute(pathParts)) return await handleTeamApi(request, response, pathParts, context);
+    if (route === "admin") {
+      assertRole(context, "admin");
+      const targetId = pathParts[3];
+      if (pathParts[2] !== "users" || !targetId) throw companyError(404, "Unknown admin endpoint.");
+      if (request.method === "PATCH") {
+        const body = await readJsonBody(request);
+        if (typeof body.disabled !== "boolean") throw companyError(400, "Disabled state is required.");
+        sendJson(response, 200, { user: await setUserDisabled(targetId, body.disabled, context) });
+      } else if (request.method === "DELETE") sendJson(response, 200, { user: await deleteUserAccount(targetId, context) });
+      else methodError();
+      return true;
+    }
+    if (!["workspace", "backups", "activity", "achallan", "journals", ...Object.keys(COLLECTIONS)].includes(route)) throw companyError(404, "Unknown API endpoint.");
+    try { context = await resolveCompanyContext(context, request); }
+    catch (error) { if (error.statusCode === 403) error.code = "COMPANY_ACCESS_DENIED"; throw error; }
+    if (route === "workspace") {
+      if (!["GET", "HEAD"].includes(request.method)) methodError();
+      sendJson(response, 200, workspacePayload(context)); return true;
+    }
+    if (route === "backups") {
+      if (context.companyRole !== "owner") throw companyError(403, "Only the company owner can back up or restore the entire company.");
+      if (id === "export" && request.method === "GET") { requirePermission(context, "exports.download"); sendJson(response, 200, await exportBackup(context)); }
+      else if (id === "import" && request.method === "PUT") { requirePermission(context, "company.settings"); sendJson(response, 200, await importBackup(await readJsonBody(request), context)); }
+      else methodError();
+      return true;
+    }
+    if (route === "activity") {
+      if (request.method !== "GET") methodError();
+      sendJson(response, 200, await activity(context, url)); return true;
+    }
+    if (route === "achallan") {
+      requirePermission(context, "challans.manage");
+      if (id !== "prepare" || request.method !== "POST") methodError();
+      sendJson(response, 200, await runAChallanAutomation(await readJsonBody(request))); return true;
+    }
+    if (route === "journals") {
+      if (request.method === "GET" || request.method === "HEAD") {
+        sendJson(response, 200, id ? { item: await getJournal(context, id) } : { items: await listJournals(context, { reports: url.searchParams.get("purpose") === "reports", report: url.searchParams.get("report") || "" }) });
+      } else if (request.method === "POST" && !id) {
+        sendJson(response, 201, { item: await createJournal(context, await readJsonBody(request)) });
+      } else if (request.method === "POST" && id && pathParts[3] === "actions") {
+        sendJson(response, 200, await actOnJournal(context, id, await readJsonBody(request)));
+      } else if (["PATCH", "PUT"].includes(request.method) && id && pathParts.length === 3) {
+        sendJson(response, 200, { item: await updateJournal(context, id, await readJsonBody(request)) });
+      } else if (request.method === "DELETE" && id) {
+        const body = await readJsonBody(request);
+        const result = await actOnJournal(context, id, { ...body, action: "archive" });
+        sendJson(response, 200, { ...result, items: await listJournals(context) });
+      } else {
+        // Full journal replacement would bypass review, versions and immutable history.
+        if (request.method === "PUT") await readJsonBody(request);
+        methodError();
+      }
+      return true;
+    }
+    const name = COLLECTIONS[route];
+    assertDataAccess(context, name, request.method, id);
+    if (["GET", "HEAD"].includes(request.method)) {
+      if (id) sendJson(response, 200, { item: projectLookup(context, name, await getItem(name, id, context)) });
+      else { const items = await listItems(name, context); sendJson(response, 200, { items: items.map((item) => projectLookup(context, name, item)), revision: revisionOf(items) }); }
+    } else if (["PUT", "POST", "PATCH"].includes(request.method) && id) {
+      const body = await readJsonBody(request);
+      sendJson(response, 200, { item: await saveItem(name, id, body.item || body, context) });
+    } else if (request.method === "PUT" && !id) {
+      const body = await readJsonBody(request);
+      if (!Array.isArray(body.items)) throw companyError(400, "Collection items must be an array.");
+      const items = await replaceItems(name, body.items, context, body.expectedRevision);
+      sendJson(response, 200, { items, revision: revisionOf(items) });
+    } else if (request.method === "DELETE" && id) {
+      const body = await readJsonBody(request);
+      sendJson(response, 200, { items: await removeItem(name, id, context, body.expectedVersion) });
+    }
+    else methodError();
     return true;
   } catch (error) {
-    sendJson(response, error.statusCode || 500, {
-      error: error.message || "Backend API error.",
-    });
+    if (pathParts && pathParts[0] !== "api") return false;
+    sendJson(response, error.statusCode || (error instanceof URIError ? 400 : 500), { error: error.message || "Backend API error.", ...(error.code ? { code: error.code } : {}) });
     return true;
   }
 }
-
-module.exports = {
-  handleApi,
-};
+module.exports = { handleApi };

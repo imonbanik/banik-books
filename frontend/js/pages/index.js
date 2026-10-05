@@ -6,6 +6,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const passwordInput = document.getElementById("home-auth-password");
   const status = document.getElementById("home-auth-status");
   const submitButton = document.getElementById("home-auth-submit");
+  const companyForm = document.getElementById("home-company-form");
+  const companySelect = document.getElementById("home-company-select");
+  const forgotButton = document.getElementById("home-auth-forgot");
   const modeToggle = document.getElementById("home-auth-mode-toggle");
   const panelTitle = document.querySelector(".signup-panel h2");
   const panelText = document.querySelector(".signup-panel__text");
@@ -14,6 +17,8 @@ document.addEventListener("DOMContentLoaded", () => {
   function setMode(nextMode) {
     mode = nextMode;
     const isLogin = mode === "login";
+    passwordInput.autocomplete = isLogin ? "current-password" : "new-password";
+    forgotButton.hidden = !isLogin;
     status.textContent = "";
     status.className = "auth-form-status";
     submitButton.textContent = isLogin ? "Sign In" : "Sign up";
@@ -89,6 +94,29 @@ document.addEventListener("DOMContentLoaded", () => {
     setMode(mode === "signup" ? "login" : "signup");
   });
 
+  forgotButton.addEventListener("click", async (event) => {
+    event.preventDefault();
+    if (!emailInput.reportValidity()) return;
+    submitButton.disabled = true;
+    setStatus("Sending password reset email...", false);
+    try {
+      const authService = await waitForBanikAuth();
+      const result = await authService.resetPassword(emailInput.value);
+      setStatus(result.message, !result.ok);
+    } catch (error) { setStatus(error.message, true); }
+    finally { submitButton.disabled = false; }
+  });
+
+  companyForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const button = document.getElementById("home-company-submit"); button.disabled = true;
+    try {
+      await window.BanikApi.selectCompany(companySelect.value, { reload: false });
+      const user = await window.BanikAuth.refreshCompany();
+      window.location.href = !user.profileCompleted && user.companyRole === "owner" ? "/signup.html" : "/workspace.html";
+    } catch (error) { setStatus(error.message, true); button.disabled = false; }
+  });
+
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
     submitButton.disabled = true;
@@ -131,8 +159,24 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
+    if (result.companies && result.companies.length > 1) {
+      companySelect.replaceChildren();
+      result.companies.forEach((company) => {
+        const option = document.createElement("option"); option.value = company.id; option.textContent = company.name || company.id; option.selected = company.id === result.user.companyId; companySelect.append(option);
+      });
+      companyForm.before(status);
+      form.hidden = true; companyForm.hidden = false; document.querySelector(".signup-links").hidden = true;
+      panelTitle.textContent = "Choose your company";
+      panelText.textContent = "Select the company you want to work in. You can switch companies from your workspace.";
+      setStatus("", false); return;
+    }
     setStatus("Success. Opening your workspace...", false);
-    if (!result.user.profileCompleted) {
+    if (!result.user.companyId) {
+      setStatus("Your account is ready. Open the invitation link from your company owner to join their company.", false);
+      submitButton.disabled = false;
+      return;
+    }
+    if (!result.user.profileCompleted && result.user.companyRole === "owner") {
       window.location.href = "./signup.html";
       return;
     }

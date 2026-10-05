@@ -3,6 +3,7 @@
    Page-specific files should be imported after shared styles in their original cascade order. */
 @import "./css/base.css";
 @import "./css/pages/workspace.css";
+@import "./css/pages/team.css";
 @import "./css/pages/detail-pages.css";
 @import "./css/tools.css";
 @import "./css/pages/admin.css";

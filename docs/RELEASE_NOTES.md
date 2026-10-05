@@ -1,11 +1,36 @@
 # Release Notes
 
-## Unreleased Local Fixes
+## Version 1.2.0 - October 2026
 
-These changes are local only until the owner explicitly approves a GitHub push.
-Do not change the public version number for this section.
+Release type: Company teams, staff access and attributable accounting.
 
-No unreleased local changes.
+Deployment status: Owner approved GitHub commit and push on October 5, 2026.
+Live deployment and Firebase rules rollout have not been verified.
+
+### Highlights
+
+- Added company teams for existing accounts, independent staff login, verified-email
+  invitations, configurable permissions, company switching and member suspension.
+- Added server-attributed journal history, review/post/reversal workflows, posted-only
+  reporting, concurrent-edit protection and immutable application audit history.
+- Added owner backup controls, company cache isolation and secure public-file serving.
+- Applied compatible dependency security fixes; the dependency audit now has
+  8 moderate transitive findings and no high/critical findings. See
+  `DEPENDENCY_AUDIT_NOTES.md` for the remaining Firebase dependency upgrade.
+- Closed direct legacy accounting writes in Firestore rules; existing backend scopes
+  remain mapped to their original owners. See `COMPANY_TEAM_ACCESS.md` for rollout,
+  mail configuration, migration boundaries and test coverage.
+
+### Verification
+
+Passed locally on October 5, 2026:
+
+- `npm run commercial:audit`, including company/authentication/accounting
+  regressions, HTTP integration and 52 route checks.
+- `npm run check:browser`, using isolated workflow fixtures and mocked login.
+
+Firebase transaction checks use an offline fake. Live Firebase rules and email
+delivery require staging/deployment verification.
 
 ## Version 1.1.12 - June 2026
 

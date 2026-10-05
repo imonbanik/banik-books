@@ -19,26 +19,58 @@ service cloud.firestore {
       return isVerified() && request.auth.uid == userId;
     }
 
+    function hasNoGrantedModules() {
+      return !("permissions" in request.resource.data)
+        || (request.resource.data.permissions is map
+          && request.resource.data.permissions.values().hasOnly([false]));
+    }
+
+    function isSafeUserCreation(userId) {
+      return isSignedIn() && request.auth.uid == userId
+        && request.resource.data.email == request.auth.token.email
+        && request.resource.data.role == "user"
+        && hasNoGrantedModules()
+        && !("disabled" in request.resource.data)
+        && !("companyId" in request.resource.data)
+        && !("companyRole" in request.resource.data)
+        && !("storageUserId" in request.resource.data)
+        && !("storageWorkspaceId" in request.resource.data);
+    }
+
     match /users/{userId} {
-      allow create: if isOwnUserDoc(userId)
-        && (
-          (isFounderAdmin() && request.resource.data.role == "admin")
-          || (!isFounderAdmin() && request.resource.data.role == "user")
-        );
+      allow create: if (isOwnUserDoc(userId) && isFounderAdmin() && request.resource.data.role == "admin")
+        || (isSafeUserCreation(userId)
+          && (isVerified()
+            || (request.resource.data.accountType == "invited"
+              && request.resource.data.profileCompleted == false)));
       allow read: if isOwnUserDoc(userId) || isFounderAdmin();
       allow update: if isFounderAdmin()
         || (
           isOwnUserDoc(userId)
           && !request.resource.data.diff(resource.data).affectedKeys().hasAny([
             "role",
-            "permissions"
+            "permissions",
+            "disabled",
+            "disabledAt",
+            "enabledAt",
+            "companyId",
+            "companyRole",
+            "storageUserId",
+            "storageWorkspaceId"
           ])
         );
       allow delete: if false;
     }
 
-    match /userData/{userId}/{document=**} {
-      allow read, write: if isOwnUserDoc(userId) || isFounderAdmin();
+    // Accounting data is served by the company API so memberships, action
+    // permissions and audit history cannot be bypassed through the client SDK.
+    match /userData/{userId}/profile/{assetKey} {
+      allow read, write: if assetKey in ["letterhead", "eSign", "profilePhoto", "companyLogo"]
+        && (isOwnUserDoc(userId) || isFounderAdmin());
+      match /chunks/{chunkId} {
+        allow read, write: if assetKey in ["letterhead", "eSign", "profilePhoto", "companyLogo"]
+          && (isOwnUserDoc(userId) || isFounderAdmin());
+      }
     }
 
     match /publicSettings/{document=**} {

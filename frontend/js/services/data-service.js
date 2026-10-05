@@ -163,48 +163,22 @@ function normalizeChartNodes(nodes) {
     .filter((node) => node.name);
 }
 
+function companyApi() {
+  if (!window.BanikApi) throw new Error("Company data is unavailable. Please refresh.");
+  return window.BanikApi;
+}
 async function listChallans() {
-  const challanCollection = await getUserCollection("challans");
-  const snapshot = await getDocs(challanCollection);
-
-  return snapshot.docs
-    .map((challanDoc) => normalizeChallanDoc(challanDoc.id, challanDoc.data() || {}))
-    .sort((leftEntry, rightEntry) =>
-      String(rightEntry.createdAt || "").localeCompare(String(leftEntry.createdAt || ""))
-    );
+  return companyApi().list("challans");
 }
-
 async function saveChallan(entry) {
-  const user = await getCurrentUser();
-  const now = new Date().toISOString();
-  const entryId = entry.id || createId();
-  const payload = sanitizeObject({
-    ...entry,
-    id: entryId,
-    ownerUserId: user.id,
-    ownerEmail: user.email,
-    createdAt: entry.createdAt || now,
-    updatedAt: now,
-  });
-
-  await setDoc(doc(db, "userData", user.id, "challans", entryId), payload, { merge: true });
-  return normalizeChallanDoc(entryId, payload);
+  const id = entry.id || createId();
+  return companyApi().upsert("challans", id, { ...entry, id });
 }
-
 async function deleteChallan(entryId) {
-  const user = await getCurrentUser();
-  await deleteDoc(doc(db, "userData", user.id, "challans", entryId));
+  return companyApi().remove("challans", entryId);
 }
-
 async function getChartOfAccounts() {
-  const user = await getCurrentUser();
-  const snapshot = await getDoc(doc(db, "userData", user.id, "settings", "chartOfAccounts"));
-
-  if (!snapshot.exists()) {
-    return [];
-  }
-
-  return normalizeChartNodes((snapshot.data() || {}).items || []);
+  return normalizeChartNodes(await companyApi().list("chartOfAccounts"));
 }
 
 async function getDefaultChartOfAccounts() {
@@ -219,21 +193,7 @@ async function getDefaultChartOfAccounts() {
 }
 
 async function saveChartOfAccounts(items) {
-  const user = await getCurrentUser();
-  const normalizedItems = normalizeChartNodes(items);
-
-  await setDoc(
-    doc(db, "userData", user.id, "settings", "chartOfAccounts"),
-    sanitizeObject({
-      items: normalizedItems,
-      ownerUserId: user.id,
-      ownerEmail: user.email,
-      updatedAt: new Date().toISOString(),
-    }),
-    { merge: true }
-  );
-
-  return normalizedItems;
+  return companyApi().replace("chartOfAccounts", normalizeChartNodes(items));
 }
 
 async function saveDefaultChartOfAccounts(items) {

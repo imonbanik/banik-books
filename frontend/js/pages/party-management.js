@@ -102,7 +102,7 @@ const REGISTER_CONFIGS = Object.freeze({
   },
 });
 
-let parties = loadParties();
+let parties = [];
 let editingPartyId = "";
 let pendingDeleteId = "";
 let activeRegisterType = "Customer";
@@ -122,98 +122,16 @@ function loadParties() {
   return loadLocalParties();
 }
 
-function saveParties() {
-  localStorage.setItem(PARTY_STORAGE_KEY, JSON.stringify(parties));
-  syncPartiesToBackend();
-}
-
-async function syncJournalsToBackend(journals) {
-  if (!window.BanikApi || typeof window.BanikApi.replace !== "function") {
-    return;
-  }
-
-  try {
-    await window.BanikApi.replace("journals", journals);
-  } catch (error) {
-    console.warn("Could not sync journal party labels to backend.", error);
-  }
-}
-
-async function syncPartiesToBackend() {
-  if (!window.BanikApi || typeof window.BanikApi.replace !== "function") {
-    return;
-  }
-
-  try {
-    await window.BanikApi.replace("parties", parties);
-  } catch (error) {
-    console.warn("Could not sync parties to backend.", error);
-  }
-}
-
-async function syncPartyToBackend(party) {
-  if (!window.BanikApi) {
-    return;
-  }
-
-  try {
-    if (typeof window.BanikApi.upsert === "function") {
-      await window.BanikApi.upsert("parties", party.id, party);
-      return;
-    }
-
-    if (typeof window.BanikApi.replace === "function") {
-      await window.BanikApi.replace("parties", parties);
-    }
-  } catch (error) {
-    console.warn("Could not sync party to backend.", error);
-  }
-}
-
-async function removePartyFromBackend(partyId) {
-  if (!window.BanikApi) {
-    return;
-  }
-
-  try {
-    if (typeof window.BanikApi.remove === "function") {
-      await window.BanikApi.remove("parties", partyId);
-      return;
-    }
-
-    if (typeof window.BanikApi.replace === "function") {
-      await window.BanikApi.replace("parties", parties);
-    }
-  } catch (error) {
-    console.warn("Could not delete party from backend.", error);
-  }
-}
-
 async function hydratePartiesFromBackend() {
-  if (!window.BanikApi || typeof window.BanikApi.list !== "function") {
-    return;
-  }
-
   try {
-    const remoteParties = (await window.BanikApi.list("parties")).filter((party) =>
-      PARTY_TYPES.includes(party && party.type)
-    );
-    const localParties = loadLocalParties();
-
-    if (remoteParties.length) {
-      parties = remoteParties;
-      localStorage.setItem(PARTY_STORAGE_KEY, JSON.stringify(parties));
-      renderActiveRegister();
-      return;
-    }
-
-    if (localParties.length) {
-      parties = localParties;
-      await window.BanikApi.replace("parties", parties);
-      renderActiveRegister();
-    }
+    await window.BanikApi.getWorkspace();
+    parties = (await window.BanikApi.list("parties")).filter((party) => PARTY_TYPES.includes(party && party.type));
+    localStorage.setItem(PARTY_STORAGE_KEY, JSON.stringify(parties));
+    createButton.hidden = !window.BanikApi.can("parties.manage");
+    renderActiveRegister();
   } catch (error) {
-    console.warn("Could not load parties from backend.", error);
+    parties = []; renderActiveRegister();
+    window.alert(error.message || "Company parties could not be loaded.");
   }
 }
 
@@ -243,74 +161,11 @@ function normalizePartyText(value) {
   return String(value || "").trim().toLowerCase().replace(/\s+/g, " ");
 }
 
-function updateJournalPartyNames(partyId, oldLabel, newLabel, oldName = "") {
-  if (!partyId || !newLabel) return;
-
-  let journals;
-  try {
-    const parsed = JSON.parse(localStorage.getItem(JOURNAL_STORAGE_KEY) || "[]");
-    journals = Array.isArray(parsed) ? parsed : [];
-  } catch {
-    journals = [];
-  }
-
-  let didChange = false;
-  const nextJournals = journals.map((journal) => {
-    if (!Array.isArray(journal.lines)) return journal;
-
-    const nextLines = journal.lines.map((line) => {
-      const shouldUpdate =
-        line &&
-        ((line.partyId && line.partyId === partyId) ||
-          (!line.partyId && oldLabel && line.name === oldLabel) ||
-          (!line.partyId && oldName && line.name === oldName));
-
-      if (!shouldUpdate) return line;
-      didChange = true;
-      return { ...line, name: newLabel, partyId };
-    });
-
-    return { ...journal, lines: nextLines };
-  });
-
-  if (didChange) {
-    localStorage.setItem(JOURNAL_STORAGE_KEY, JSON.stringify(nextJournals));
-    syncJournalsToBackend(nextJournals);
-  }
-}
-
-function syncJournalPartyLabels() {
-  let journals;
-  try {
-    const parsed = JSON.parse(localStorage.getItem(JOURNAL_STORAGE_KEY) || "[]");
-    journals = Array.isArray(parsed) ? parsed : [];
-  } catch {
-    journals = [];
-  }
-
-  const partyMap = new Map(parties.map((party) => [party.id, getPartyDisplayLabel(party, parties)]));
-  let didChange = false;
-  const nextJournals = journals.map((journal) => {
-    if (!Array.isArray(journal.lines)) return journal;
-
-    const nextLines = journal.lines.map((line) => {
-      if (!line || !line.partyId || !partyMap.has(line.partyId)) return line;
-      const nextName = partyMap.get(line.partyId);
-      if (line.name === nextName) return line;
-      didChange = true;
-      return { ...line, name: nextName };
-    });
-
-    return { ...journal, lines: nextLines };
-  });
-
-  if (didChange) {
-    localStorage.setItem(JOURNAL_STORAGE_KEY, JSON.stringify(nextJournals));
-    syncJournalsToBackend(nextJournals);
-  }
-}
+// Posted journal labels remain historical snapshots. Party identity stays linked
+// by partyId; editing a party never silently rewrites accounting vouchers.
 
 function openModal(partyId = "") {
+  if (!window.BanikApi?.can("parties.manage")) return;
   const party = parties.find((item) => item.id === partyId);
   editingPartyId = party ? party.id : "";
   form.reset();
@@ -596,45 +451,21 @@ function collectFormData() {
   };
 }
 
-function handleSubmit(event) {
+async function handleSubmit(event) {
   event.preventDefault();
-  if (!form.reportValidity()) return;
-
-  const now = new Date().toISOString();
-  const partyData = collectFormData();
-
-  let savedParty = null;
-
-  if (editingPartyId) {
-    const oldParty = parties.find((party) => party.id === editingPartyId);
-    const oldLabel = oldParty ? getPartyDisplayLabel(oldParty, parties) : "";
-    const oldName = oldParty ? getPartyDisplayName(oldParty) : "";
-    parties = parties.map((party) =>
-      party.id === editingPartyId ? { ...party, ...partyData, updatedAt: now } : party
-    );
-    savedParty = parties.find((party) => party.id === editingPartyId) || null;
-    const newLabel = savedParty ? getPartyDisplayLabel(savedParty, parties) : "";
-    updateJournalPartyNames(editingPartyId, oldLabel, newLabel, oldName);
-    syncJournalPartyLabels();
-  } else {
-    savedParty = {
-      id: `party-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-      createdAt: now,
-      updatedAt: now,
-      ...partyData,
-    };
-    parties.push(savedParty);
-  }
-
-  localStorage.setItem(PARTY_STORAGE_KEY, JSON.stringify(parties));
-  if (savedParty) {
-    syncPartyToBackend(savedParty);
-  } else {
-    syncPartiesToBackend();
-  }
-  syncJournalPartyLabels();
-  closeModal();
-  renderActiveRegister();
+  if (!form.reportValidity() || !window.BanikApi?.can("parties.manage")) return;
+  const oldParty = parties.find((party) => party.id === editingPartyId);
+  const item = { ...oldParty, ...collectFormData(), id: oldParty?.id || crypto.randomUUID() };
+  saveButton.disabled = true;
+  try {
+    const saved = await window.BanikApi.upsert("parties", item.id, item);
+    parties = parties.filter((party) => party.id !== saved.id);
+    parties.push(saved);
+    localStorage.setItem(PARTY_STORAGE_KEY, JSON.stringify(parties));
+    closeModal(); renderActiveRegister();
+  } catch (error) {
+    window.alert(error.message || "The party was not saved. Please retry.");
+  } finally { saveButton.disabled = false; }
 }
 
 function openRegister(type) {
@@ -764,6 +595,7 @@ function getRowHtml(type, party, index) {
 }
 
 function showDeleteConfirm(partyId) {
+  if (!window.BanikApi?.can("parties.manage")) return;
   pendingDeleteId = partyId;
   deleteModal.hidden = false;
 }
@@ -773,14 +605,15 @@ function hideDeleteConfirm() {
   deleteModal.hidden = true;
 }
 
-function deletePendingParty() {
-  if (!pendingDeleteId) return;
-  const deletedPartyId = pendingDeleteId;
-  parties = parties.filter((party) => party.id !== pendingDeleteId);
-  localStorage.setItem(PARTY_STORAGE_KEY, JSON.stringify(parties));
-  removePartyFromBackend(deletedPartyId);
-  hideDeleteConfirm();
-  renderActiveRegister();
+async function deletePendingParty() {
+  if (!pendingDeleteId || !window.BanikApi?.can("parties.manage")) return;
+  deleteYesButton.disabled = true;
+  try {
+    parties = await window.BanikApi.remove("parties", pendingDeleteId);
+    localStorage.setItem(PARTY_STORAGE_KEY, JSON.stringify(parties));
+    hideDeleteConfirm(); renderActiveRegister();
+  } catch (error) { window.alert(error.message || "The party could not be deleted."); }
+  finally { deleteYesButton.disabled = false; }
 }
 
 function formatDate(value) {

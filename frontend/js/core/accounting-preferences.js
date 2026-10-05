@@ -37,7 +37,7 @@
   function setPreferences(source = {}, notify = true) {
     preferences = normalizePreferences({ ...preferences, ...source });
     localStorage.setItem(STORAGE_KEY, JSON.stringify(preferences));
-    savePreferencesToBackend();
+    // Company preferences are persisted explicitly by the owner profile form.
 
     if (notify) {
       window.dispatchEvent(new CustomEvent("banik:accounting-preferences-ready", { detail: getPreferences() }));

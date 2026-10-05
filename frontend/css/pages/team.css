@@ -1,0 +1,51 @@
+.team-page { max-width: 1280px; }
+.team-page main { padding: 28px 0 56px; }
+.team-back { display: inline-block; margin-bottom: 24px; color: #236743; }
+.team-heading { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+.team-heading h1 { margin: 10px 0; font-size: clamp(28px, 4vw, 40px); }
+.team-card { background: white; border: 1px solid #dce6df; border-radius: 18px; padding: 26px; margin-top: 24px; }
+.team-card h2 { margin: 0 0 12px; }
+.team-card p, .team-heading p, .team-muted { color: #53645a; line-height: 1.6; }
+.team-fields { display: flex; flex-wrap: wrap; gap: 16px; align-items: end; margin: 20px 0; }
+.team-fields label { flex: 1 1 180px; }
+.team-page label, .team-dialog label, .invite-card label { display: flex; flex-direction: column; gap: 8px; font-weight: 600; font-size: 14px; }
+.team-page input, .team-page select, .team-dialog select, .invite-card input { width: 100%; padding: 11px 12px; border: 1px solid #bfcec4; border-radius: 8px; font: inherit; background: #fff; color: #183a27; }
+.team-page button, .team-dialog button, .invite-card button { cursor: pointer; }
+.team-page button:disabled, .team-dialog button:disabled { opacity: .55; cursor: wait; }
+.team-permission-details { margin: 18px 0; }
+.team-permission-details summary { cursor: pointer; font-weight: 600; }
+.team-permissions { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin: 20px 0; }
+.team-permissions label { flex-direction: row; align-items: flex-start; font-weight: 400; }
+.team-permissions input { width: 18px; height: 18px; flex-shrink: 0; margin: 0; }
+.team-table-wrap { overflow-x: auto; }
+.team-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.team-table th { text-align: left; color: #53645a; background: #f6f9f7; }
+.team-table th, .team-table td { padding: 14px 12px; border-bottom: 1px solid #e5ece7; vertical-align: top; }
+.team-table td small { display: block; margin-top: 6px; color: #53645a; }
+.team-table button { margin: 0 6px 6px 0; padding: 7px 10px; border: 1px solid #bfcec4; border-radius: 6px; background: #fff; color: #183a27; font: inherit; }
+.team-badge { display: inline-block; padding: 4px 9px; border-radius: 99px; background: #edf4ef; text-transform: capitalize; }
+.team-badge--suspended, .team-badge--revoked, .team-badge--expired { background: #fff0e8; color: #93451c; }
+.team-invite-result { margin-top: 20px; padding: 18px; background: #f2f7f3; border-radius: 10px; }
+.team-invite-result button { margin-top: 12px; }
+.team-dialog { width: min(760px, calc(100vw - 32px)); max-height: 85vh; border: 1px solid #bfcec4; border-radius: 18px; padding: 24px; }
+.team-dialog::backdrop { background: #12362380; }
+.team-table details { max-width: 420px; }
+.team-table pre { max-height: 300px; white-space: pre-wrap; overflow: auto; font-size: 12px; }
+.invite-shell { min-height: 100vh; display: grid; place-items: center; padding: 24px; background: #f3f7f4; }
+.invite-card { width: min(100%, 480px); background: white; border: 1px solid #dce6df; border-radius: 22px; padding: 32px; }
+.invite-card h1 { font-size: 28px; margin: 24px 0 12px; }
+.invite-card p { line-height: 1.6; color: #53645a; }
+.invite-card form { display: grid; gap: 18px; }
+.invite-actions { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 20px; }
+.auth-company-select { max-width: 200px; padding: 8px; border: 1px solid #bfcec4; border-radius: 8px; background: #fff; }
+[hidden] { display: none !important; }
+@media (max-width: 600px) { .team-card { padding: 18px; } .team-heading { align-items: flex-start; flex-direction: column; } .team-table th, .team-table td { padding: 12px 8px; } }
+
+[data-banik-export-blocked="true"] { display: none !important; }
+
+.team-change-columns { display: grid; grid-template-columns: repeat(2, minmax(180px, 1fr)); gap: 20px; min-width: 360px; }
+.team-change-fields { margin: 10px 0; }
+.team-change-fields dt { color: #53645a; font-size: 12px; margin-top: 12px; }
+.team-change-fields dd { margin: 4px 0 0; overflow-wrap: anywhere; }
+.team-change-fields dd p { margin: 5px 0; }
+.team-recovery-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-top: 12px; }
