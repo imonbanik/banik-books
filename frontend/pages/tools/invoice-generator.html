@@ -5,21 +5,19 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Invoice Generator | BANIK Books</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="./styles.css" />
-    <script src="./js/config/app-config.js" defer></script>
-    <script src="./js/core/auth.js" type="module"></script>
-    <script src="./js/core/accounting-preferences.js" defer></script>
-    <script src="./js/services/api-client.js" defer></script>
+    <link rel="preload" href="./assets/fonts/inter-latin.woff2?v=f22dd6c530" as="font" type="font/woff2" crossorigin />
+    <link rel="stylesheet" href="./css/bundle.css?v=f22dd6c530" />
+    <script src="./js/config/app-config.js?v=f22dd6c530" defer></script>
+    <script src="./js/core/auth.js?v=f22dd6c530" type="module"></script>
+    <script src="./js/core/accounting-preferences.js?v=f22dd6c530" defer></script>
+    <script src="./js/services/api-client.js?v=f22dd6c530" defer></script>
   </head>
   <body>
     <div class="page-shell invoice-generator-page">
       <header class="topbar">
         <a class="brand" href="./workspace.html">
           <span class="brand-mark" aria-hidden="true">
-            <img src="./assets/banik-logo.svg" alt="" />
+            <img src="./assets/banik-logo.svg?v=f22dd6c530" alt="" />
           </span>
           <span class="brand-copy">
             <span class="brand-copy__title">BANIK Books</span>
@@ -195,6 +193,6 @@ Cox's Bazar, Bangladesh</textarea>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-    <script src="./js/tools/invoice-generator.js"></script>
+    <script src="./js/tools/invoice-generator.js?v=f22dd6c530"></script>
   </body>
 </html>

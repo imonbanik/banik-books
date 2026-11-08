@@ -21,6 +21,40 @@
   let workspaceContext = null;
   let contextGeneration = 0;
   const CONTEXT_KEY = "banikBooksActiveContext";
+  // Every click is a full page load, so without this snapshot the sign-in and company checks
+  // would repeat on each click. It lasts a few minutes in this tab only, and only decides what
+  // the page shows first: the server still checks access on every API call.
+  const SESSION_SNAPSHOT_KEY = "banikBooksSessionSnapshot";
+  const SESSION_SNAPSHOT_TTL_MS = 5 * 60 * 1000;
+  const DATA_WRITE_ROUTE = /^\/api\/(journals|parties|chart-of-accounts|challans|achallan)(\/|\?|$)/;
+
+  function clearSessionSnapshot() {
+    try { sessionStorage.removeItem(SESSION_SNAPSHOT_KEY); } catch {}
+  }
+
+  function saveSessionSnapshot(user, companies) {
+    if (!user || !user.companyId || !workspaceContext || workspaceContext.companyId !== user.companyId) return;
+    try { sessionStorage.setItem(SESSION_SNAPSHOT_KEY, JSON.stringify({ savedAt: Date.now(), user, companies, context: workspaceContext })); }
+    catch { clearSessionSnapshot(); }
+  }
+
+  function restoreSessionSnapshot(userId) {
+    let snapshot = null;
+    let selected = {};
+    try {
+      snapshot = JSON.parse(sessionStorage.getItem(SESSION_SNAPSHOT_KEY) || "null");
+      selected = JSON.parse(localStorage.getItem(CONTEXT_KEY) || "{}");
+    } catch {}
+    if (!snapshot) return null;
+    const age = Date.now() - Number(snapshot.savedAt);
+    const stillValid = age >= 0 && age <= SESSION_SNAPSHOT_TTL_MS
+      && snapshot.user && snapshot.user.id === userId && selected.userId === userId
+      && selected.companyId && snapshot.user.companyId === selected.companyId
+      && snapshot.context && snapshot.context.companyId === selected.companyId;
+    if (!stillValid) { clearSessionSnapshot(); return null; }
+    setWorkspaceContext(snapshot.context);
+    return snapshot;
+  }
 
   function clearBusinessCache({ preserve = true, ownerId = "", companyId = "" } = {}) {
     let previous = {};
@@ -61,6 +95,7 @@
       itemCache.clear(); itemVersions.clear(); itemRequests.clear();
       authHeadersRequest = null;
       workspaceContext = null;
+      clearSessionSnapshot();
       window.dispatchEvent(new Event("banik-cache-cleared"));
     }
   }
@@ -90,9 +125,9 @@
     return Array.isArray(payload.companies) ? payload.companies : [];
   }
 
-  async function selectCompany(companyId, { reload = true } = {}) {
-    const companies = await getCompanies();
-    if (!companies.some((company) => company.id === companyId)) throw new Error("Company access is not available.");
+  async function selectCompany(companyId, { reload = true, companies = null } = {}) {
+    const availableCompanies = companies || await getCompanies();
+    if (!availableCompanies.some((company) => company.id === companyId)) throw new Error("Company access is not available.");
     let previous = {};
     try { previous = JSON.parse(localStorage.getItem(CONTEXT_KEY) || "{}"); } catch {}
     if (previous.companyId !== companyId) {
@@ -331,6 +366,7 @@
     }
 
     if (!response.ok) {
+      if (response.status === 401 || response.status === 403) clearSessionSnapshot();
       const details = await getApiErrorDetails(response);
       const errorMessage = details.message;
       logPerf(`${method} ${url}`, startedAt, { status: response.status, ok: false });
@@ -348,6 +384,8 @@
       throw error;
     }
 
+    // Team, company and settings changes can alter what this user may see.
+    if (!["GET", "HEAD"].includes(method) && !DATA_WRITE_ROUTE.test(url)) clearSessionSnapshot();
     const payload = response.status === 204 ? {} : await response.json();
     if (generation !== contextGeneration) throw new Error("Company changed while the request was running. Please try again.");
     logPerf(`${method} ${url}`, startedAt, { status: response.status, ok: true });
@@ -593,6 +631,9 @@
     selectCompany,
     setIdentity,
     clearBusinessCache,
+    clearSessionSnapshot,
+    saveSessionSnapshot,
+    restoreSessionSnapshot,
     deleteAdminUser,
     setAdminUserDisabled,
     hydrate,

@@ -84,8 +84,20 @@ Active frontend source lives in `frontend/`. Public URLs such as `/pages/...`,
 - Static assets: `frontend/assets/`
 - Local helper scripts: `scripts/`
 
-Keep `frontend/styles.css` as the only stylesheet entry point linked by active
-pages. It is served publicly as `/styles.css` and remains an import hub.
+`frontend/styles.css` remains the import hub for all CSS. Pages link the
+generated `frontend/css/bundle.css`, which the local server rebuilds on every
+request so CSS edits appear on refresh.
+
+After changing any CSS, JavaScript or asset, run this before committing:
+
+```bash
+npm run build:assets
+```
+
+It rebuilds the bundle and stamps asset links with a new `?v=` version. Vercel
+tells browsers to keep versioned files for a year, so an unstamped change would
+not reach users. `npm run check` fails if this step was missed. When adding a
+page, also add its route to `backend/page-routes.js` and `vercel.json`.
 
 ## Key Docs
 

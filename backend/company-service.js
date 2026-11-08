@@ -126,15 +126,19 @@ async function resolveCompanyContext(authContext, request = { headers: {} }) {
   requireIdentity(authContext);
   const requestedCompanyId = String(request.headers && request.headers["x-banik-company-id"] || "").trim();
   if (requestedCompanyId && !/^company_[a-f0-9]{32}$/.test(requestedCompanyId)) throw companyError(400, "Company id is invalid.");
-  if (!requestedCompanyId) await ensureLegacyCompany(authContext);
-  let member;
+  const noAccess = () => companyError(403, "You do not have active access to this company. Accept your invitation or contact the company owner.");
   if (requestedCompanyId) {
-    member = await getTeamDocument("memberships", membershipId(requestedCompanyId, authContext.userId));
-  } else {
-    const memberships = await queryTeamDocuments("memberships", { userId: authContext.userId });
-    member = memberships.filter((entry) => entry.status === "active").sort((left, right) => (left.role === "owner" ? 0 : 1) - (right.role === "owner" ? 0 : 1))[0];
+    const [member, company] = await Promise.all([
+      getTeamDocument("memberships", membershipId(requestedCompanyId, authContext.userId)),
+      getTeamDocument("companies", requestedCompanyId),
+    ]);
+    if (!member || member.companyId !== requestedCompanyId) throw noAccess();
+    return buildCompanyContext(authContext, company, member);
   }
-  if (!member) throw companyError(403, "You do not have active access to this company. Accept your invitation or contact the company owner.");
+  await ensureLegacyCompany(authContext);
+  const memberships = await queryTeamDocuments("memberships", { userId: authContext.userId });
+  const member = memberships.filter((entry) => entry.status === "active").sort((left, right) => (left.role === "owner" ? 0 : 1) - (right.role === "owner" ? 0 : 1))[0];
+  if (!member) throw noAccess();
   return buildCompanyContext(authContext, await getTeamDocument("companies", member.companyId), member);
 }
 

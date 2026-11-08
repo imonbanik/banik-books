@@ -1,4 +1,4 @@
-import "../services/api-client.js";
+import "../services/api-client.js?v=f22dd6c530";
 import {
   getApp,
   getApps,
@@ -14,18 +14,7 @@ import {
   signOut,
   updateProfile,
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
-import {
-  collection,
-  doc,
-  getDoc,
-  getDocs,
-  getFirestore,
-  serverTimestamp,
-  setDoc,
-  updateDoc,
-  writeBatch,
-} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
-import { BANIK_FOUNDER_ADMIN_EMAIL, firebaseConfig } from "../config/firebase-config.js";
+import { BANIK_FOUNDER_ADMIN_EMAIL, firebaseConfig } from "../config/firebase-config.js?v=f22dd6c530";
 
 const LETTERHEAD_CHUNK_SIZE = 500000;
 const LETTERHEAD_ALLOWED_TYPES = new Set([
@@ -103,7 +92,33 @@ const app = isFirebaseConfigured
     : initializeApp(firebaseConfig)
   : null;
 const auth = app ? getAuth(app) : null;
-const db = app ? getFirestore(app) : null;
+
+// The database library is the largest download on the page, and most page opens no longer need it.
+const FIRESTORE_SDK_URL = "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+let db = null;
+let collection, doc, getDoc, getDocs, serverTimestamp, setDoc, updateDoc, writeBatch;
+let firestoreRequest = null;
+
+function loadFirestore() {
+  if (!app) return Promise.resolve();
+  if (!firestoreRequest) {
+    firestoreRequest = import(FIRESTORE_SDK_URL)
+      .then((sdk) => {
+        ({ collection, doc, getDoc, getDocs, serverTimestamp, setDoc, updateDoc, writeBatch } = sdk);
+        db = sdk.getFirestore(app);
+      })
+      .catch((error) => {
+        firestoreRequest = null;
+        throw error;
+      });
+  }
+  return firestoreRequest;
+}
+
+function prepareProfileWrite() {
+  window.BanikApi.clearSessionSnapshot();
+  return loadFirestore();
+}
 
 let cachedCurrentUser = null;
 let authReadyPromise = Promise.resolve(null);
@@ -113,11 +128,30 @@ let profileRequest = null;
 let profileRequestUserId = "";
 let availableCompanies = [];
 
-async function loadCompanyUser(firebaseUser) {
+async function restoreCompanySession(firebaseUser) {
+  // Page scripts have always finished loading before company access arrives. Keep that order.
+  if (document.readyState === "loading") {
+    await new Promise((resolve) => document.addEventListener("DOMContentLoaded", resolve, { once: true }));
+  }
+  await new Promise((resolve) => window.setTimeout(resolve, 0));
+  if (!auth.currentUser || auth.currentUser.uid !== firebaseUser.uid) return null;
+  const snapshot = window.BanikApi.restoreSessionSnapshot(firebaseUser.uid);
+  if (!snapshot) return null;
+  availableCompanies = Array.isArray(snapshot.companies) ? snapshot.companies : [];
+  return snapshot.user;
+}
+
+async function loadCompanyUser(firebaseUser, { fresh = false } = {}) {
   if (!firebaseUser || auth.currentUser && auth.currentUser.uid !== firebaseUser.uid) throw createFriendlyError("Your sign-in changed. Please try again.");
+  if (!fresh && !profileRequest) {
+    const restoredUser = await restoreCompanySession(firebaseUser);
+    if (restoredUser) return restoredUser;
+  }
   if (profileRequest && profileRequestUserId === firebaseUser.uid) return profileRequest;
   profileRequestUserId = firebaseUser.uid;
   const request = (async () => {
+    window.BanikApi.clearSessionSnapshot();
+    await loadFirestore();
     const user = await withTimeout(ensureUserProfile(firebaseUser), PROFILE_SYNC_TIMEOUT_MS, "Could not verify your account profile. Please try signing in again.");
     if (!auth.currentUser || auth.currentUser.uid !== firebaseUser.uid) throw createFriendlyError("Your sign-in changed. Please try again.");
     if (user.disabled) throw createFriendlyError("Your account has been disabled. Contact the administrator.");
@@ -133,7 +167,7 @@ async function loadCompanyUser(firebaseUser) {
     let selected = {};
     try { selected = JSON.parse(localStorage.getItem("banikBooksActiveContext") || "{}"); } catch {}
     const company = availableCompanies.find((entry) => entry.id === selected.companyId) || availableCompanies[0];
-    const context = await window.BanikApi.selectCompany(company.id, { reload: false });
+    const context = await window.BanikApi.selectCompany(company.id, { reload: false, companies: availableCompanies });
     if (!auth.currentUser || auth.currentUser.uid !== firebaseUser.uid) throw createFriendlyError("Your sign-in changed. Please try again.");
     if ((actorChanged || selected.companyId !== company.id) && !["index.html", "accept-invite.html"].includes(getCurrentPageName())) {
       // Legacy page scripts can read browser caches before asynchronous authentication finishes.
@@ -149,13 +183,15 @@ async function loadCompanyUser(firebaseUser) {
       const actions = pageActions[key] || [`tools.${key}`];
       modulePermissions[key] = Boolean(modulePermissions[key]) && actions.some((permission) => actionPermissions[permission] === true);
     });
-    return { ...user, ...companyProfile, id: user.id, email: user.email, fullName: user.fullName, role: user.role,
+    const companyUser = { ...user, ...companyProfile, id: user.id, email: user.email, fullName: user.fullName, role: user.role,
       companyId: context.companyId || company.id, companyRole: context.companyRole || company.role,
       companyName: context.companyName || company.name || companyProfile.companyName || user.companyName,
       companyPermissions: context.permissions || {},
       permissions: modulePermissions,
       profileCompleted: (context.companyRole || company.role) !== "owner" || user.profileCompleted,
     };
+    window.BanikApi.saveSessionSnapshot(companyUser, availableCompanies);
+    return companyUser;
   })().finally(() => { if (profileRequest === request) { profileRequest = null; profileRequestUserId = ""; } });
   profileRequest = request;
   return request;
@@ -539,6 +575,7 @@ function normalizeProfileImagePayload(payload, fallbackName = "profile-image") {
 }
 
 async function ensureUserProfile(firebaseUser, profile = {}) {
+  await loadFirestore();
   const userRef = doc(db, "users", firebaseUser.uid);
   const userSnapshot = await getDoc(userRef);
   const role = isFounderEmail(firebaseUser.email) ? "admin" : "user";
@@ -556,19 +593,19 @@ async function ensureUserProfile(firebaseUser, profile = {}) {
       createdAt: serverTimestamp(),
       lastLoginAt: serverTimestamp(),
     });
-  } else {
-    const existingProfile = userSnapshot.data() || {};
-    const updatePayload = {
-      email: normalizeAuthEmail(firebaseUser.email),
-      emailVerified: firebaseUser.emailVerified,
-      lastLoginAt: serverTimestamp(),
-    };
-
-    await updateDoc(userRef, updatePayload);
+    const createdSnapshot = await getDoc(userRef);
+    return normalizeUserDoc(firebaseUser.uid, createdSnapshot.data() || {});
   }
 
-  const refreshedSnapshot = await getDoc(userRef);
-  return normalizeUserDoc(firebaseUser.uid, refreshedSnapshot.data() || {});
+  const currentDetails = {
+    email: normalizeAuthEmail(firebaseUser.email),
+    emailVerified: firebaseUser.emailVerified,
+  };
+  // Recording the visit must not hold the page up. The profile just read is already current.
+  updateDoc(userRef, { ...currentDetails, lastLoginAt: serverTimestamp() }).catch((error) => {
+    console.warn("Could not record the latest sign-in.", error);
+  });
+  return normalizeUserDoc(firebaseUser.uid, { ...(userSnapshot.data() || {}), ...currentDetails });
 }
 
 async function getCurrentBanikUser() {
@@ -653,6 +690,7 @@ async function registerBanikUser({ email, password, companyName, fullName = "", 
       displayName: String(fullName || fallbackName).trim(),
     });
     if (invitationToken) {
+      await loadFirestore();
       await setDoc(doc(db, "users", credential.user.uid), {
         email: normalizedEmail, fullName: String(fullName || fallbackName).trim(), accountType: "invited",
         role: "user", profileCompleted: false, emailVerified: false, permissions: createPermissionMap(false), createdAt: serverTimestamp(),
@@ -710,7 +748,7 @@ async function loginBanikUser(email, password) {
       };
     }
 
-    cachedCurrentUser = await loadCompanyUser(credential.user);
+    cachedCurrentUser = await loadCompanyUser(credential.user, { fresh: true });
     window.BANIK_AUTH_CONTEXT_ERROR = "";
 
     return { ok: true, user: cachedCurrentUser, companies: availableCompanies };
@@ -720,6 +758,7 @@ async function loginBanikUser(email, password) {
 }
 
 async function logoutBanikUser({ redirect = true } = {}) {
+  window.BanikApi.clearSessionSnapshot();
   try {
     window.BanikApi.clearBusinessCache();
     localStorage.removeItem("banikBooksActiveContext");
@@ -761,6 +800,7 @@ async function getAuthUsers() {
   }
 
   try {
+    await loadFirestore();
     const snapshot = await getDocs(collection(db, "users"));
     const users = [];
     const usedSerials = new Set();
@@ -848,6 +888,7 @@ async function updateUserPermission(userId, moduleKey, enabled) {
   }
 
   try {
+    await prepareProfileWrite();
     await updateDoc(doc(db, "users", userId), {
       [`permissions.${moduleKey}`]: Boolean(enabled),
     });
@@ -922,6 +963,7 @@ async function updateCurrentUserProfile(profile) {
       });
     }
 
+    await prepareProfileWrite();
     await updateDoc(doc(db, "users", user.id), {
       ...profileData,
       companyName,
@@ -963,6 +1005,7 @@ async function saveCurrentUserLetterhead(payload) {
     return normalized;
   }
 
+  await prepareProfileWrite();
   const { metaRef, chunksRef } = getLetterheadRefs(user.id);
   const existingChunks = await getDocs(chunksRef);
   const uploadedAtIso = new Date().toISOString();
@@ -1054,6 +1097,7 @@ async function removeCurrentUserLetterhead() {
 
 
   try {
+    await prepareProfileWrite();
     const { metaRef, chunksRef } = getLetterheadRefs(user.id);
     const chunkSnapshot = await getDocs(chunksRef);
     const batch = writeBatch(db);
@@ -1101,6 +1145,7 @@ async function saveCurrentUserESign(payload) {
     return normalized;
   }
 
+  await prepareProfileWrite();
   const { metaRef, chunksRef } = getESignRefs(user.id);
   const existingChunks = await getDocs(chunksRef);
   const uploadedAtIso = new Date().toISOString();
@@ -1181,6 +1226,7 @@ async function getCurrentUserESign() {
   if (user.companyRole !== "owner") return { ok: true, eSign: null };
 
   try {
+    await loadFirestore();
     const { metaRef, chunksRef } = getESignRefs(user.id);
     const metaSnapshot = await getDoc(metaRef);
 
@@ -1233,6 +1279,7 @@ async function removeCurrentUserESign() {
 
 
   try {
+    await prepareProfileWrite();
     const { metaRef, chunksRef } = getESignRefs(user.id);
     const chunkSnapshot = await getDocs(chunksRef);
     const batch = writeBatch(db);
@@ -1280,6 +1327,7 @@ async function saveProfileImageAsset(assetKey, payload, metaField, fallbackName)
     return normalized;
   }
 
+  await prepareProfileWrite();
   const { metaRef, chunksRef } = getProfileImageRefs(user.id, assetKey);
   const existingChunks = await getDocs(chunksRef);
   const uploadedAtIso = new Date().toISOString();
@@ -1365,6 +1413,7 @@ async function getProfileImageAsset(assetKey, fallbackName) {
   }
 
   try {
+    await loadFirestore();
     const { metaRef, chunksRef } = getProfileImageRefs(user.id, assetKey);
     const metaSnapshot = await getDoc(metaRef);
 
@@ -1417,6 +1466,7 @@ async function removeProfileImageAsset(assetKey, metaField) {
 
 
   try {
+    await prepareProfileWrite();
     const { metaRef, chunksRef } = getProfileImageRefs(user.id, assetKey);
     const chunkSnapshot = await getDocs(chunksRef);
     const batch = writeBatch(db);
@@ -1673,7 +1723,16 @@ function setupExportPermissions() {
       event.preventDefault(); event.stopImmediatePropagation();
     }
   }, true);
-  const observer = new MutationObserver(apply);
+  // A long report changes the page thousands of times while it draws. One rescan per frame is enough.
+  let applyQueued = false;
+  const observer = new MutationObserver(() => {
+    if (applyQueued) return;
+    applyQueued = true;
+    window.requestAnimationFrame(() => {
+      applyQueued = false;
+      apply();
+    });
+  });
   observer.observe(document.documentElement, { childList: true, subtree: true, attributes: true, attributeFilter: ["hidden", "disabled"] });
   window.addEventListener("banik-company-ready", apply);
   window.addEventListener("banik-cache-cleared", apply);
@@ -1746,7 +1805,7 @@ window.BanikAuth = {
   register: registerBanikUser,
   login: loginBanikUser,
   resetPassword: resetBanikPassword,
-  refreshCompany: async () => { cachedCurrentUser = await loadCompanyUser(auth.currentUser); return cachedCurrentUser; },
+  refreshCompany: async () => { cachedCurrentUser = await loadCompanyUser(auth.currentUser, { fresh: true }); return cachedCurrentUser; },
   logout: logoutBanikUser,
   updateUserPermission,
   updateProfile: updateCurrentUserProfile,

@@ -39,6 +39,8 @@ const ROUTES = [
   "/admin.html",
   "/pages/admin/admin.html",
   "/styles.css",
+  "/css/bundle.css",
+  "/assets/fonts/inter-latin.woff2",
   "/css/pages/admin.css",
   "/css/pages/journal-entry.css",
   "/css/responsive/base-responsive.css",

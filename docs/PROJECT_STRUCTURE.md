@@ -83,8 +83,8 @@ Important files:
 
 ## Stylesheet Structure
 
-`frontend/styles.css` is the only stylesheet entry point linked by active
-pages. Keep page-specific imports after shared styles.
+`frontend/styles.css` is the CSS import hub, and active pages link the generated
+`frontend/css/bundle.css`. Keep page-specific imports after shared styles.
 
 Current import order:
 

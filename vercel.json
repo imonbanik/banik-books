@@ -1,5 +1,6 @@
 {
   "version": 2,
+  "regions": ["bom1"],
   "builds": [
     {
       "src": "server.js",
@@ -20,6 +21,19 @@
       "dest": "/server.js"
     },
     {
+      "src": "/(?:css|js|assets)/.*",
+      "has": [
+        {
+          "type": "query",
+          "key": "v"
+        }
+      ],
+      "headers": {
+        "Cache-Control": "public, max-age=31536000, immutable"
+      },
+      "continue": true
+    },
+    {
       "src": "/styles.css",
       "dest": "/frontend/styles.css"
     },
@@ -38,6 +52,130 @@
     {
       "src": "/pages/(.*)",
       "dest": "/frontend/pages/$1"
+    },
+    {
+      "src": "/",
+      "dest": "/frontend/pages/auth/index.html"
+    },
+    {
+      "src": "/index.html",
+      "dest": "/frontend/pages/auth/index.html"
+    },
+    {
+      "src": "/team.html",
+      "dest": "/frontend/pages/workspace/team.html"
+    },
+    {
+      "src": "/accept-invite.html",
+      "dest": "/frontend/pages/auth/accept-invite.html"
+    },
+    {
+      "src": "/signup.html",
+      "dest": "/frontend/pages/auth/signup.html"
+    },
+    {
+      "src": "/workspace.html",
+      "dest": "/frontend/pages/workspace/workspace.html"
+    },
+    {
+      "src": "/reports.html",
+      "dest": "/frontend/pages/workspace/reports.html"
+    },
+    {
+      "src": "/necessary-tools.html",
+      "dest": "/frontend/pages/workspace/necessary-tools.html"
+    },
+    {
+      "src": "/party-management.html",
+      "dest": "/frontend/pages/workspace/party-management.html"
+    },
+    {
+      "src": "/admin.html",
+      "dest": "/frontend/pages/admin/admin.html"
+    },
+    {
+      "src": "/journal-entry.html",
+      "dest": "/frontend/pages/accounting/journal-entry.html"
+    },
+    {
+      "src": "/chart-of-accounts.html",
+      "dest": "/frontend/pages/accounting/chart-of-accounts.html"
+    },
+    {
+      "src": "/journal-register.html",
+      "dest": "/frontend/pages/reports/journal-register.html"
+    },
+    {
+      "src": "/general-ledger.html",
+      "dest": "/frontend/pages/reports/general-ledger.html"
+    },
+    {
+      "src": "/party-wise-transaction.html",
+      "dest": "/frontend/pages/reports/party-wise-transaction.html"
+    },
+    {
+      "src": "/party-wise-ledger.html",
+      "dest": "/frontend/pages/reports/party-wise-transaction.html"
+    },
+    {
+      "src": "/trial-balance.html",
+      "dest": "/frontend/pages/reports/trial-balance.html"
+    },
+    {
+      "src": "/statement-of-financial-position.html",
+      "dest": "/frontend/pages/reports/statement-of-financial-position.html"
+    },
+    {
+      "src": "/statement-of-profit-loss-and-oci.html",
+      "dest": "/frontend/pages/reports/statement-of-profit-loss-and-oci.html"
+    },
+    {
+      "src": "/statement-of-changes-in-equity.html",
+      "dest": "/frontend/pages/reports/statement-of-changes-in-equity.html"
+    },
+    {
+      "src": "/statement-of-cash-flows.html",
+      "dest": "/frontend/pages/reports/statement-of-cash-flows.html"
+    },
+    {
+      "src": "/notes-to-the-accounts.html",
+      "dest": "/frontend/pages/reports/notes-to-the-accounts.html"
+    },
+    {
+      "src": "/invoice-generator.html",
+      "dest": "/frontend/pages/tools/invoice-generator.html"
+    },
+    {
+      "src": "/payroll-tax-calculator.html",
+      "dest": "/frontend/pages/tools/payroll-tax-calculator.html"
+    },
+    {
+      "src": "/tax-vat-customs-rates.html",
+      "dest": "/frontend/pages/tools/tax-vat-customs-rates.html"
+    },
+    {
+      "src": "/challan-management.html",
+      "dest": "/frontend/pages/tools/challan-management.html"
+    },
+    {
+      "src": "/emi-calculator.html",
+      "dest": "/frontend/pages/tools/emi-calculator.html"
+    },
+    {
+      "src": "/cheque-printer.html",
+      "dest": "/frontend/pages/tools/cheque-printer.html"
+    },
+    {
+      "src": "/withholding-vat-tax-calculator.html",
+      "dest": "/frontend/pages/tools/withholding-vat-tax-calculator.html"
+    },
+    {
+      "src": "/vat-tax-calculator.html",
+      "dest": "/frontend/pages/redirects/vat-tax-calculator.html"
+    },
+    {
+      "src": "/Imon-Cheque.html",
+      "dest": "/frontend/pages/redirects/Imon-Cheque.html"
     },
     {
       "src": "/(.*)",

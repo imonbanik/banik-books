@@ -4,9 +4,10 @@ import vm from "node:vm";
 
 const apiSource = fs.readFileSync(new URL("../frontend/js/services/api-client.js", import.meta.url), "utf8");
 const completeAuthSource = fs.readFileSync(new URL("../frontend/js/core/auth.js", import.meta.url), "utf8");
-const authSource = completeAuthSource.slice(completeAuthSource.indexOf("const LETTERHEAD_CHUNK_SIZE"));
+const authSource = completeAuthSource.slice(completeAuthSource.indexOf("const LETTERHEAD_CHUNK_SIZE")).replace("import(FIRESTORE_SDK_URL)", "loadFirestoreFixture()");
 const invitationSource = fs.readFileSync(new URL("../frontend/js/pages/accept-invite.js", import.meta.url), "utf8");
 const delay = () => new Promise((resolve) => setImmediate(resolve));
+const FIRESTORE_ONLY = new Set(["getFirestore", "doc", "collection", "serverTimestamp", "getDoc", "setDoc", "updateDoc", "getDocs", "writeBatch"]);
 async function finishes(promise, label) {
   let timeout;
   try { return await Promise.race([promise, new Promise((_, reject) => { timeout = setTimeout(() => reject(new Error(`Auth initialization timed out: ${label}`)), 2000); })]); }
@@ -17,8 +18,11 @@ const ownerProfile = (email, extra = {}) => ({ email, fullName: "Original Owner"
 function firebaseUser(uid, email, verified = true) {
   return { uid, email, emailVerified: verified, displayName: uid, async reload() {}, async getIdToken() { return `token:${uid}`; } };
 }
-function fixture({ initialUser = null, profiles = {}, memberships = {}, pathname = "/index.html", legacyStorage = {} } = {}) {
+function fixture({ initialUser = null, profiles = {}, memberships = {}, pathname = "/index.html", legacyStorage = {}, session: initialSession = {} } = {}) {
   const stored = { ...legacyStorage };
+  const session = { ...initialSession };
+  const sessionStorage = { getItem: (key) => session[key] ?? null, setItem: (key, value) => { session[key] = String(value); }, removeItem: (key) => { delete session[key]; } };
+  let firestoreLoads = 0;
   const localStorage = new Proxy({ getItem: (key) => stored[key] ?? null, setItem: (key, value) => { stored[key] = String(value); }, removeItem: (key) => { delete stored[key]; } }, { ownKeys: () => Object.keys(stored), getOwnPropertyDescriptor: (_object, key) => key in stored ? { enumerable: true, configurable: true } : undefined });
   const documents = new Map(Object.entries(profiles).map(([uid, profile]) => [`users/${uid}`, structuredClone(profile)]));
   const users = new Map(initialUser ? [[initialUser.email, initialUser]] : []);
@@ -88,12 +92,16 @@ function fixture({ initialUser = null, profiles = {}, memberships = {}, pathname
       return response({ companyId: "employer" });
     }
     if (url.startsWith("/api/settings/")) return response({ item: null });
+    if (url === "/api/journals") return response({ item: {} });
+    if (url === "/api/team/members") return response({ ok: true });
+    if (url === "/api/team/forbidden") return response({ error: "Not allowed" }, 403);
     throw new Error(`Unexpected fixture request ${url}`);
   }
-  const context = vm.createContext({ ...sdk, window, document, localStorage, fetch, console: { debug() {}, warn() {}, error() {} }, URL, URLSearchParams, Event, MutationObserver: class { observe() {} }, CustomEvent: class { constructor(type, options) { this.type = type; this.detail = options?.detail; } } });
+  const loadFirestoreFixture = async () => { firestoreLoads += 1; return sdk; };
+  const context = vm.createContext({ ...Object.fromEntries(Object.entries(sdk).filter(([key]) => !FIRESTORE_ONLY.has(key))), loadFirestoreFixture, window, document, localStorage, sessionStorage, fetch, console: { debug() {}, warn() {}, error() {} }, URL, URLSearchParams, Event, MutationObserver: class { observe() {} }, CustomEvent: class { constructor(type, options) { this.type = type; this.detail = options?.detail; } } });
   vm.runInContext(apiSource, context);
   vm.runInContext(authSource, context);
-  return { window, auth, documents, users, memberships, calls, verifications, writes, localStorage, element, context, setReadHook(value) { readHook = value; }, reloads: () => reloads,
+  return { window, auth, documents, users, memberships, calls, verifications, writes, localStorage, stored, session, element, context, firestoreLoads: () => firestoreLoads, setReadHook(value) { readHook = value; }, reloads: () => reloads,
     async openInvitation() { vm.runInContext(invitationSource, context); for (const listener of domEvents.get("DOMContentLoaded") || []) await listener(); },
     async submitInvitation() { await element("invite-auth-form").listeners.submit({ preventDefault() {} }); },
   };
@@ -195,5 +203,69 @@ function fixture({ initialUser = null, profiles = {}, memberships = {}, pathname
   assert.equal(loggedIn.user.id, newUser.uid);
   release(); await delay();
   assert.equal((await app.window.BanikAuth.getCurrentUser()).id, newUser.uid, "late previous-user profile response cannot overwrite the current actor");
+}
+{
+  const SNAPSHOT = "banikBooksSessionSnapshot";
+  const apiCalls = (app, url) => app.calls.filter((call) => call.url === url).length;
+  const owner = firebaseUser("snapshot-owner", "snapshot@example.test");
+  const profiles = { [owner.uid]: ownerProfile(owner.email) };
+  const open = (previous, overrides = {}) => fixture({ initialUser: owner, profiles, memberships: previous.memberships, pathname: "/workspace.html", legacyStorage: previous.stored, session: previous.session, ...overrides });
+  const signedIn = async (app, label) => finishes(app.window.BanikAuth.getCurrentUser(), label);
+
+  const first = fixture({ initialUser: owner, profiles, pathname: "/workspace.html" });
+  await signedIn(first, "first page open");
+  assert.equal(first.firestoreLoads(), 1, "the first page open performs the full check");
+  assert.equal(apiCalls(first, "/api/companies"), 1, "the company list is requested once");
+  assert.equal(apiCalls(first, "/api/workspace"), 1);
+
+  const next = open(first);
+  const restored = await signedIn(next, "next page open");
+  assert.equal(restored.id, owner.uid); assert.equal(restored.companyId, `company-${owner.uid}`);
+  assert.equal(next.calls.length, 0, "the next page open makes no sign-in or company calls");
+  assert.equal(next.firestoreLoads(), 0, "the next page open does not download the database library");
+  assert.equal(next.window.BanikApi.can("team.manage"), true, "permissions are restored with the snapshot");
+  assert.equal(next.reloads(), 0);
+
+  const saved = JSON.parse(next.session[SNAPSHOT]);
+  const expired = open(next, { session: { [SNAPSHOT]: JSON.stringify({ ...saved, savedAt: Date.now() - 6 * 60 * 1000 }) } });
+  await signedIn(expired, "expired snapshot");
+  assert.equal(apiCalls(expired, "/api/workspace"), 1, "an expired snapshot repeats the full check");
+
+  const other = firebaseUser("snapshot-other", "other@example.test");
+  const otherApp = fixture({ initialUser: other, profiles: { [other.uid]: ownerProfile(other.email) }, pathname: "/workspace.html", legacyStorage: next.stored, session: next.session });
+  const otherUser = await signedIn(otherApp, "different user in the same tab");
+  assert.equal(otherUser.id, other.uid); assert.equal(otherUser.companyId, `company-${other.uid}`, "another user's snapshot is never used");
+
+  const switched = open(next, { legacyStorage: { ...next.stored, banikBooksActiveContext: JSON.stringify({ userId: owner.uid, companyId: "another-company" }) } });
+  await signedIn(switched, "company changed in another tab");
+  assert.equal(apiCalls(switched, "/api/workspace"), 1, "a company change ignores the snapshot");
+
+  const worker = open(next);
+  await signedIn(worker, "daily data entry");
+  await worker.window.BanikApi.request("/api/journals", { method: "POST", body: {} });
+  assert.ok(worker.session[SNAPSHOT], "saving accounting data does not repeat the sign-in check");
+  await worker.window.BanikApi.request("/api/team/members", { method: "POST", body: {} });
+  assert.equal(worker.session[SNAPSHOT], undefined, "team changes force a full check");
+
+  const denied = open(next);
+  await signedIn(denied, "access removed");
+  await assert.rejects(denied.window.BanikApi.request("/api/team/forbidden"), /Not allowed/);
+  assert.equal(denied.session[SNAPSHOT], undefined, "a refused request forces a full check");
+
+  const profileEditor = open(next);
+  await signedIn(profileEditor, "profile change");
+  assert.equal((await profileEditor.window.BanikAuth.removeProfilePhoto()).ok, true);
+  assert.equal(profileEditor.firestoreLoads(), 1, "profile changes still load the database library");
+  assert.equal(profileEditor.session[SNAPSHOT], undefined, "profile changes force a full check");
+
+  const refreshed = open(next);
+  await signedIn(refreshed, "manual refresh");
+  await refreshed.window.BanikAuth.refreshCompany();
+  assert.equal(apiCalls(refreshed, "/api/workspace"), 1, "refreshCompany always asks the server");
+
+  const leaving = open(next);
+  await signedIn(leaving, "sign-out");
+  await leaving.window.BanikAuth.logout({ redirect: false });
+  assert.equal(leaving.session[SNAPSHOT], undefined, "signing out removes the snapshot");
 }
 console.log("Authentication and invitation onboarding regression checks passed.");

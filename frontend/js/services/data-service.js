@@ -16,7 +16,7 @@ import {
   getAuth,
   onAuthStateChanged,
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
-import { firebaseConfig } from "../config/firebase-config.js";
+import { firebaseConfig } from "../config/firebase-config.js?v=f22dd6c530";
 
 const isFirebaseConfigured = !Object.values(firebaseConfig).some((value) =>
   String(value || "").startsWith("PASTE_")

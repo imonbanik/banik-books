@@ -1,6 +1,7 @@
 /* BANIK Books stylesheet hub.
    Keep this file as the single CSS entry point for existing pages.
    Page-specific files should be imported after shared styles in their original cascade order. */
+@import "./css/fonts.css";
 @import "./css/base.css";
 @import "./css/pages/workspace.css";
 @import "./css/pages/team.css";

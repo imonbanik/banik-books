@@ -4,6 +4,7 @@ const http = require("node:http");
 const path = require("node:path");
 const { handleApi } = require("./backend/api");
 const { getPageRoute } = require("./backend/page-routes");
+const { buildCssBundle } = require("./backend/css-bundle");
 
 const HOST = process.env.HOST || "127.0.0.1";
 const PORT = Number(process.env.PORT || 4104);
@@ -26,6 +27,7 @@ function getContentType(filePath) {
     ".jpeg": "image/jpeg",
     ".png": "image/png",
     ".svg": "image/svg+xml",
+    ".woff2": "font/woff2",
     ".json": "application/json; charset=utf-8",
     ".md": "text/markdown; charset=utf-8",
   };
@@ -71,6 +73,11 @@ function sendStatic(request, response) {
   }
 
   response.writeHead(200, { "Content-Type": getContentType(filePath), "X-Content-Type-Options": "nosniff", "Cache-Control": "no-cache" });
+  // Vercel serves the committed bundle. Locally, build it fresh so CSS edits appear on refresh.
+  if (filePath === path.join(FRONTEND_DIR, "css", "bundle.css")) {
+    response.end(buildCssBundle(path.join(FRONTEND_DIR, "styles.css")));
+    return;
+  }
   fs.createReadStream(filePath).pipe(response);
 }
 

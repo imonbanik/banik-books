@@ -42,9 +42,9 @@ curl -I http://127.0.0.1:4103/journal-entry.html
 
 ## CSS Convention
 
-Keep `frontend/styles.css` as the only stylesheet linked from existing HTML
-pages. It is served publicly as `/styles.css`, so old URLs and page markup stay
-stable while CSS is split.
+Keep `frontend/styles.css` as the import hub for all CSS. Pages link the
+generated `frontend/css/bundle.css`. Run `npm run build:assets` before committing
+any CSS, JavaScript or asset change.
 
 Use this order:
 

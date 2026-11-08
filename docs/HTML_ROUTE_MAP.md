@@ -9,10 +9,10 @@ duplicate files.
 
 - Keep `backend/page-routes.js` entries in place until old URLs are deliberately
   retired.
-- Active pages use `<base href="/" />`, so existing `./styles.css`, `./js/...`,
-  assets, and root URL links resolve through public static aliases.
-- All active pages currently load `./styles.css` as the single stylesheet entry
-  point.
+- Active pages use `<base href="/" />`, so `./css/...`, `./js/...`, assets, and
+  root URL links resolve through public static aliases.
+- All active pages load the generated `./css/bundle.css` as their single
+  stylesheet.
 - Most authenticated pages load `./js/config/app-config.js` and
   `./js/core/auth.js`.
 - When changing route paths again, update every matching `href`, `script src`,
@@ -103,7 +103,7 @@ Most pages depend on:
 
 ```html
 <base href="/" />
-<link rel="stylesheet" href="./styles.css" />
+<link rel="stylesheet" href="./css/bundle.css?v=<version>" />
 <script src="./js/config/app-config.js" defer></script>
 <script src="./js/core/auth.js" type="module"></script>
 ```

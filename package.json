@@ -6,7 +6,9 @@
   "scripts": {
     "start": "node server.js",
     "dev": "./local-server.sh",
-    "check": "npm run check:secrets && npm run check:js && npm run check:api && npm run check:team && npm run check:storage && npm run check:smoke",
+    "build:assets": "node scripts/build-assets.mjs",
+    "check": "npm run check:secrets && npm run check:js && npm run check:assets && npm run check:api && npm run check:team && npm run check:storage && npm run check:smoke",
+    "check:assets": "node scripts/build-assets.mjs --check",
     "commercial:audit": "npm run check && npm run check:api:http && node scripts/commercial-audit.mjs",
     "migrate:file-to-adapter": "node scripts/migrate-file-to-adapter.mjs",
     "check:production-config": "node scripts/check-production-config.mjs",
