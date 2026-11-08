@@ -1,7 +1,7 @@
 document.addEventListener("DOMContentLoaded", async () => {
   const TIN_BIN_INFO_SETTING_KEY = "challanTinBinInfo";
   const WINDOW_QUERY_KEY = "challanWindow";
-  const allowedSeparateWindows = new Set(["verification", "tin-bin", "prepare", "record", "register"]);
+  const allowedSeparateWindows = new Set(["verification", "tin-bin", "record", "register"]);
   const pageParams = new URLSearchParams(window.location.search);
   const separateWindowType = pageParams.get(WINDOW_QUERY_KEY) || "";
   const isSeparateWindow = allowedSeparateWindows.has(separateWindowType);
@@ -68,7 +68,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   const quickError = document.getElementById("challanNumberError");
 
   const entryButton = document.getElementById("openEntryChallanModal");
-  const prepareAChallanButton = document.getElementById("openPrepareAChallanModal");
   const tinBinInfoButton = document.getElementById("openTinBinInfoModal");
   const registerButton = document.getElementById("showChallanRegister");
   const toast = document.getElementById("challanToast");
@@ -81,20 +80,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   const tinBinInfoEmpty = document.getElementById("tinBinInfoEmpty");
   const tinBinInfoTableWrap = document.getElementById("tinBinInfoTableWrap");
   const tinBinInfoTableBody = document.getElementById("tinBinInfoTableBody");
-  const prepareAChallanModal = document.getElementById("prepareAChallanModal");
-  const prepareAChallanForm = document.getElementById("prepareAChallanForm");
-  const prepareAChallanError = document.getElementById("prepareAChallanError");
-  const prepareAChallanResult = document.getElementById("prepareAChallanResult");
-  const prepareDeducteeParty = document.getElementById("prepareDeducteeParty");
-  const prepareDeductorParty = document.getElementById("prepareDeductorParty");
-  const prepareDeducteeTin = document.getElementById("prepareDeducteeTin");
-  const prepareDeductorTin = document.getElementById("prepareDeductorTin");
-  const prepareTinInputs = Array.from(
-    document.querySelectorAll("#prepareDeducteeTin, #prepareDeductorTin")
-  );
-  const prepareAmountInput = document.getElementById("prepareAmount");
-  const preparePhoneInput = document.getElementById("preparePhoneNumber");
-  const prepareCommentInput = document.getElementById("prepareComment");
   const entryModal = document.getElementById("entryChallanModal");
   const registerModal = document.getElementById("registerChallanModal");
   const entryForm = document.getElementById("entryChallanForm");
@@ -297,26 +282,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       );
   }
 
-  function getTinBinSourceRecords({ requireTin = false } = {}) {
-    const sourceMap = new Map();
-
-    getPartyTinBinRecords().forEach((record) => {
-      if (!requireTin || /^\d{12}$/.test(record.tinNumber)) {
-        sourceMap.set(getOrganizationKey(record.organizationName), record);
-      }
-    });
-
-    tinBinInfoRecords.forEach((record) => {
-      if (!requireTin || /^\d{12}$/.test(record.tinNumber)) {
-        sourceMap.set(getOrganizationKey(record.organizationName), { ...record, source: "tinBinInfo" });
-      }
-    });
-
-    return Array.from(sourceMap.values()).sort((leftRecord, rightRecord) =>
-      leftRecord.organizationName.localeCompare(rightRecord.organizationName)
-    );
-  }
-
   async function loadPartyRecordsFromBackend({ silent = false } = {}) {
     if (!window.BanikApi || typeof window.BanikApi.list !== "function") {
       partyRecords = [];
@@ -346,7 +311,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         loadTinBinInfoFromBackend({ silent: true }),
       ]);
       renderTinBinPartyOptions();
-      renderPreparePartyOptions();
     }, 1500);
   }
 
@@ -818,7 +782,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     const hasVisibleModal =
       !verificationModal.hidden ||
       !tinBinInfoModal.hidden ||
-      !prepareAChallanModal.hidden ||
       !entryModal.hidden ||
       !registerModal.hidden;
     document.body.classList.toggle("modal-open", hasVisibleModal);
@@ -1022,18 +985,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     return digits.slice(0, -4) + "-" + digits.slice(-4);
   }
 
-  function formatAChallanAmount(value) {
-    const numericValue = Number(value);
-    if (!Number.isFinite(numericValue)) {
-      return "";
-    }
-
-    return new Intl.NumberFormat("en-US", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(numericValue);
-  }
-
   function unformatAmount(value) {
     return String(value).replace(/[^\d.]/g, "");
   }
@@ -1104,11 +1055,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     entryError.hidden = !message;
   }
 
-  function setPrepareAChallanError(message) {
-    prepareAChallanError.textContent = message;
-    prepareAChallanError.hidden = !message;
-  }
-
   function setTinBinInfoError(message) {
     tinBinInfoError.textContent = message;
     tinBinInfoError.hidden = !message;
@@ -1152,35 +1098,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       .join("");
   }
 
-  function renderPreparePartyOptions() {
-    const options = getTinBinSourceRecords({ requireTin: true });
-
-    [prepareDeducteeParty, prepareDeductorParty].forEach((select) => {
-      const selectedValue = select.value;
-      select.innerHTML = "";
-      const placeholder = new Option("Select party", "");
-      placeholder.disabled = true;
-      placeholder.hidden = true;
-      select.append(placeholder);
-      options.forEach((record) => {
-        const option = new Option(record.organizationName, record.id);
-        option.dataset.tinNumber = record.tinNumber;
-        select.append(option);
-      });
-      select.value = options.some((record) => record.id === selectedValue) ? selectedValue : "";
-    });
-  }
-
-  function getTinBinRecordById(recordId) {
-    return getTinBinSourceRecords().find((record) => record.id === recordId) || null;
-  }
-
-  function updatePrepareTinFromParty(select, tinInput) {
-    const record = getTinBinRecordById(select.value);
-    tinInput.value = record ? record.tinNumber : "";
-    setPrepareAChallanError("");
-  }
-
   function renderTinBinPartyOptions() {
     const options = getPartyTinBinRecords();
     tinBinPartyList.innerHTML = "";
@@ -1195,25 +1112,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   function updateTinBinFieldsFromParty() {
     setTinBinInfoError("");
     renderTinBinInfoTable();
-  }
-
-  function setPrepareAChallanResult(result) {
-    if (!result) {
-      prepareAChallanResult.hidden = true;
-      prepareAChallanResult.innerHTML = "";
-      return;
-    }
-
-    const lines = [
-      escapeHtml(result.message || "A-Challan automation completed."),
-      result.trackingNumber ? "Tracking Number: " + escapeHtml(result.trackingNumber) : "",
-      result.finalUrl
-        ? `<a href="${escapeHtml(result.finalUrl)}" target="_blank" rel="noopener">Open govt result page</a>`
-        : "",
-    ].filter(Boolean);
-
-    prepareAChallanResult.innerHTML = lines.join("<br />");
-    prepareAChallanResult.hidden = false;
   }
 
   function compareValues(leftValue, rightValue) {
@@ -1614,30 +1512,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     updateBodyModalState();
   }
 
-  async function openPrepareAChallanModal() {
-    prepareAChallanModal.hidden = false;
-    setPrepareAChallanError("");
-    setPrepareAChallanResult(null);
-    updateBodyModalState();
-    await loadPartyRecordsFromBackend();
-    await loadTinBinInfoFromBackend();
-    renderPreparePartyOptions();
-    window.setTimeout(() => {
-      document.getElementById("prepareChallanType").focus();
-    }, 0);
-  }
-
-  function closePrepareAChallanModal() {
-    if (closeSeparateWindowIfNeeded()) {
-      return;
-    }
-
-    prepareAChallanModal.hidden = true;
-    setPrepareAChallanError("");
-    setPrepareAChallanResult(null);
-    updateBodyModalState();
-  }
-
   async function openTinBinInfoModal() {
     tinBinInfoModal.hidden = false;
     setTinBinInfoError("");
@@ -1675,7 +1549,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   verificationButton.addEventListener("click", openVerificationModal);
-  prepareAChallanButton.addEventListener("click", openPrepareAChallanModal);
   tinBinInfoButton.addEventListener("click", openTinBinInfoModal);
 
   quickInput.addEventListener("input", () => {
@@ -1716,11 +1589,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       return;
     }
 
-    if (event.target.closest("[data-close-prepare-modal]")) {
-      closePrepareAChallanModal();
-      return;
-    }
-
     if (event.target.closest("[data-close-tin-bin-modal]")) {
       closeTinBinInfoModal();
       return;
@@ -1739,12 +1607,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   verificationModal.addEventListener("click", (event) => {
     if (!event.target.closest(".challan-modal__dialog")) {
       closeVerificationModal();
-    }
-  });
-
-  prepareAChallanModal.addEventListener("click", (event) => {
-    if (!event.target.closest(".challan-modal__dialog")) {
-      closePrepareAChallanModal();
     }
   });
 
@@ -1775,10 +1637,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       closeVerificationModal();
     }
 
-    if (!prepareAChallanModal.hidden) {
-      closePrepareAChallanModal();
-    }
-
     if (!tinBinInfoModal.hidden) {
       closeTinBinInfoModal();
     }
@@ -1789,115 +1647,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     if (!registerModal.hidden) {
       closeRegisterModal();
-    }
-  });
-
-  prepareTinInputs.forEach((input) => {
-    input.addEventListener("input", () => {
-      input.value = input.value.replace(/\D/g, "").slice(0, 12);
-      setPrepareAChallanError("");
-    });
-  });
-
-  prepareDeducteeParty.addEventListener("change", () => {
-    updatePrepareTinFromParty(prepareDeducteeParty, prepareDeducteeTin);
-  });
-
-  prepareDeductorParty.addEventListener("change", () => {
-    updatePrepareTinFromParty(prepareDeductorParty, prepareDeductorTin);
-  });
-
-  preparePhoneInput.addEventListener("input", () => {
-    preparePhoneInput.value = preparePhoneInput.value.replace(/\D/g, "").slice(0, 11);
-    setPrepareAChallanError("");
-  });
-
-  prepareAmountInput.addEventListener("input", () => {
-    prepareAmountInput.value = sanitizeAmountInput(prepareAmountInput.value);
-    setPrepareAChallanError("");
-  });
-
-  prepareAmountInput.addEventListener("focus", () => {
-    prepareAmountInput.value = unformatAmount(prepareAmountInput.value);
-  });
-
-  prepareAmountInput.addEventListener("blur", () => {
-    const amount = normalizeAmount(prepareAmountInput.value);
-    prepareAmountInput.value = amount === null ? "" : formatAChallanAmount(amount);
-  });
-
-  prepareAChallanForm.addEventListener("submit", async (event) => {
-    event.preventDefault();
-
-    const requiredControl = Array.from(
-      prepareAChallanForm.querySelectorAll("select[required], input[required]")
-    ).find((control) => !String(control.value || "").trim());
-
-    if (requiredControl) {
-      setPrepareAChallanError("Fill all fields before generating A-Challan.");
-      requiredControl.focus();
-      return;
-    }
-
-    const invalidTinInput = prepareTinInputs.find((input) => !/^\d{12}$/.test(input.value));
-
-    if (invalidTinInput) {
-      setPrepareAChallanError("TIN number must be exactly 12 digits.");
-      invalidTinInput.focus();
-      return;
-    }
-
-    if (!/^\d{11}$/.test(preparePhoneInput.value)) {
-      setPrepareAChallanError("Phone number must be exactly 11 digits.");
-      preparePhoneInput.focus();
-      return;
-    }
-
-    if (normalizeAmount(prepareAmountInput.value) === null) {
-      setPrepareAChallanError("Enter a valid amount.");
-      prepareAmountInput.focus();
-      return;
-    }
-
-    if (!window.BanikApi || typeof window.BanikApi.prepareAChallan !== "function") {
-      setPrepareAChallanError("Backend A-Challan automation is not ready.");
-      return;
-    }
-
-    const submitButton = prepareAChallanForm.querySelector('button[type="submit"]');
-    const originalButtonText = submitButton.textContent;
-    const deducteeRecord = getTinBinRecordById(prepareDeducteeParty.value);
-    const deductorRecord = getTinBinRecordById(prepareDeductorParty.value);
-
-    setPrepareAChallanError("");
-    setPrepareAChallanResult(null);
-    submitButton.disabled = true;
-    submitButton.textContent = "Generating...";
-
-    try {
-      const result = await window.BanikApi.prepareAChallan({
-        challanType: document.getElementById("prepareChallanType").value,
-        withholdingArea: document.getElementById("prepareWithholdingArea").value,
-        deducteeName: deducteeRecord ? deducteeRecord.organizationName : "",
-        deducteeTin: prepareDeducteeTin.value,
-        deductorName: deductorRecord ? deductorRecord.organizationName : "",
-        deductorTin: prepareDeductorTin.value,
-        assessmentYear: document.getElementById("prepareAssessmentYear").value,
-        amount: prepareAmountInput.value,
-        phoneNumber: preparePhoneInput.value,
-        comment: prepareCommentInput.value,
-      });
-
-      setPrepareAChallanResult(result);
-      showToast("A-Challan automation completed.", "success");
-    } catch (error) {
-      setPrepareAChallanError(
-        String(error.message || "A-Challan automation failed.").replace(/^API request failed:\s*/, "")
-      );
-      showToast("A-Challan automation failed.", "error");
-    } finally {
-      submitButton.disabled = false;
-      submitButton.textContent = originalButtonText;
     }
   });
 
@@ -2226,8 +1975,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     openVerificationModal();
   } else if (separateWindowType === "tin-bin") {
     await openTinBinInfoModal();
-  } else if (separateWindowType === "prepare") {
-    await openPrepareAChallanModal();
   } else if (separateWindowType === "record") {
     await openEntryModal();
   } else if (separateWindowType === "register") {

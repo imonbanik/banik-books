@@ -26,7 +26,7 @@
   // the page shows first: the server still checks access on every API call.
   const SESSION_SNAPSHOT_KEY = "banikBooksSessionSnapshot";
   const SESSION_SNAPSHOT_TTL_MS = 5 * 60 * 1000;
-  const DATA_WRITE_ROUTE = /^\/api\/(journals|parties|chart-of-accounts|challans|achallan)(\/|\?|$)/;
+  const DATA_WRITE_ROUTE = /^\/api\/(journals|parties|chart-of-accounts|challans)(\/|\?|$)/;
 
   function clearSessionSnapshot() {
     try { sessionStorage.removeItem(SESSION_SNAPSHOT_KEY); } catch {}
@@ -574,13 +574,6 @@
     });
   }
 
-  async function prepareAChallan(payload) {
-    return requestJson("/api/achallan/prepare", {
-      method: "POST",
-      body: JSON.stringify(payload && typeof payload === "object" ? payload : {}),
-    });
-  }
-
   async function getWorkspace() {
     return setWorkspaceContext(await requestJson("/api/workspace"));
   }
@@ -642,7 +635,6 @@
     getWorkspace,
     importBackup,
     list,
-    prepareAChallan,
     remove,
     replace,
     saveSetting,

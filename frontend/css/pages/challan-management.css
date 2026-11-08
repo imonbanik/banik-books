@@ -687,11 +687,6 @@
   width: min(560px, 100%);
 }
 
-.challan-modal__dialog--prepare {
-  width: min(680px, 100%);
-  border-radius: 26px;
-}
-
 .challan-modal__dialog--tin-bin {
   width: min(820px, 100%);
   border-radius: 26px;
@@ -724,15 +719,6 @@
   gap: 12px;
   width: min(370px, 100%);
   margin: 0 auto;
-}
-
-.prepare-achallan-stack {
-  width: min(560px, 100%);
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-.prepare-achallan-field--full {
-  grid-column: 1 / -1;
 }
 
 .tin-bin-entry-grid {
@@ -913,23 +899,6 @@
   justify-content: center;
   gap: 12px;
   margin-top: 4px;
-}
-
-.prepare-achallan-actions {
-  grid-template-columns: minmax(0, 220px);
-}
-
-.prepare-achallan-result {
-  width: min(560px, 100%);
-  margin: 0 auto;
-  padding: 12px 14px;
-  border-radius: 14px;
-  border: 1px solid rgba(18, 130, 75, 0.22);
-  background: rgba(241, 255, 248, 0.98);
-  color: #0f6b3d;
-  font-size: 0.92rem;
-  font-weight: 600;
-  line-height: 1.5;
 }
 
 .tin-bin-table-panel {

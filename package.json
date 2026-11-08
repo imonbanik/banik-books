@@ -22,7 +22,9 @@
     "check:browser": "node scripts/check-journal-browser.mjs"
   },
   "dependencies": {
-    "firebase-admin": "^13.10.0",
+    "firebase-admin": "^13.10.0"
+  },
+  "devDependencies": {
     "playwright": "^1.60.0"
   }
 }

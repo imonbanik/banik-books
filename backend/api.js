@@ -1,7 +1,6 @@
 const { getItem, listItems, removeItem, replaceItems, saveItem, revisionOf } = require("./collection-service");
 const { resolveAuthContext } = require("./auth-context");
 const { deleteUserAccount, setUserDisabled } = require("./admin-user-service");
-const { runAChallanAutomation } = require("./achallan-automation");
 const { exportBackup, importBackup } = require("./backup-service");
 const { assertRole } = require("./permissions");
 const { assertRateLimit } = require("./rate-limit");
@@ -111,7 +110,7 @@ async function handleApi(request, response) {
       else methodError();
       return true;
     }
-    if (!["workspace", "backups", "activity", "achallan", "journals", ...Object.keys(COLLECTIONS)].includes(route)) throw companyError(404, "Unknown API endpoint.");
+    if (!["workspace", "backups", "activity", "journals", ...Object.keys(COLLECTIONS)].includes(route)) throw companyError(404, "Unknown API endpoint.");
     try { context = await resolveCompanyContext(context, request); }
     catch (error) { if (error.statusCode === 403) error.code = "COMPANY_ACCESS_DENIED"; throw error; }
     if (route === "workspace") {
@@ -128,11 +127,6 @@ async function handleApi(request, response) {
     if (route === "activity") {
       if (request.method !== "GET") methodError();
       sendJson(response, 200, await activity(context, url)); return true;
-    }
-    if (route === "achallan") {
-      requirePermission(context, "challans.manage");
-      if (id !== "prepare" || request.method !== "POST") methodError();
-      sendJson(response, 200, await runAChallanAutomation(await readJsonBody(request))); return true;
     }
     if (route === "journals") {
       if (request.method === "GET" || request.method === "HEAD") {

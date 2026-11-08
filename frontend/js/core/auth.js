@@ -1,4 +1,4 @@
-import "../services/api-client.js?v=f22dd6c530";
+import "../services/api-client.js?v=cf706daccb";
 import {
   getApp,
   getApps,
@@ -14,7 +14,7 @@ import {
   signOut,
   updateProfile,
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
-import { BANIK_FOUNDER_ADMIN_EMAIL, firebaseConfig } from "../config/firebase-config.js?v=f22dd6c530";
+import { BANIK_FOUNDER_ADMIN_EMAIL, firebaseConfig } from "../config/firebase-config.js?v=cf706daccb";
 
 const LETTERHEAD_CHUNK_SIZE = 500000;
 const LETTERHEAD_ALLOWED_TYPES = new Set([
