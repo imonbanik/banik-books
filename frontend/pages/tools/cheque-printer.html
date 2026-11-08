@@ -5,22 +5,22 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Cheque Printer | BANIK Books</title>
-    <link rel="preload" href="./assets/fonts/inter-latin.woff2?v=cf706daccb" as="font" type="font/woff2" crossorigin />
-    <link rel="stylesheet" href="./css/bundle.css?v=cf706daccb" />
-    <script src="./js/config/app-config.js?v=cf706daccb" defer></script>
-    <script src="./js/core/auth.js?v=cf706daccb" type="module"></script>
-    <script src="./js/services/api-client.js?v=cf706daccb" defer></script>
+    <link rel="preload" href="./assets/fonts/inter-latin.woff2?v=6356633f31" as="font" type="font/woff2" crossorigin />
+    <link rel="stylesheet" href="./css/bundle.css?v=6356633f31" />
+    <script src="./js/config/app-config.js?v=6356633f31" defer></script>
+    <script src="./js/core/auth.js?v=6356633f31" type="module"></script>
+    <script src="./js/services/api-client.js?v=6356633f31" defer></script>
     <style>
       :root {
         --page-width: 210mm;
         --page-height: 297mm;
         --cheque-width: 193.04mm;
         --cheque-height: 88.9mm;
-        --panel-border: rgba(112, 24, 24, 0.12);
-        --panel-shadow: 0 20px 50px rgba(82, 19, 19, 0.12);
-        --panel-bg: rgba(255, 255, 255, 0.94);
-        --ink: #1f1a17;
-        --muted: #6e5b57;
+        --panel-border: rgba(23, 33, 43, 0.08);
+        --panel-shadow: 0 1px 2px rgba(16, 24, 40, 0.04), 0 1px 3px rgba(16, 24, 40, 0.05);
+        --panel-bg: #ffffff;
+        --ink: #17212b;
+        --muted: #4b5563;
 
         /* Overlay calibration values */
         --date-left: 134.0mm;
@@ -76,7 +76,7 @@
       body {
         margin: 0;
         padding: 0;
-        color: var(--text, #241717);
+        color: var(--text, var(--text));
         font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       }
 
@@ -105,12 +105,11 @@
         display: grid;
         gap: 16px;
         padding: 28px 32px;
-        border-radius: 30px;
+        border-radius: var(--r-panel);
         background:
-          linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(255, 247, 246, 0.9)),
-          radial-gradient(circle at top right, rgba(239, 68, 68, 0.12), transparent 32%);
-        border: 1px solid rgba(185, 28, 28, 0.12);
-        box-shadow: var(--shadow, 0 30px 60px rgba(127, 16, 16, 0.18));
+          var(--surface);
+        border: 1px solid var(--line-soft);
+        box-shadow: var(--elev-1);
         overflow: hidden;
       }
 
@@ -122,7 +121,7 @@
         width: 180px;
         height: 180px;
         border-radius: 999px;
-        background: radial-gradient(circle, rgba(239, 68, 68, 0.18), transparent 68%);
+        background: var(--surface);
         pointer-events: none;
       }
 
@@ -150,12 +149,11 @@
       .panel,
       .preview {
         border: 1px solid var(--panel-border);
-        border-radius: 30px;
+        border-radius: var(--r-panel);
         background:
-          linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(255, 247, 246, 0.9));
-        box-shadow: var(--shadow, 0 30px 60px rgba(127, 16, 16, 0.18));
-        backdrop-filter: blur(10px);
-      }
+          var(--surface);
+        box-shadow: var(--elev-1);
+              }
 
       .panel {
         padding: 24px;
@@ -180,7 +178,7 @@
       .lead,
       .note {
         margin: 0;
-        color: var(--muted, #6e5b57);
+        color: var(--muted, var(--muted));
         line-height: 1.6;
       }
 
@@ -201,7 +199,7 @@
       .field label {
         font-weight: 700;
         font-size: 0.95rem;
-        color: var(--text, #241717);
+        color: var(--text, var(--text));
       }
 
       .field input,
@@ -209,19 +207,19 @@
         width: 100%;
         min-height: 52px;
         padding: 14px 16px;
-        border: 1px solid rgba(78, 26, 26, 0.16);
-        border-radius: 16px;
-        background: #ffffff;
+        border: 1px solid var(--line-mid);
+        border-radius: var(--r-card);
+        background: var(--surface);
         font: inherit;
-        color: var(--text, #241717);
+        color: var(--text, var(--text));
         transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
       }
 
       .field input:focus,
       .field select:focus {
         outline: none;
-        border-color: rgba(150, 47, 47, 0.72);
-        box-shadow: 0 0 0 4px rgba(150, 47, 47, 0.12);
+        border-color: var(--line-mid);
+        box-shadow: var(--ring-brand);
       }
 
       .field small {
@@ -236,7 +234,7 @@
 
       .payee-sub-label,
       .payee-delete-title {
-        color: var(--text, #241717);
+        color: var(--text, var(--text));
         font-size: 0.9rem;
         font-weight: 700;
       }
@@ -248,16 +246,16 @@
         align-items: center;
         min-height: 52px;
         padding: 0 8px 0 16px;
-        border: 1px solid rgba(78, 26, 26, 0.16);
-        border-radius: 16px;
-        background: #ffffff;
+        border: 1px solid var(--line-mid);
+        border-radius: var(--r-card);
+        background: var(--surface);
         line-height: 1;
         transition: border-color 0.2s ease, box-shadow 0.2s ease;
       }
 
       .field .record-add-row:focus-within {
-        border-color: rgba(150, 47, 47, 0.72);
-        box-shadow: 0 0 0 4px rgba(150, 47, 47, 0.12);
+        border-color: var(--line-mid);
+        box-shadow: var(--ring-brand);
       }
 
       .field .record-add-row input {
@@ -294,19 +292,19 @@
         cursor: pointer;
         font: inherit;
         font-size: 1.45rem;
-        font-weight: 800;
+        font-weight: 700;
         line-height: 1;
       }
 
       .field .record-add-button:hover {
-        color: #078743;
+        color: var(--color-success);
         background: rgba(17, 168, 90, 0.08);
         filter: none;
         transform: none;
       }
 
       .payee-delete-panel {
-        border-radius: 16px;
+        border-radius: var(--r-card);
       }
 
       .payee-help {
@@ -314,7 +312,7 @@
       }
 
       .payee-help--error {
-        color: var(--red-700, #b91c1c);
+        color: var(--red-700, var(--brand-text));
         font-weight: 700;
       }
 
@@ -334,7 +332,7 @@
         min-height: 54px;
         margin: 0;
         padding: 0 20px;
-        border-radius: 14px;
+        border-radius: var(--r-card);
         border: none;
         appearance: none;
         -webkit-appearance: none;
@@ -351,15 +349,15 @@
       }
 
       .button--primary {
-        background: linear-gradient(135deg, var(--red-700, #b91c1c), var(--red-900, #7F1010));
+        background: var(--grad-brand);
         color: #ffffff;
-        box-shadow: 0 18px 34px rgba(185, 28, 28, 0.22);
+        box-shadow: var(--elev-1);
       }
 
       .button--secondary {
-        background: #ffffff;
-        color: var(--red-900, #7F1010);
-        border: 1px solid rgba(127, 29, 29, 0.2);
+        background: var(--surface);
+        color: var(--red-900, var(--text));
+        border: 1px solid var(--line-mid);
       }
 
       .button:hover {
@@ -377,28 +375,21 @@
         gap: 12px;
         align-items: center;
         margin-bottom: 18px;
-        color: var(--muted, #6e5b57);
+        color: var(--muted, var(--muted));
         font-size: 0.93rem;
       }
 
       .preview-meta strong {
-        color: var(--red-900, #7F1010);
+        color: var(--red-900, var(--text));
       }
 
       .stage {
         overflow: auto;
-        border-radius: 24px;
+        border-radius: var(--r-panel);
         background:
-          linear-gradient(180deg, rgba(255, 255, 255, 0.68), rgba(255, 246, 242, 0.86)),
-          repeating-linear-gradient(
-            135deg,
-            rgba(239, 68, 68, 0.03),
-            rgba(239, 68, 68, 0.03) 14px,
-            rgba(255, 255, 255, 0.18) 14px,
-            rgba(255, 255, 255, 0.18) 28px
-          );
+          var(--surface);
         padding: 22px;
-        border: 1px solid rgba(185, 28, 28, 0.08);
+        border: 1px solid var(--line-soft);
       }
 
       .a4-sheet {
@@ -626,7 +617,7 @@
         .panel,
         .preview {
           padding: 18px;
-          border-radius: 22px;
+          border-radius: var(--r-panel);
         }
       }
 
@@ -705,7 +696,7 @@
       <header class="topbar screen-only">
         <a class="brand" href="./workspace.html">
           <span class="brand-mark" aria-hidden="true">
-            <img src="./assets/banik-logo.svg?v=cf706daccb" alt="" />
+            <img src="./assets/banik-logo.svg?v=6356633f31" alt="" />
           </span>
           <span class="brand-copy">
             <span class="brand-copy__title">BANIK Books</span>
@@ -822,7 +813,7 @@
             <div class="a4-sheet" id="printArea" data-orientation="landscape" aria-label="A4 cheque preview">
               <div class="cheque-placement">
                 <article class="cheque-sheet" aria-label="Imon cheque">
-                  <img class="cheque-base" src="./assets/sample-cheque.jpg?v=cf706daccb" alt="Bank Asia cheque" />
+                  <img class="cheque-base" src="./assets/sample-cheque.jpg?v=6356633f31" alt="Bank Asia cheque" />
 
                   <div class="overlay">
                     <div class="date-grid" id="dateDigits">
@@ -858,6 +849,6 @@
       </main>
     </div>
 
-    <script src="./js/tools/cheque-printer.js?v=cf706daccb"></script>
+    <script src="./js/tools/cheque-printer.js?v=6356633f31"></script>
   </body>
 </html>

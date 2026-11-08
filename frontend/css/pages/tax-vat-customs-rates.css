@@ -18,12 +18,11 @@
   display: grid;
   gap: 18px;
   padding: 24px;
-  border-radius: 30px;
+  border-radius: var(--r-panel);
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(255, 248, 247, 0.92)),
-    radial-gradient(circle at top right, rgba(239, 68, 68, 0.09), transparent 30%);
-  border: 1px solid rgba(185, 28, 28, 0.12);
-  box-shadow: var(--shadow);
+    var(--surface);
+  border: 1px solid var(--line-soft);
+  box-shadow: var(--elev-1);
 }
 
 .rate-tabs {
@@ -39,9 +38,9 @@
   min-height: 58px;
   margin: 0;
   padding: 0 18px;
-  border-radius: 16px;
-  border: 1px solid rgba(127, 29, 29, 0.12);
-  background: rgba(255, 255, 255, 0.86);
+  border-radius: var(--r-card);
+  border: 1px solid var(--line-soft);
+  background: var(--surface);
   color: var(--text);
   box-shadow: none;
   font: inherit;
@@ -51,27 +50,27 @@
 
 .rate-tab span {
   font-size: 1rem;
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .rate-tab strong {
   min-width: 64px;
   padding: 7px 10px;
   border-radius: 999px;
-  background: rgba(127, 16, 16, 0.08);
+  background: var(--color-tint);
   color: var(--red-900);
   font-size: 0.9rem;
   text-align: center;
 }
 
 .rate-tab.is-active {
-  border-color: rgba(185, 28, 28, 0.36);
-  background: linear-gradient(135deg, var(--red-700), var(--red-500));
+  border-color: var(--line-mid);
+  background: var(--btn-primary);
   color: #ffffff;
 }
 
 .rate-tab.is-active strong {
-  background: rgba(255, 255, 255, 0.22);
+  background: var(--surface);
   color: #ffffff;
 }
 
@@ -102,19 +101,19 @@
 .rate-search-field input {
   min-height: 46px;
   width: 100%;
-  border: 1px solid rgba(127, 29, 29, 0.16);
-  border-radius: 14px;
-  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid var(--line-mid);
+  border-radius: var(--r-card);
+  background: var(--surface);
   padding: 0 14px;
   color: var(--text);
   font: inherit;
   font-size: 0.96rem;
   outline: none;
-  box-shadow: 0 12px 24px rgba(127, 16, 16, 0.06);
+  box-shadow: var(--elev-1);
 }
 
 .rate-search-field input:focus {
-  border-color: rgba(185, 28, 28, 0.44);
+  border-color: var(--line-mid);
 }
 
 .rate-status {
@@ -123,9 +122,9 @@
   align-items: center;
   justify-content: center;
   padding: 0 14px;
-  border-radius: 14px;
-  background: rgba(255, 245, 244, 0.86);
-  border: 1px solid rgba(127, 29, 29, 0.1);
+  border-radius: var(--r-card);
+  background: var(--color-bg-alt);
+  border: 1px solid var(--line-soft);
   white-space: nowrap;
 }
 
@@ -137,14 +136,14 @@
   min-height: 46px;
   margin: 0;
   padding: 0 18px;
-  border-radius: 14px;
-  border: 1px solid rgba(127, 29, 29, 0.16);
-  background: #ffffff;
+  border-radius: var(--r-control);
+  border: 1px solid var(--line-mid);
+  background: var(--surface);
   color: var(--red-900);
   box-shadow: none;
   font: inherit;
   font-size: 0.95rem;
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .rate-overview {
@@ -160,15 +159,15 @@
   justify-content: space-between;
   gap: 10px;
   padding: 7px 12px;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.9);
-  border: 1px solid rgba(127, 29, 29, 0.1);
+  border-radius: var(--r-control);
+  background: var(--surface);
+  border: 1px solid var(--line-soft);
 }
 
 .rate-metric-card span {
   color: var(--muted);
   font-size: 0.72rem;
-  font-weight: 800;
+  font-weight: 700;
   text-transform: none;
 }
 
@@ -197,10 +196,10 @@
 
 .rate-table-card,
 .rate-detail-card {
-  border-radius: 22px;
-  background: rgba(255, 255, 255, 0.94);
-  border: 1px solid rgba(127, 29, 29, 0.12);
-  box-shadow: 0 22px 44px rgba(127, 16, 16, 0.1);
+  border-radius: var(--r-panel);
+  background: var(--surface);
+  border: 1px solid var(--line-soft);
+  box-shadow: var(--elev-1);
   overflow: hidden;
 }
 
@@ -221,8 +220,8 @@
 .rate-table th,
 .rate-table td {
   padding: 10px 12px;
-  border-right: 1px solid rgba(127, 29, 29, 0.1);
-  border-bottom: 1px solid rgba(127, 29, 29, 0.1);
+  border-right: 1px solid var(--line-soft);
+  border-bottom: 1px solid var(--line-soft);
   vertical-align: top;
   font-size: 0.88rem;
   line-height: 1.35;
@@ -233,7 +232,7 @@
   top: 0;
   z-index: 2;
   padding: 8px 10px;
-  background: #fff7f6;
+  background: var(--color-bg-alt);
   text-align: left;
 }
 
@@ -261,7 +260,7 @@
   box-shadow: none;
   font: inherit;
   font-size: 0.85rem;
-  font-weight: 800;
+  font-weight: 700;
   line-height: 1.12;
   text-align: center;
   cursor: pointer;
@@ -272,10 +271,10 @@
   width: 100%;
   height: 32px;
   min-height: 32px;
-  border: 1px solid rgba(127, 29, 29, 0.18);
+  border: 1px solid var(--line-mid);
   border-radius: 9px;
-  background: #ffffff;
-  color: #2b1211;
+  background: var(--surface);
+  color: var(--text);
   font: inherit;
   font-size: 0.78rem;
   font-weight: 700;
@@ -311,11 +310,11 @@
 }
 
 .rate-table tbody tr:nth-child(even) td {
-  background: rgba(255, 250, 249, 0.64);
+  background: var(--color-bg-alt);
 }
 
 .rate-table tbody tr:hover td {
-  background: rgba(239, 68, 68, 0.07);
+  background: var(--color-tint);
 }
 
 .rate-table.has-selection tbody tr:not(.is-selected) {
@@ -323,12 +322,12 @@
 }
 
 .rate-table tbody tr.is-selected td {
-  background: #fff0ef;
-  color: #2b1211;
+  background: var(--color-bg-alt);
+  color: var(--text);
 }
 
 .rate-table tbody tr.is-selected td:first-child {
-  box-shadow: inset 5px 0 0 var(--red-700);
+  box-shadow: none;
 }
 
 .rate-loading-cell {
@@ -351,7 +350,7 @@
   display: grid;
   place-items: center;
   color: var(--muted);
-  font-weight: 800;
+  font-weight: 700;
   text-align: center;
 }
 
@@ -361,13 +360,13 @@
   justify-content: space-between;
   gap: 12px;
   padding-bottom: 12px;
-  border-bottom: 1px solid rgba(127, 29, 29, 0.12);
+  border-bottom: 1px solid var(--line-soft);
 }
 
 .rate-detail-head span {
   color: var(--red-900);
   font-size: 0.8rem;
-  font-weight: 900;
+  font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: none;
 }
@@ -389,15 +388,15 @@
   display: grid;
   gap: 5px;
   padding: 12px;
-  border-radius: 14px;
-  background: rgba(255, 247, 246, 0.78);
-  border: 1px solid rgba(127, 29, 29, 0.09);
+  border-radius: var(--r-card);
+  background: var(--color-bg-alt);
+  border: 1px solid var(--line-soft);
 }
 
 .rate-detail-item span {
   color: var(--muted);
   font-size: 0.76rem;
-  font-weight: 800;
+  font-weight: 700;
   text-transform: none;
 }
 

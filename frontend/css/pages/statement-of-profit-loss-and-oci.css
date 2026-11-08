@@ -18,19 +18,19 @@
 }
 
 .profit-loss-section {
-  border: 1px solid rgba(185, 28, 28, 0.12);
-  background: #ffffff;
+  border: 1px solid var(--line-soft);
+  background: var(--surface);
 }
 
 .profit-loss-section h2 {
   margin: 0;
-  border-bottom: 1px solid rgba(185, 28, 28, 0.12);
-  background: rgba(255, 245, 244, 0.92);
+  border-bottom: 1px solid var(--line-soft);
+  background: var(--color-bg-alt);
   padding: 10px 12px;
   color: var(--red-900);
   font-family: var(--font-sans);
   font-size: 1.02rem;
-  font-weight: 900;
+  font-weight: 700;
   text-transform: none;
 }
 
@@ -41,12 +41,12 @@
 
 .profit-loss-line > div {
   min-height: 40px;
-  border-right: 1px dashed rgba(127, 16, 16, 0.16);
-  border-bottom: 1px solid rgba(185, 28, 28, 0.12);
+  border-right: 1px solid var(--line-soft);
+  border-bottom: 1px solid var(--line-soft);
   padding: 8px 12px;
   display: flex;
   align-items: center;
-  color: #111111;
+  color: var(--text);
   font-size: 0.94rem;
 }
 
@@ -58,16 +58,16 @@
 }
 
 .profit-loss-line--group > div {
-  background: rgba(255, 250, 250, 0.9);
+  background: var(--color-bg-alt);
   color: var(--red-900);
-  font-weight: 900;
+  font-weight: 700;
 }
 
 .profit-loss-line--total > div,
 .profit-loss-line--result > div {
-  background: rgba(245, 238, 238, 0.86);
+  background: var(--color-bg-alt);
   color: var(--red-900);
-  font-weight: 900;
+  font-weight: 700;
 }
 
 .profit-loss-line--result > div {
@@ -75,7 +75,7 @@
 }
 
 .profit-loss-line--net > div {
-  background: rgba(127, 29, 29, 0.1);
+  background: var(--color-tint);
 }
 
 .profit-loss-line--level-1 > div:first-child {
@@ -101,7 +101,7 @@
 .profit-loss-line--empty > div {
   justify-content: center;
   color: var(--muted);
-  font-weight: 800;
+  font-weight: 700;
 }
 
 @media (max-width: 760px) {

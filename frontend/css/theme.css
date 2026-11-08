@@ -1,0 +1,1018 @@
+/* BANIK Advisory visual system for BANIK Books.
+   Loaded last. Page files own layout; this file owns the shared look.
+   Printed documents (invoice paper, cheque sheet, print templates) are deliberately not styled here. */
+
+/* ---------- Base ---------- */
+::selection {
+  background: rgba(200, 16, 46, 0.16);
+}
+
+body {
+  color: var(--text);
+}
+
+:is(h1, h2, h3):not(.invoice-document *) {
+  color: var(--color-ink);
+  text-wrap: balance;
+}
+
+a:focus-visible,
+button:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--color-brand);
+  outline-offset: 2px;
+}
+
+:where(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="color"]), select, textarea) {
+  border: 1px solid var(--line-mid);
+  border-radius: var(--r-control);
+  background-color: var(--surface);
+  color: var(--color-ink);
+  box-shadow: var(--elev-1);
+  transition: border-color 0.2s var(--ease), box-shadow 0.2s var(--ease);
+}
+
+:where(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="color"]), select, textarea):focus {
+  outline: none;
+  border-color: var(--color-brand);
+  box-shadow: var(--ring-brand);
+}
+
+::placeholder {
+  color: #6b7280;
+  opacity: 1;
+}
+
+input[type="checkbox"],
+input[type="radio"] {
+  accent-color: var(--color-brand);
+}
+
+label,
+.stacked-field span {
+  color: var(--color-ink);
+}
+
+/* ---------- Header ---------- */
+.page-shell {
+  padding-top: 0;
+}
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  min-height: 68px;
+  padding: 12px 0;
+  /* Paints edge to edge without widening the page. */
+  border-image: linear-gradient(to top, #e8eaed 1px, #ffffff 1px) fill 0 / 0 / 0 100vmax;
+}
+
+.brand {
+  gap: 10px;
+  color: var(--color-ink);
+  text-decoration: none;
+}
+
+.brand-mark {
+  width: 42px;
+  height: 42px;
+}
+
+.brand-copy {
+  transform: none;
+}
+
+.brand-copy__title {
+  color: var(--color-ink);
+  letter-spacing: -0.012em;
+  line-height: 1.15;
+}
+
+.brand-copy__tag {
+  color: var(--muted);
+}
+
+.topbar .topbar-back-button,
+.topbar .challan-back-button,
+.topbar .auth-controls {
+  margin-left: auto;
+}
+
+.topbar-back-button::before,
+.challan-back-button::before {
+  content: "";
+  width: 16px;
+  height: 16px;
+  background: currentColor;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m12 19-7-7 7-7'/%3E%3Cpath d='M19 12H5'/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m12 19-7-7 7-7'/%3E%3Cpath d='M19 12H5'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+
+.auth-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.auth-user-chip {
+  max-width: 300px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ---------- Page titles ---------- */
+.journal-hero,
+.general-ledger-hero,
+.journal-register-hero,
+.vat-tax-hero,
+.challan-page-hero,
+.party-hero,
+.admin-hero,
+.profile-page-heading {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+}
+
+.journal-hero::before,
+.journal-hero::after,
+.vat-tax-hero::before,
+.vat-tax-hero::after,
+.challan-page-hero::before,
+.challan-page-hero::after,
+.party-hero::before,
+.party-hero::after,
+.admin-hero::before,
+.admin-hero::after,
+.workspace-panel::before,
+.workspace-panel::after {
+  content: none;
+}
+
+.journal-hero h1,
+.coa-hero h1,
+.general-ledger-hero h1,
+.journal-register-hero h1,
+.vat-tax-hero h1,
+.emi-hero h1,
+.payroll-tax-hero h1,
+.payroll-hero h1,
+.invoice-generator-hero h1,
+.challan-page-hero h1,
+.rate-finder-hero h1,
+.party-hero h1,
+.admin-hero h1,
+.profile-page-heading h1,
+.detail-card h1,
+.team-heading h1,
+.workspace-intro h1 {
+  margin: 0;
+  color: var(--color-ink);
+  font-size: var(--font-size-page-title);
+  font-weight: 700;
+  letter-spacing: -0.026em;
+  line-height: 1.15;
+  text-align: left;
+  white-space: normal;
+}
+
+.journal-hero h1::before,
+.general-ledger-hero h1::before,
+.journal-register-hero h1::before,
+.vat-tax-hero h1::before,
+.challan-page-hero h1::before,
+.profile-page-heading h1::before,
+.workspace-intro h1::before {
+  content: "";
+  display: block;
+  width: 40px;
+  height: 3px;
+  margin-bottom: 14px;
+  border-radius: 3px;
+  background: var(--grad-accent);
+}
+
+.lead,
+.signup-panel__text {
+  color: var(--muted);
+}
+
+.sheet-header__eyebrow,
+.party-kicker,
+.coa-card-kicker,
+.letterhead-upload-card__eyebrow {
+  color: var(--color-brand-dark);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+/* ---------- Surfaces ---------- */
+.journal-card,
+.general-ledger-card,
+.financial-position-card,
+.profit-loss-card,
+.changes-equity-card,
+.cash-flows-card,
+.journal-register-card,
+.coa-form-card,
+.coa-tree-card,
+.party-tool-section,
+.challan-tool-section,
+.challan-verification-panel,
+.emi-panel,
+.emi-schedule-card,
+.emi-result-card,
+.invoice-form-card,
+.invoice-preview-card,
+.payroll-context-panel,
+.payroll-breakdown-card,
+.payroll-income-card,
+.payroll-result-sheet,
+.rate-finder-panel,
+.rate-table-card,
+.rate-detail-card,
+.tin-bin-table-panel,
+.team-card,
+.admin-panel,
+.detail-card,
+.invite-card,
+.profile-section,
+.letterhead-upload-card,
+.vat-sheet {
+  border: 1px solid var(--line-soft);
+  border-radius: var(--r-card);
+  background: var(--surface);
+  box-shadow: var(--elev-1);
+}
+
+/* ---------- Workspace and menu pages ---------- */
+.tile-icon {
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: var(--ico-bg);
+  box-shadow: inset 0 0 0 1px var(--ico-ring);
+  color: var(--color-brand-dark);
+  transition: background 0.3s var(--ease), color 0.3s var(--ease), box-shadow 0.3s var(--ease);
+}
+
+.tile-icon svg {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.75;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.workspace-layout {
+  gap: 20px;
+  padding-top: 32px;
+}
+
+.workspace-hero .eyebrow {
+  display: block;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  box-shadow: none;
+  color: var(--color-ink);
+  font-size: var(--font-size-page-title);
+  font-weight: 700;
+  letter-spacing: -0.026em;
+  line-height: 1.15;
+  text-transform: none;
+}
+
+.workspace-hero .eyebrow::before {
+  content: "";
+  display: block;
+  width: 40px;
+  height: 3px;
+  margin-bottom: 14px;
+  border-radius: 3px;
+  background: var(--grad-accent);
+}
+
+.workspace-panel {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+}
+
+.workspace-grid {
+  gap: 18px;
+}
+
+.workspace-button,
+.small-tool-button,
+.report-list-button {
+  position: relative;
+  border: 1px solid var(--line-soft);
+  border-radius: var(--r-card);
+  background: var(--surface);
+  color: var(--color-ink);
+  box-shadow: var(--elev-1);
+  text-decoration: none;
+  transition: transform 0.3s var(--ease), box-shadow 0.3s var(--ease), border-color 0.3s var(--ease);
+}
+
+.workspace-button {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 6px;
+  min-height: 0;
+  padding: 24px;
+  overflow: hidden;
+}
+
+.workspace-button::before,
+.workspace-button::after,
+.report-list-button::before {
+  content: none;
+}
+
+.workspace-button .tile-icon {
+  margin-bottom: 10px;
+}
+
+.workspace-button__title {
+  color: var(--color-ink);
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.workspace-button__meta {
+  align-self: flex-start;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.workspace-button:hover,
+.small-tool-button:hover,
+.report-list-button:hover {
+  border-color: rgba(200, 16, 46, 0.24);
+  background: var(--surface);
+  color: var(--color-ink);
+  box-shadow: var(--elev-2);
+  transform: translateY(-3px);
+}
+
+.workspace-button:hover .tile-icon,
+.small-tool-button:hover .tile-icon {
+  background: var(--grad-brand);
+  box-shadow: 0 8px 18px -8px rgba(200, 16, 46, 0.65);
+  color: #ffffff;
+}
+
+.detail-card {
+  margin-top: 32px;
+  padding: 32px;
+}
+
+.detail-card.necessary-tools-minimal {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 18px;
+  padding: 0;
+  border: 0;
+  background: none;
+  box-shadow: none;
+}
+
+.detail-card .small-tool-button {
+  display: flex;
+  justify-content: flex-start;
+  gap: 14px;
+  width: 100%;
+  min-height: 0;
+  padding: 20px;
+  border-radius: var(--r-card);
+  box-shadow: var(--elev-1);
+  font-size: 15px;
+  font-weight: 600;
+  white-space: normal;
+  text-align: left;
+}
+
+.detail-card .small-tool-button:hover {
+  box-shadow: var(--elev-2);
+}
+
+.reports-button-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 12px;
+  margin-top: 22px;
+}
+
+.report-list-button {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  min-height: 0;
+  padding: 14px 16px;
+}
+
+.report-list-button__index {
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: var(--ico-bg);
+  box-shadow: inset 0 0 0 1px var(--ico-ring);
+  color: var(--color-brand-dark);
+  font-size: 13px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.report-list-button__title {
+  color: var(--color-ink);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.detail-card:has(.reports-button-grid) {
+  padding: 0;
+  border: 0;
+  background: none;
+  box-shadow: none;
+}
+
+/* ---------- Report and tool pages ---------- */
+.general-ledger-layout,
+.journal-register-layout {
+  grid-template-columns: minmax(0, 1fr);
+  padding-top: 26px;
+}
+
+.general-ledger-filters input,
+.general-ledger-filters select,
+.journal-register-filters input,
+.journal-register-filters select {
+  border-radius: var(--r-control);
+}
+
+.general-ledger-link {
+  color: var(--color-brand-dark);
+}
+
+.general-ledger-link:hover {
+  color: var(--color-brand-darker);
+}
+
+@media screen {
+  .cash-flows-heading,
+  .cash-flows-heading span,
+  .cash-flows-heading h2,
+  .cash-flows-heading p {
+    color: var(--color-ink);
+  }
+}
+
+.challan-tool-actions,
+.party-tool-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  gap: 10px;
+}
+
+.party-tool-section {
+  max-width: none;
+}
+
+.rate-tabs {
+  display: inline-flex;
+  width: max-content;
+  max-width: 100%;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid var(--line-soft);
+  border-radius: 12px;
+  background: var(--color-bg-alt);
+}
+
+.rate-tab {
+  min-height: 36px;
+  border: 0;
+  border-radius: 9px;
+  background: none;
+  box-shadow: none;
+  color: var(--muted);
+}
+
+.rate-tab:hover {
+  border: 0;
+  background: var(--surface);
+  color: var(--color-ink);
+}
+
+.rate-tab.is-active,
+.rate-tab.is-active:hover {
+  background: var(--surface);
+  box-shadow: var(--elev-1);
+  color: var(--color-brand-dark);
+}
+
+.rate-tab.is-active strong {
+  background: var(--color-tint);
+  color: var(--color-brand-dark);
+}
+
+.workspace-intro {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+}
+
+.workspace-intro::after {
+  content: none;
+}
+
+.button--primary {
+  border-color: transparent;
+  background: var(--btn-primary);
+  color: #ffffff;
+  box-shadow: var(--btn-primary-shadow);
+}
+
+/* ---------- Sign in ---------- */
+.auth-form-status:empty {
+  display: none;
+}
+
+.hero {
+  position: relative;
+  isolation: isolate;
+  gap: 56px;
+  align-items: center;
+  min-height: calc(100vh - 68px);
+  padding: 40px 0 56px;
+}
+
+.hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-image: radial-gradient(rgba(23, 33, 43, 0.1) 1px, transparent 1.3px);
+  background-size: 24px 24px;
+  -webkit-mask-image: radial-gradient(60% 70% at 78% 35%, #000 10%, transparent 75%);
+  mask-image: radial-gradient(60% 70% at 78% 35%, #000 10%, transparent 75%);
+  pointer-events: none;
+}
+
+.hero-copy {
+  gap: 20px;
+}
+
+.eyebrow {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  color: var(--color-brand-dark);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.hero-title {
+  margin: 0;
+  color: var(--color-ink);
+  font-size: clamp(2rem, 1.3rem + 2.2vw, 3.25rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.12;
+}
+
+.hero-title span {
+  display: block;
+}
+
+@supports ((-webkit-background-clip: text) or (background-clip: text)) {
+  .hero-title span + span {
+    padding: 0.08em 0;
+    margin: -0.08em 0;
+    background: linear-gradient(95deg, #c8102e 0%, #dd2a47 55%, #ea4c62 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+  }
+}
+
+.hero-copy .lead {
+  max-width: 560px;
+  margin: 0;
+  font-size: clamp(1rem, 0.95rem + 0.3vw, 1.125rem);
+  line-height: 1.7;
+}
+
+.feature-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 24px;
+}
+
+.feature-card {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  box-shadow: none;
+}
+
+.feature-card h2 {
+  margin: 0;
+  color: var(--color-text-2);
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0;
+}
+
+.feature-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border: 0;
+  background: none;
+  box-shadow: none;
+  color: var(--color-brand-dark);
+}
+
+.feature-icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.release-meta {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.signup-panel {
+  padding: 32px;
+  border: 1px solid var(--line-soft);
+  border-radius: 20px;
+  background: var(--surface);
+  box-shadow: var(--elev-3), inset 0 1px 0 rgba(255, 255, 255, 0.65);
+}
+
+.signup-panel::before,
+.signup-panel::after {
+  content: none;
+}
+
+.signup-panel__badge {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  color: var(--color-brand-dark);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  justify-self: center;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.signup-panel h2 {
+  color: var(--color-ink);
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.signup-panel__logo {
+  width: 56px;
+  height: 56px;
+}
+
+.signup-form {
+  display: grid;
+  gap: 12px;
+}
+
+.signup-form .field input,
+.signup-form .field select {
+  width: 100%;
+  min-height: 46px;
+  padding: 0 14px;
+  border: 1px solid var(--line-mid);
+  border-radius: var(--r-control);
+  background: var(--surface);
+  box-shadow: var(--elev-1);
+  font-size: 15px;
+}
+
+.signup-form .field input:focus,
+.signup-form .field select:focus {
+  border-color: var(--color-brand);
+  box-shadow: var(--ring-brand);
+}
+
+.signup-form > a {
+  justify-self: end;
+  color: var(--color-brand-dark);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.signup-form > a:hover,
+.signup-links a:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.signup-form button[type="submit"] {
+  width: 100%;
+  min-height: 46px;
+  font-size: 15px;
+}
+
+.signup-links {
+  margin-top: 20px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.signup-links a,
+.signup-links span {
+  font-size: 14px;
+}
+
+.signup-links span {
+  color: var(--muted);
+}
+
+.signup-links a {
+  color: var(--color-brand-dark);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+/* ---------- Motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+/* ---------- Page width and field consistency ---------- */
+.journal-page,
+.general-ledger-page,
+.journal-register-page,
+.party-page {
+  width: min(1700px, calc(100% - 48px));
+}
+
+body :is(input:not([type="checkbox"]):not([type="radio"]):not([type="color"]), select, textarea) {
+  min-width: 0;
+  border-radius: var(--r-control);
+  font-weight: 500;
+}
+
+.general-ledger-filters label,
+.journal-register-filters label,
+.invoice-field {
+  min-width: 0;
+}
+
+.general-ledger-filters input,
+.journal-register-filters input {
+  width: 100%;
+}
+
+.general-ledger-card,
+#general-ledger-groups {
+  grid-template-columns: minmax(0, 1fr);
+  min-width: 0;
+}
+
+.general-ledger-group__head h2 {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.journal-button:not(.journal-button--primary):not(.journal-button--primary-alt):not(.journal-button--danger) {
+  border-color: var(--line-mid);
+  background: var(--surface);
+  color: var(--color-ink);
+}
+
+.journal-button:not(.journal-button--primary):not(.journal-button--primary-alt):not(.journal-button--danger):hover {
+  border-color: rgba(200, 16, 46, 0.45);
+  background: var(--color-tint);
+  color: var(--color-brand-dark);
+}
+
+.payroll-board,
+.emi-panel {
+  padding: 0;
+  border: 0;
+  background: none;
+  box-shadow: none;
+}
+
+@media screen {
+  .invoice-document {
+    border-color: var(--line-soft);
+    box-shadow: var(--elev-2);
+  }
+}
+
+body.admin-body {
+  background: radial-gradient(56rem 28rem at 92% -8%, rgba(200, 16, 46, 0.06), transparent 68%) no-repeat, var(--color-bg-alt);
+}
+
+body.admin-body::before {
+  content: none;
+}
+
+.admin-page .topbar {
+  margin: 0;
+  padding: 12px 0;
+  border: 0;
+  border-image: linear-gradient(to top, #e8eaed 1px, #ffffff 1px) fill 0 / 0 / 0 100vmax;
+  background: none;
+  box-shadow: none;
+}
+
+.admin-users-title h2 {
+  font-size: var(--font-size-section-title);
+  font-weight: 600;
+  letter-spacing: -0.015em;
+}
+
+.journal-hero {
+  text-align: left;
+}
+
+/* Cheque Printer keeps its own page styles, so these need a little more weight. */
+.cheque-page .workspace-intro {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+}
+
+.cheque-page .workspace-intro::after {
+  content: none;
+}
+
+.cheque-page .workspace-intro h1 {
+  font-size: var(--font-size-page-title);
+  font-weight: 700;
+  letter-spacing: -0.026em;
+  line-height: 1.15;
+}
+
+/* Side panels that stay in view must clear the sticky header. */
+.cheque-page .panel,
+.invoice-preview-card,
+.rate-detail-card {
+  top: 84px;
+}
+
+.admin-summary-card::before {
+  height: 3px;
+  background: var(--grad-accent);
+}
+
+.cheque-page .panel h2 {
+  font-size: var(--font-size-section-title);
+  font-weight: 600;
+  letter-spacing: -0.015em;
+}
+
+.cheque-page .button {
+  min-height: 42px;
+  border-radius: var(--r-control);
+}
+
+.cheque-page .button--primary {
+  background: var(--btn-primary);
+  box-shadow: var(--btn-primary-shadow);
+}
+
+@media screen and (max-width: 1180px) {
+  .cheque-page .layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 760px) {
+  .hero-title {
+    font-size: 7.1vw;
+  }
+
+  .rate-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    width: 100%;
+  }
+
+  .rate-tab {
+    flex: 1 1 auto;
+    width: auto;
+    padding: 0 10px;
+  }
+
+  .page-shell,
+  .journal-page,
+  .general-ledger-page,
+  .journal-register-page,
+  .party-page {
+    width: calc(100% - 32px);
+  }
+
+  .topbar {
+    min-height: 60px;
+    padding: 10px 0;
+  }
+
+  .brand-copy__tag {
+    display: none;
+  }
+
+  .auth-controls {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
+  .auth-user-chip {
+    display: none;
+  }
+
+  .hero {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 32px;
+    min-height: 0;
+    padding: 28px 0 40px;
+  }
+
+  .signup-panel {
+    padding: 24px;
+  }
+
+  .detail-card {
+    margin-top: 20px;
+    padding: 20px;
+  }
+
+  .reports-button-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .workspace-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .workspace-button {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    column-gap: 14px;
+    padding: 18px;
+  }
+
+  .workspace-button .tile-icon {
+    grid-row: span 2;
+    margin-bottom: 0;
+  }
+}

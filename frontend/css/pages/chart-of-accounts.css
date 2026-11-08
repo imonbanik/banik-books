@@ -37,9 +37,9 @@
 
 .coa-form-card,
 .coa-tree-card {
-  border: 1px solid rgba(185, 28, 28, 0.12);
-  background: rgba(255, 255, 255, 0.94);
-  box-shadow: var(--shadow);
+  border: 1px solid var(--line-soft);
+  background: var(--surface);
+  box-shadow: var(--elev-1);
 }
 
 .coa-form-card {
@@ -47,7 +47,7 @@
   gap: 10px;
   min-height: 0;
   padding: 18px 20px;
-  border-radius: 22px;
+  border-radius: var(--r-panel);
 }
 
 .coa-form-card h2,
@@ -67,7 +67,7 @@
   margin-bottom: 3px;
   color: var(--red-700);
   font-size: 0.72rem;
-  font-weight: 900;
+  font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: none;
 }
@@ -95,9 +95,9 @@
 }
 
 .coa-form-card label span {
-  color: #7f4b4b;
+  color: var(--muted);
   font-size: 0.76rem;
-  font-weight: 900;
+  font-weight: 700;
   text-transform: none;
 }
 
@@ -107,9 +107,9 @@
   max-width: 100%;
   min-width: 0;
   min-height: 42px;
-  border: 1px solid rgba(127, 29, 29, 0.16);
+  border: 1px solid var(--line-mid);
   border-radius: 13px;
-  background: #ffffff;
+  background: var(--surface);
   padding: 0 12px;
   color: var(--text);
   font: inherit;
@@ -125,8 +125,8 @@
 
 .coa-form-card input:focus,
 .coa-form-card select:focus {
-  border-color: rgba(185, 28, 28, 0.62);
-  box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.1);
+  border-color: var(--line-mid);
+  box-shadow: var(--ring-brand);
 }
 
 .coa-name-suggestions {
@@ -141,10 +141,10 @@
   overflow-y: auto;
   min-width: min(520px, calc(100vw - 52px));
   padding: 7px;
-  border: 1px solid rgba(127, 29, 29, 0.14);
-  border-radius: 14px;
-  background: rgba(255, 255, 255, 0.98);
-  box-shadow: 0 22px 52px rgba(62, 20, 20, 0.18);
+  border: 1px solid var(--line-mid);
+  border-radius: var(--r-card);
+  background: var(--surface);
+  box-shadow: var(--elev-3);
 }
 
 .coa-name-suggestions__option {
@@ -163,8 +163,8 @@
 
 .coa-name-suggestions__option:hover,
 .coa-name-suggestions__option.is-active {
-  background: #fff4f2;
-  border-color: rgba(185, 28, 28, 0.16);
+  background: var(--color-bg-alt);
+  border-color: var(--line-mid);
 }
 
 .coa-name-suggestions__option.is-muted {
@@ -174,7 +174,7 @@
 
 .coa-name-suggestions__option--group {
   color: var(--text);
-  font-weight: 900;
+  font-weight: 700;
   text-transform: none;
 }
 
@@ -214,7 +214,7 @@
 .coa-name-suggestions__empty {
   color: var(--muted);
   font-size: 0.76rem;
-  font-weight: 800;
+  font-weight: 700;
   line-height: 1.3;
   padding: 12px;
   text-align: center;
@@ -228,7 +228,7 @@
   justify-self: center;
   align-self: end;
   padding: 0 22px;
-  border-radius: 14px;
+  border-radius: var(--r-control);
   white-space: nowrap;
 }
 
@@ -245,8 +245,8 @@
   border: 1px solid rgba(22, 163, 74, 0.24);
   border-radius: 999px;
   background: rgba(240, 253, 244, 0.98);
-  color: #166534;
-  box-shadow: 0 20px 44px rgba(22, 101, 52, 0.14);
+  color: var(--color-success);
+  box-shadow: var(--elev-3);
   opacity: 0;
   pointer-events: none;
   transform: translateX(18px) scale(0.98);
@@ -267,20 +267,20 @@
   background: #16a34a;
   color: #ffffff;
   font-size: 1.2rem;
-  font-weight: 900;
+  font-weight: 700;
   line-height: 1;
 }
 
 .coa-success-toast strong {
   font-size: 0.95rem;
-  font-weight: 900;
+  font-weight: 700;
 }
 
 .coa-tree-card {
   display: grid;
   gap: 16px;
   padding: 22px;
-  border-radius: 30px;
+  border-radius: var(--r-panel);
 }
 
 .coa-tree-head {
@@ -302,7 +302,7 @@
 }
 
 .coa-tree-head p.coa-status--success {
-  color: #166534;
+  color: var(--color-success);
 }
 
 .coa-tree-head p.coa-status--error {
@@ -322,12 +322,12 @@
   gap: 6px;
   min-height: 40px;
   padding: 0 13px;
-  border-radius: 14px;
-  background: #fff7f6;
-  border: 1px solid rgba(127, 29, 29, 0.12);
+  border-radius: var(--r-card);
+  background: var(--color-bg-alt);
+  border: 1px solid var(--line-soft);
   color: var(--muted);
   font-size: 0.88rem;
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .coa-summary strong {
@@ -342,14 +342,14 @@
   justify-content: center;
   min-height: 40px;
   padding: 0 13px;
-  border: 1px solid rgba(127, 29, 29, 0.14);
-  border-radius: 14px;
-  background: #ffffff;
+  border: 1px solid var(--line-mid);
+  border-radius: var(--r-control);
+  background: var(--surface);
   color: var(--red-900);
   cursor: pointer;
   font: inherit;
   font-size: 0.86rem;
-  font-weight: 900;
+  font-weight: 700;
   box-shadow: none;
 }
 
@@ -357,7 +357,7 @@
 .coa-default-button:active {
   transform: none;
   filter: none;
-  background: #fff2f0;
+  background: var(--color-bg-alt);
 }
 
 .coa-default-button:disabled {
@@ -369,12 +369,12 @@
   min-height: 38px;
   display: grid;
   place-items: center;
-  border: 1px dashed rgba(127, 29, 29, 0.16);
-  border-radius: 14px;
-  background: rgba(255, 248, 247, 0.62);
+  border: 1px dashed var(--line-mid);
+  border-radius: var(--r-card);
+  background: var(--color-bg-alt);
   color: var(--muted);
   font-size: 0.82rem;
-  font-weight: 800;
+  font-weight: 700;
   transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
 }
 
@@ -388,11 +388,11 @@
   display: grid;
   place-items: center;
   min-height: 170px;
-  border: 1px dashed rgba(127, 29, 29, 0.16);
-  border-radius: 22px;
-  background: rgba(255, 248, 247, 0.74);
+  border: 1px dashed var(--line-mid);
+  border-radius: var(--r-panel);
+  background: var(--color-bg-alt);
   color: var(--muted);
-  font-weight: 800;
+  font-weight: 700;
   text-align: center;
 }
 
@@ -416,12 +416,12 @@
   min-height: 38px;
   padding: 3px 8px 3px 4px;
   border: 1px solid transparent;
-  border-radius: 12px;
+  border-radius: var(--r-control);
   transition: background 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
 }
 
 .coa-node-bar:hover {
-  background: rgba(255, 248, 247, 0.84);
+  background: var(--color-bg-alt);
 }
 
 .coa-drag-grip {
@@ -434,12 +434,12 @@
   color: var(--red-900);
   cursor: grab;
   font-size: 0.85rem;
-  font-weight: 900;
+  font-weight: 700;
   letter-spacing: 0;
 }
 
 .coa-drag-grip:hover {
-  background: #fff2f0;
+  background: var(--color-bg-alt);
 }
 
 .coa-tree-toggle {
@@ -449,14 +449,14 @@
   place-items: center;
   margin: 0;
   padding: 0;
-  border: 1px solid rgba(127, 29, 29, 0.16);
+  border: 1px solid var(--line-mid);
   border-radius: 8px;
-  background: #ffffff;
+  background: var(--surface);
   color: var(--red-900);
   cursor: pointer;
   font: inherit;
   font-size: 1rem;
-  font-weight: 900;
+  font-weight: 700;
   line-height: 1;
   box-shadow: none;
 }
@@ -465,7 +465,7 @@
 .coa-tree-toggle:active {
   transform: none;
   filter: none;
-  background: #fff2f0;
+  background: var(--color-bg-alt);
 }
 
 .coa-tree-toggle--spacer {
@@ -482,7 +482,7 @@
 .coa-node-title span {
   color: var(--muted);
   font-size: 0.7rem;
-  font-weight: 900;
+  font-weight: 700;
   text-transform: none;
 }
 
@@ -499,12 +499,12 @@
 .coa-action-line {
   height: 1px;
   min-width: 36px;
-  background: linear-gradient(90deg, rgba(127, 29, 29, 0.22), rgba(127, 29, 29, 0.04));
+  background: var(--surface);
 }
 
 .coa-node--group > .coa-node-bar .coa-node-title strong {
   color: var(--text);
-  font-weight: 900;
+  font-weight: 700;
 }
 
 .coa-tree > .coa-node--group > .coa-node-bar .coa-node-title strong {
@@ -528,19 +528,19 @@
   margin: 0;
   padding: 0 10px;
   border-radius: 10px;
-  border: 1px solid rgba(127, 29, 29, 0.13);
-  background: #ffffff;
+  border: 1px solid var(--line-mid);
+  background: var(--surface);
   color: var(--red-900);
   box-shadow: none;
   cursor: pointer;
   font: inherit;
   font-size: 0.78rem;
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .coa-node-actions button:last-child {
   color: var(--red-700);
-  background: #fff7f6;
+  background: var(--color-bg-alt);
 }
 
 .coa-children {
@@ -548,7 +548,7 @@
   gap: 2px;
   margin-left: 25px;
   padding: 2px 0 2px 18px;
-  border-left: 1px solid rgba(127, 29, 29, 0.13);
+  border-left: 1px solid var(--line-mid);
   background: transparent;
   overflow: hidden;
   max-height: 2200px;
@@ -580,7 +580,7 @@
   padding-left: 8px;
   color: var(--muted);
   font-size: 0.82rem;
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .coa-children.is-drop-target,
@@ -588,7 +588,7 @@
 .coa-node-bar.is-drop-target {
   border-color: rgba(22, 163, 74, 0.55);
   background: rgba(220, 252, 231, 0.48);
-  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.08);
+  box-shadow: var(--ring-brand);
 }
 
 .coa-modal {
@@ -598,9 +598,8 @@
   display: grid;
   place-items: center;
   padding: 20px;
-  background: rgba(36, 19, 18, 0.34);
-  backdrop-filter: blur(8px);
-}
+  background: var(--scrim);
+  }
 
 .coa-modal[hidden] {
   display: none;
@@ -611,11 +610,11 @@
   gap: 16px;
   width: min(620px, 100%);
   padding: 24px;
-  border-radius: 24px;
+  border-radius: var(--r-panel);
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(255, 248, 247, 0.96));
-  border: 1px solid rgba(127, 29, 29, 0.14);
-  box-shadow: 0 34px 80px rgba(36, 19, 18, 0.24);
+    var(--surface);
+  border: 1px solid var(--line-mid);
+  box-shadow: var(--elev-3);
 }
 
 .coa-modal__dialog h2 {
@@ -649,9 +648,9 @@
   display: grid;
   gap: 10px;
   padding: 12px;
-  border: 1px solid rgba(127, 29, 29, 0.12);
-  border-radius: 16px;
-  background: rgba(255, 248, 247, 0.62);
+  border: 1px solid var(--line-soft);
+  border-radius: var(--r-card);
+  background: var(--color-bg-alt);
 }
 
 .coa-edit-balance[hidden] {
@@ -661,13 +660,13 @@
 .coa-edit-balance__title {
   color: var(--red-900);
   font-size: 0.86rem;
-  font-weight: 900;
+  font-weight: 700;
 }
 
 .coa-modal__dialog label span {
-  color: #7f4b4b;
+  color: var(--muted);
   font-size: 0.8rem;
-  font-weight: 900;
+  font-weight: 700;
   text-transform: none;
 }
 
@@ -677,13 +676,13 @@
   max-width: 100%;
   min-width: 0;
   min-height: 52px;
-  border: 1px solid rgba(127, 29, 29, 0.18);
-  border-radius: 15px;
-  background: #ffffff;
+  border: 1px solid var(--line-mid);
+  border-radius: var(--r-card);
+  background: var(--surface);
   padding: 0 14px;
   color: var(--text);
   font: inherit;
-  font-weight: 800;
+  font-weight: 700;
   outline: none;
 }
 
@@ -694,8 +693,8 @@
 
 .coa-modal__dialog input:focus,
 .coa-modal__dialog select:focus {
-  border-color: rgba(185, 28, 28, 0.62);
-  box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.1);
+  border-color: var(--line-mid);
+  box-shadow: var(--ring-brand);
 }
 
 .coa-modal__actions {
@@ -710,11 +709,11 @@
   min-height: 44px;
   margin: 0;
   padding: 0 18px;
-  border-radius: 14px;
+  border-radius: var(--r-control);
   border: 1px solid transparent;
   cursor: pointer;
   font: inherit;
-  font-weight: 900;
+  font-weight: 700;
   box-shadow: none;
 }
 
@@ -725,8 +724,8 @@
 }
 
 .coa-modal__button--neutral {
-  background: #ffffff;
-  border-color: rgba(127, 29, 29, 0.16);
+  background: var(--surface);
+  border-color: var(--line-mid);
   color: var(--red-900);
 }
 
@@ -737,7 +736,7 @@
 }
 
 .coa-modal__button--yes {
-  background: linear-gradient(135deg, var(--red-700), var(--red-500));
+  background: var(--btn-primary);
   color: #ffffff;
 }
 

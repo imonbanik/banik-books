@@ -20,9 +20,9 @@
 .journal-balance-chip {
   min-width: 150px;
   padding: 14px 16px;
-  border-radius: 18px;
-  background: rgba(255, 248, 247, 0.95);
-  border: 1px solid rgba(185, 28, 28, 0.12);
+  border-radius: var(--r-card);
+  background: var(--color-bg-alt);
+  border: 1px solid var(--line-soft);
 }
 
 .journal-balance-chip span {

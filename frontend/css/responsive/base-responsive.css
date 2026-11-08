@@ -78,7 +78,7 @@
     min-width: 88px;
     min-height: 42px;
     padding: 0 16px;
-    border-radius: 14px;
+    border-radius: var(--r-control);
   }
 
   .auth-controls {
@@ -114,7 +114,7 @@
 
   .signup-panel {
     padding: 26px 18px 22px;
-    border-radius: 24px;
+    border-radius: var(--r-panel);
   }
 
   .signup-layout {
@@ -127,7 +127,7 @@
 
   .signup-sheet {
     padding: 22px 16px;
-    border-radius: 24px;
+    border-radius: var(--r-panel);
   }
 
   .profile-page-layout {
@@ -145,7 +145,7 @@
 
   .profile-sheet {
     padding: 14px;
-    border-radius: 18px;
+    border-radius: var(--r-card);
   }
 
   .profile-section {
@@ -174,7 +174,7 @@
   .workspace-panel,
   .detail-card {
     padding: 22px 16px;
-    border-radius: 24px;
+    border-radius: var(--r-panel);
   }
 
   .sheet-header {

@@ -15,17 +15,17 @@
 .party-wise-transaction-selector span {
   color: var(--red-900);
   font-size: 0.88rem;
-  font-weight: 900;
+  font-weight: 700;
   text-transform: none;
 }
 
 .party-wise-transaction-selector select {
   min-height: 38px;
-  border: 1px solid rgba(86, 30, 30, 0.18);
+  border: 1px solid var(--line-mid);
   border-radius: 0;
-  background: #ffffff;
+  background: var(--surface);
   padding: 8px 10px;
-  color: #111111;
+  color: var(--text);
   font: inherit;
 }
 

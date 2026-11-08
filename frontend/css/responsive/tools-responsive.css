@@ -62,7 +62,7 @@
 
   .invoice-form-card {
     padding: 16px;
-    border-radius: 24px;
+    border-radius: var(--r-panel);
   }
 
   .invoice-field-grid {
@@ -90,7 +90,7 @@
 
   .rate-finder-panel {
     padding: 16px;
-    border-radius: 24px;
+    border-radius: var(--r-panel);
   }
 
   .rate-tabs,
@@ -120,7 +120,7 @@
 
   .emi-panel {
     padding: 16px;
-    border-radius: 24px;
+    border-radius: var(--r-panel);
   }
 
   .emi-hero h1 {
@@ -150,7 +150,7 @@
     align-items: flex-start;
     flex-direction: column;
     padding: 22px 18px;
-    border-radius: 24px;
+    border-radius: var(--r-panel);
   }
 
   .payroll-rule-chip {
@@ -159,7 +159,7 @@
 
   .payroll-context-panel {
     padding: 18px;
-    border-radius: 24px;
+    border-radius: var(--r-panel);
   }
 
   .payroll-context-panel button {
@@ -169,7 +169,7 @@
   .payroll-board {
     width: 100%;
     padding: 14px;
-    border-radius: 24px;
+    border-radius: var(--r-panel);
   }
 
   .payroll-donut-grid {
@@ -195,7 +195,7 @@
   }
 
   .vat-tax-hero {
-    border-radius: 24px;
+    border-radius: var(--r-panel);
   }
 
   .vat-sheet-row {
@@ -220,7 +220,7 @@
   .payroll-calculator-card,
   .payroll-visual-card,
   .payroll-result-card {
-    border-radius: 24px;
+    border-radius: var(--r-panel);
   }
 
   .payroll-calculator-card,
@@ -266,12 +266,12 @@
     min-width: 92px;
     min-height: 46px;
     padding: 0 18px;
-    border-radius: 16px;
+    border-radius: var(--r-control);
   }
 
   .challan-page-hero {
     padding: 22px 20px;
-    border-radius: 24px;
+    border-radius: var(--r-panel);
   }
 
   .challan-page-hero h1 {
@@ -280,7 +280,7 @@
 
   .challan-tool-section {
     padding: 18px;
-    border-radius: 24px;
+    border-radius: var(--r-panel);
   }
 
   .challan-tool-actions {
@@ -352,7 +352,7 @@
   .challan-modal__dialog {
     max-height: calc(100vh - 28px);
     padding: 22px 16px;
-    border-radius: 24px;
+    border-radius: var(--r-panel);
   }
 
   .challan-download-button {

@@ -23,10 +23,10 @@
 
 .journal-card {
   padding: 28px;
-  border-radius: 30px;
-  background: rgba(255, 255, 255, 0.94);
-  border: 1px solid rgba(185, 28, 28, 0.12);
-  box-shadow: var(--shadow);
+  border-radius: var(--r-panel);
+  background: var(--surface);
+  border: 1px solid var(--line-soft);
+  box-shadow: var(--elev-1);
 }
 
 .journal-meta-grid {
@@ -58,9 +58,9 @@
 .journal-block-field textarea,
 .line-input {
   width: 100%;
-  border: 1px solid rgba(86, 30, 30, 0.18);
-  border-radius: 16px;
-  background: #ffffff;
+  border: 1px solid var(--line-mid);
+  border-radius: var(--r-card);
+  background: var(--surface);
   padding: 15px 18px;
   font: inherit;
   font-size: 1rem;
@@ -76,12 +76,12 @@
 .journal-control:focus,
 .journal-block-field textarea:focus,
 .line-input:focus {
-  border-color: rgba(185, 28, 28, 0.68);
-  box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.12);
+  border-color: var(--line-mid);
+  box-shadow: var(--ring-brand);
 }
 
 .journal-control--readonly {
-  background: #fff5f4;
+  background: var(--color-bg-alt);
   color: var(--red-900);
   font-weight: 700;
 }
@@ -103,7 +103,7 @@
 
 .journal-status {
   padding: 13px 16px;
-  border-radius: 16px;
+  border-radius: var(--r-card);
   font-size: 0.94rem;
   font-weight: 600;
   line-height: 1.5;
@@ -112,9 +112,9 @@
 .journal-policy-banner {
   max-width: 320px;
   padding: 13px 16px;
-  border-radius: 16px;
-  background: rgba(255, 245, 244, 0.95);
-  border: 1px solid rgba(185, 28, 28, 0.14);
+  border-radius: var(--r-card);
+  background: var(--color-bg-alt);
+  border: 1px solid var(--line-mid);
 }
 
 .journal-policy-banner strong {
@@ -132,21 +132,21 @@
 }
 
 .journal-status--pending {
-  background: rgba(255, 244, 228, 0.8);
+  background: var(--color-bg-alt);
   color: #8a4b12;
   border: 1px solid rgba(245, 158, 11, 0.24);
 }
 
 .journal-status--success {
   background: rgba(220, 252, 231, 0.85);
-  color: #166534;
+  color: var(--color-success);
   border: 1px solid rgba(22, 163, 74, 0.2);
 }
 
 .journal-status--error {
-  background: rgba(254, 226, 226, 0.9);
-  color: #991b1b;
-  border: 1px solid rgba(239, 68, 68, 0.2);
+  background: var(--color-bg-alt);
+  color: var(--brand-text);
+  border: 1px solid var(--line-mid);
 }
 
 .journal-table-shell {
@@ -156,10 +156,10 @@
 
 .journal-table {
   min-width: 1180px;
-  border-radius: 26px;
+  border-radius: var(--r-panel);
   overflow: hidden;
-  border: 1px solid rgba(185, 28, 28, 0.12);
-  background: #ffffff;
+  border: 1px solid var(--line-soft);
+  background: var(--surface);
 }
 
 .journal-grid {
@@ -172,8 +172,8 @@
   padding: 12px 10px;
   display: flex;
   align-items: center;
-  border-right: 1px dashed rgba(127, 16, 16, 0.16);
-  border-bottom: 1px solid rgba(185, 28, 28, 0.1);
+  border-right: 1px solid var(--line-soft);
+  border-bottom: 1px solid var(--line-soft);
 }
 
 .journal-grid > .journal-cell:last-child {
@@ -182,16 +182,16 @@
 
 .journal-grid--head .journal-cell {
   min-height: 62px;
-  background: rgba(255, 245, 244, 0.92);
+  background: var(--color-bg-alt);
   color: var(--red-900);
   font-size: 0.92rem;
-  font-weight: 800;
+  font-weight: 700;
   text-transform: none;
   letter-spacing: 0.04em;
 }
 
 .journal-row:nth-child(even) .journal-cell {
-  background: rgba(255, 251, 251, 0.84);
+  background: var(--color-bg-alt);
 }
 
 .journal-cell--serial {
@@ -202,7 +202,7 @@
 
 .line-input {
   min-height: 46px;
-  border-radius: 12px;
+  border-radius: var(--r-control);
   padding: 10px 12px;
 }
 
@@ -212,7 +212,7 @@
 
 .journal-grid--total .journal-cell {
   min-height: 64px;
-  background: rgba(127, 16, 16, 0.06);
+  background: var(--color-bg-alt);
   border-bottom: none;
 }
 
@@ -248,7 +248,7 @@
   align-items: center;
   justify-content: center;
   margin-top: 0;
-  border-radius: 14px;
+  border-radius: var(--r-control);
   border: 1px solid transparent;
   padding: 13px 18px;
   font: inherit;
@@ -278,18 +278,18 @@
 }
 
 .journal-button--ghost {
-  background: rgba(255, 245, 244, 0.95);
-  border-color: rgba(185, 28, 28, 0.16);
+  background: var(--color-bg-alt);
+  border-color: var(--line-mid);
   color: var(--red-900);
 }
 
 .journal-button--primary {
-  background: linear-gradient(135deg, var(--red-700), var(--red-500));
+  background: var(--btn-primary);
   color: #ffffff;
 }
 
 .journal-button--primary-alt {
-  background: linear-gradient(135deg, #881317, #c81e1e);
+  background: var(--btn-primary);
   color: #ffffff;
 }
 
@@ -300,15 +300,15 @@
 }
 
 .line-action--copy {
-  background: rgba(255, 245, 244, 0.95);
-  border-color: rgba(185, 28, 28, 0.16);
+  background: var(--color-bg-alt);
+  border-color: var(--line-mid);
   color: var(--red-900);
 }
 
 .line-action--delete {
-  background: rgba(254, 242, 242, 0.96);
-  border-color: rgba(239, 68, 68, 0.16);
-  color: #b91c1c;
+  background: var(--color-bg-alt);
+  border-color: var(--line-mid);
+  color: var(--brand-text);
 }
 
 .journal-bottom-grid {
@@ -325,9 +325,9 @@
 
 .attachment-dropzone {
   min-height: 190px;
-  border: 2px dashed rgba(185, 28, 28, 0.16);
-  border-radius: 24px;
-  background: rgba(255, 249, 248, 0.9);
+  border: 2px dashed var(--line-mid);
+  border-radius: var(--r-panel);
+  background: var(--color-bg-alt);
   padding: 24px;
   display: flex;
   flex-direction: column;
@@ -355,8 +355,8 @@
 }
 
 .attachment-dropzone--active {
-  background: rgba(239, 68, 68, 0.08);
-  border-color: rgba(185, 28, 28, 0.42);
+  background: var(--color-tint);
+  border-color: var(--line-mid);
 }
 
 .attachment-list {
@@ -373,9 +373,9 @@
   justify-content: space-between;
   gap: 12px;
   padding: 12px 14px;
-  border-radius: 16px;
-  background: rgba(255, 251, 251, 0.92);
-  border: 1px solid rgba(185, 28, 28, 0.1);
+  border-radius: var(--r-card);
+  background: var(--color-bg-alt);
+  border: 1px solid var(--line-soft);
 }
 
 .attachment-item strong {

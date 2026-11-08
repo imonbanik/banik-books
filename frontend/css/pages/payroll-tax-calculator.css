@@ -21,10 +21,10 @@
   justify-content: space-between;
   gap: 24px;
   padding: 28px;
-  border-radius: 28px;
-  background: rgba(255, 255, 255, 0.9);
-  border: 1px solid rgba(185, 28, 28, 0.12);
-  box-shadow: var(--shadow);
+  border-radius: var(--r-panel);
+  background: var(--surface);
+  border: 1px solid var(--line-soft);
+  box-shadow: var(--elev-1);
 }
 
 .payroll-hero h1 {
@@ -41,9 +41,9 @@
   gap: 4px;
   min-width: 150px;
   padding: 14px 16px;
-  border-radius: 18px;
-  background: #fff2f0;
-  border: 1px solid rgba(185, 28, 28, 0.16);
+  border-radius: var(--r-card);
+  background: var(--color-bg-alt);
+  border: 1px solid var(--line-mid);
   color: var(--red-900);
 }
 
@@ -63,10 +63,10 @@
   gap: 16px;
   align-items: end;
   padding: 22px;
-  border-radius: 28px;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.94), rgba(255, 242, 240, 0.86));
-  border: 1px solid rgba(185, 28, 28, 0.12);
-  box-shadow: var(--shadow);
+  border-radius: var(--r-panel);
+  background: var(--surface);
+  border: 1px solid var(--line-soft);
+  box-shadow: var(--elev-1);
 }
 
 .payroll-context-panel label {
@@ -75,9 +75,9 @@
 }
 
 .payroll-context-panel span {
-  color: #7f4b4b;
+  color: var(--muted);
   font-size: 0.82rem;
-  font-weight: 800;
+  font-weight: 700;
   text-transform: none;
 }
 
@@ -86,9 +86,9 @@
   width: 100%;
   min-height: 52px;
   padding: 0 14px;
-  border: 1px solid rgba(127, 29, 29, 0.16);
-  border-radius: 16px;
-  background: #ffffff;
+  border: 1px solid var(--line-mid);
+  border-radius: var(--r-card);
+  background: var(--surface);
   color: var(--ink);
   font: inherit;
   font-weight: 700;
@@ -98,7 +98,7 @@
 .payroll-context-panel input:focus,
 .payroll-context-panel select:focus {
   border-color: var(--red-500);
-  box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.1);
+  box-shadow: var(--ring-brand);
 }
 
 .payroll-context-panel button {
@@ -106,13 +106,13 @@
   min-width: 150px;
   padding: 0 24px;
   border: none;
-  border-radius: 16px;
-  background: linear-gradient(135deg, var(--red-700), var(--red-500));
+  border-radius: var(--r-control);
+  background: var(--btn-primary);
   color: #ffffff;
   cursor: pointer;
   font: inherit;
-  font-weight: 800;
-  box-shadow: 0 16px 32px rgba(185, 28, 28, 0.2);
+  font-weight: 700;
+  box-shadow: var(--elev-1);
 }
 
 .payroll-grid {
@@ -125,10 +125,10 @@
 .payroll-calculator-card,
 .payroll-visual-card,
 .payroll-result-card {
-  border-radius: 28px;
-  background: rgba(255, 255, 255, 0.92);
-  border: 1px solid rgba(185, 28, 28, 0.12);
-  box-shadow: var(--shadow);
+  border-radius: var(--r-panel);
+  background: var(--surface);
+  border: 1px solid var(--line-soft);
+  box-shadow: var(--elev-1);
 }
 
 .payroll-calculator-card {
@@ -141,16 +141,16 @@
   display: grid;
   gap: 8px;
   padding: 18px;
-  border-radius: 22px;
-  background: linear-gradient(180deg, #fff9f8, #ffffff);
-  border: 1px solid rgba(127, 29, 29, 0.12);
+  border-radius: var(--r-panel);
+  background: var(--surface);
+  border: 1px solid var(--line-soft);
 }
 
 .payroll-display label,
 .payroll-input-grid span {
-  color: #7f4b4b;
+  color: var(--muted);
   font-size: 0.82rem;
-  font-weight: 800;
+  font-weight: 700;
   text-transform: none;
 }
 
@@ -159,14 +159,14 @@
   width: 100%;
   color: var(--ink);
   font-size: clamp(2rem, 6vw, 3.4rem);
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: 0;
   line-height: 1.05;
 }
 
 .payroll-display small {
   color: var(--red-700);
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .payroll-keypad {
@@ -177,15 +177,15 @@
 
 .payroll-keypad button {
   min-height: 54px;
-  border: 1px solid rgba(127, 29, 29, 0.12);
-  border-radius: 16px;
-  background: #ffffff;
+  border: 1px solid var(--line-soft);
+  border-radius: var(--r-control);
+  background: var(--surface);
   color: var(--red-900);
   cursor: pointer;
   font: inherit;
   font-size: 1.08rem;
-  font-weight: 800;
-  box-shadow: 0 12px 22px rgba(127, 29, 29, 0.08);
+  font-weight: 700;
+  box-shadow: var(--elev-1);
 }
 
 .payroll-keypad button:hover {
@@ -195,7 +195,7 @@
 .payroll-keypad__calculate {
   grid-column: 1 / -1;
   min-height: 58px !important;
-  background: linear-gradient(135deg, var(--red-700), var(--red-500)) !important;
+  background: var(--btn-primary);
   color: #ffffff !important;
   border: none !important;
 }
@@ -210,9 +210,9 @@
   display: grid;
   gap: 8px;
   padding: 14px;
-  border-radius: 18px;
-  background: #fff9f8;
-  border: 1px solid rgba(127, 29, 29, 0.1);
+  border-radius: var(--r-card);
+  background: var(--color-bg-alt);
+  border: 1px solid var(--line-soft);
 }
 
 .payroll-input-grid__full {
@@ -255,8 +255,8 @@
   border-radius: 50%;
   background:
     radial-gradient(circle at center, #ffffff 0 52%, transparent 53%),
-    conic-gradient(var(--red-700) var(--tax-share), #f4d9d7 0);
-  box-shadow: 0 28px 56px rgba(127, 29, 29, 0.16);
+    conic-gradient(var(--color-brand) var(--tax-share), var(--color-tint) 0);
+  box-shadow: var(--elev-1);
 }
 
 .payroll-orbit__ring::before,
@@ -264,9 +264,9 @@
   content: "";
   position: absolute;
   border-radius: 50%;
-  background: #ffffff;
-  border: 1px solid rgba(185, 28, 28, 0.14);
-  box-shadow: 0 18px 36px rgba(127, 29, 29, 0.1);
+  background: var(--surface);
+  border: 1px solid var(--line-mid);
+  box-shadow: var(--elev-1);
 }
 
 .payroll-orbit__ring::before {
@@ -286,7 +286,7 @@
 .payroll-orbit__ring span {
   color: var(--red-900);
   font-size: 2.2rem;
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .payroll-snapshot {
@@ -300,16 +300,16 @@
   justify-content: space-between;
   gap: 16px;
   padding: 16px 18px;
-  border-radius: 18px;
-  background: #fff8f7;
-  border: 1px solid rgba(127, 29, 29, 0.1);
+  border-radius: var(--r-card);
+  background: var(--color-bg-alt);
+  border: 1px solid var(--line-soft);
 }
 
 .payroll-snapshot span,
 .payroll-bars span {
-  color: #7f4b4b;
+  color: var(--muted);
   font-size: 0.88rem;
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .payroll-snapshot strong {
@@ -335,7 +335,7 @@
   display: block;
   height: 13px;
   border-radius: 999px;
-  background: #f1d5d2;
+  background: var(--color-bg-alt);
   overflow: hidden;
 }
 
@@ -345,7 +345,7 @@
   width: var(--bar-width);
   height: 100%;
   border-radius: inherit;
-  background: linear-gradient(90deg, var(--red-700), var(--red-500));
+  background: var(--btn-primary);
 }
 
 .payroll-results-grid {
@@ -368,7 +368,7 @@
 .payroll-table th,
 .payroll-table td {
   padding: 13px 12px;
-  border-bottom: 1px solid rgba(127, 29, 29, 0.12);
+  border-bottom: 1px solid var(--line-soft);
   color: var(--ink);
   text-align: left;
   vertical-align: top;
@@ -387,7 +387,7 @@
 
 .payroll-table tfoot td {
   color: var(--red-900);
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .payroll-payable-card {
@@ -402,8 +402,8 @@
   justify-content: space-between;
   gap: 16px;
   padding: 18px 20px;
-  border-radius: 20px;
-  background: linear-gradient(135deg, var(--red-700), var(--red-500));
+  border-radius: var(--r-card);
+  background: var(--btn-primary);
   color: #ffffff;
 }
 
@@ -428,7 +428,7 @@
   margin: 0;
   color: var(--ink);
   font-size: clamp(1.05rem, 2.4vw, 1.45rem);
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .payroll-hero-subtitle strong {
@@ -442,10 +442,10 @@
   width: min(980px, 100%);
   margin: 0 auto;
   padding: 22px;
-  border-radius: 28px;
-  background: linear-gradient(180deg, rgba(255, 230, 226, 0.82), rgba(255, 242, 240, 0.72));
-  border: 1px solid rgba(185, 28, 28, 0.12);
-  box-shadow: var(--shadow);
+  border-radius: var(--r-panel);
+  background: var(--surface);
+  border: 1px solid var(--line-soft);
+  box-shadow: var(--elev-1);
 }
 
 .payroll-left-stack,
@@ -459,8 +459,8 @@
 .payroll-income-card,
 .payroll-result-sheet {
   border-radius: 10px;
-  background: rgba(255, 255, 255, 0.94);
-  border: 1px solid rgba(127, 29, 29, 0.1);
+  background: var(--surface);
+  border: 1px solid var(--line-soft);
 }
 
 .payroll-breakdown-card,
@@ -495,7 +495,7 @@
   border-radius: 50%;
   background:
     radial-gradient(circle at center, #ffffff 0 60%, transparent 61%),
-    conic-gradient(var(--red-700) var(--monthly-tax-share), #342326 0);
+    conic-gradient(var(--color-brand) var(--monthly-tax-share), var(--color-ink) 0);
 }
 
 .payroll-legend {
@@ -523,15 +523,15 @@
 }
 
 .payroll-legend-dot--home {
-  background: #342326;
+  background: var(--color-ink);
 }
 
 .payroll-legend-dot--income {
-  background: #9a8d8d;
+  background: var(--color-border-strong);
 }
 
 .payroll-legend small {
-  color: #8a5d5d;
+  color: var(--muted);
   font-size: 0.78rem;
   font-weight: 700;
 }
@@ -550,12 +550,12 @@
 .payroll-mini-table th,
 .payroll-mini-table td {
   padding: 8px 9px;
-  border-bottom: 1px solid rgba(127, 29, 29, 0.12);
+  border-bottom: 1px solid var(--line-soft);
   font-size: 0.86rem;
 }
 
 .payroll-mini-table th {
-  background: #241717;
+  background: var(--color-ink);
   color: #ffffff;
   font-size: 0.72rem;
   line-height: 1.1;
@@ -571,9 +571,9 @@
 }
 
 .payroll-total-row td {
-  background: #241717;
+  background: var(--color-ink);
   color: #ffffff;
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .payroll-benefit-block {
@@ -586,14 +586,14 @@
   justify-self: start;
   min-height: 30px;
   padding: 0 10px;
-  border: 1px solid rgba(185, 28, 28, 0.18);
+  border: 1px solid var(--line-mid);
   border-radius: 7px;
-  background: #fff2f0;
+  background: var(--color-bg-alt);
   color: var(--red-900);
   cursor: pointer;
   font: inherit;
   font-size: 0.82rem;
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .payroll-benefit-grid {
@@ -607,9 +607,9 @@
   width: 100%;
   min-height: 34px;
   padding: 0 10px;
-  border: 1px solid rgba(127, 29, 29, 0.2);
+  border: 1px solid var(--line-mid);
   border-radius: 9px;
-  background: #ffffff;
+  background: var(--surface);
   color: var(--ink);
   font: inherit;
   font-size: 0.84rem;
@@ -620,7 +620,7 @@
   display: grid;
   gap: 10px;
   padding-bottom: 18px;
-  border-bottom: 1px solid rgba(127, 29, 29, 0.12);
+  border-bottom: 1px solid var(--line-soft);
 }
 
 .payroll-input-details label {
@@ -635,10 +635,10 @@
   display: inline-flex;
   align-items: center;
   border-radius: 7px;
-  background: #fff2f0;
+  background: var(--color-bg-alt);
   color: var(--red-900);
   font-size: 0.82rem;
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .payroll-board-calculate {
@@ -648,11 +648,11 @@
   margin-top: 16px;
   border: none;
   border-radius: 13px;
-  background: linear-gradient(135deg, var(--red-700), var(--red-500));
+  background: var(--btn-primary);
   color: #ffffff;
   cursor: pointer;
   font: inherit;
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .payroll-result-sheet {
@@ -661,11 +661,11 @@
 }
 
 .payroll-result-sheet--taxable {
-  background: #ffe7e2;
+  background: var(--color-bg-alt);
 }
 
 .payroll-result-sheet--liability {
-  background: #fff0dc;
+  background: var(--color-bg-alt);
 }
 
 .payroll-result-sheet--credit {
@@ -686,7 +686,7 @@
 }
 
 .payroll-result-sheet__head span {
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .payroll-result-sheet__head strong {
@@ -696,9 +696,9 @@
 
 .payroll-table-window {
   padding: 14px;
-  border: 1px solid #241717;
-  border-radius: 16px;
-  background: #ffffff;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--r-card);
+  background: var(--surface);
   overflow-x: auto;
 }
 
@@ -716,14 +716,14 @@
 .payroll-spreadsheet th,
 .payroll-spreadsheet td {
   padding: 7px 8px;
-  border: 1px solid #d7dde8;
-  color: #1f2937;
+  border: 1px solid var(--color-border);
+  color: var(--text);
 }
 
 .payroll-spreadsheet th {
-  background: #071a2e;
+  background: var(--color-ink);
   color: #ffffff;
-  font-weight: 800;
+  font-weight: 700;
   text-align: center;
 }
 
@@ -740,5 +740,5 @@
 .payroll-total-sheet-row td,
 .payroll-spreadsheet tfoot td {
   background: #eef2f8;
-  font-weight: 800;
+  font-weight: 700;
 }

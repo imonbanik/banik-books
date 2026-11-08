@@ -14,8 +14,8 @@
 
 .changes-equity-table {
   min-width: 980px;
-  border: 2px solid #111111;
-  background: #ffffff;
+  border: 2px solid var(--color-border-strong);
+  background: var(--surface);
 }
 
 .changes-equity-period {
@@ -23,9 +23,9 @@
   justify-content: center;
   align-items: center;
   min-height: 38px;
-  border-bottom: 2px solid #111111;
-  color: #111111;
-  font-weight: 900;
+  border-bottom: 2px solid var(--color-border-strong);
+  color: var(--text);
+  font-weight: 700;
   text-align: center;
 }
 
@@ -36,11 +36,11 @@
 
 .changes-equity-grid > div {
   min-height: 42px;
-  border-right: 2px solid #111111;
+  border-right: 2px solid var(--color-border-strong);
   padding: 8px 10px;
   display: flex;
   align-items: center;
-  color: #111111;
+  color: var(--text);
   font-size: 0.96rem;
 }
 
@@ -56,20 +56,20 @@
 
 .changes-equity-grid--head > div {
   justify-content: center;
-  border-bottom: 2px solid #111111;
-  color: #111111;
-  font-weight: 900;
+  border-bottom: 2px solid var(--color-border-strong);
+  color: var(--text);
+  font-weight: 700;
   text-align: center;
   white-space: normal;
 }
 
 .changes-equity-grid--strong > div,
 .changes-equity-grid--total > div {
-  font-weight: 900;
+  font-weight: 700;
 }
 
 .changes-equity-grid--total > div {
-  border-top: 2px solid #111111;
+  border-top: 2px solid var(--color-border-strong);
 }
 
 @media (max-width: 760px) {

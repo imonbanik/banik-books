@@ -77,6 +77,8 @@ Active frontend source lives in `frontend/`. Public URLs such as `/pages/...`,
 - Page/tool JavaScript: `frontend/js/pages/` and `frontend/js/tools/`
 - Shared Firebase/Auth/Data code: `frontend/js/core/`, `frontend/js/services/`,
   `frontend/js/config/`
+- Brand colors and design tokens: top of `frontend/css/base.css`
+- Shared look (header, cards, forms, menus, sign-in): `frontend/css/theme.css`
 - Page CSS: `frontend/css/pages/`
 - Responsive CSS: `frontend/css/responsive/`
 - Shared CSS and remaining older styles: `frontend/css/base.css` and

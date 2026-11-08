@@ -24,10 +24,10 @@
 
 .invoice-form-card,
 .invoice-preview-card {
-  border-radius: 28px;
-  background: rgba(255, 255, 255, 0.94);
-  border: 1px solid rgba(127, 29, 29, 0.12);
-  box-shadow: var(--shadow);
+  border-radius: var(--r-panel);
+  background: var(--surface);
+  border: 1px solid var(--line-soft);
+  box-shadow: var(--elev-1);
 }
 
 .invoice-form-card {
@@ -40,9 +40,9 @@
   display: grid;
   gap: 14px;
   padding: 16px;
-  border-radius: 20px;
-  background: rgba(255, 248, 247, 0.72);
-  border: 1px solid rgba(127, 29, 29, 0.08);
+  border-radius: var(--r-card);
+  background: var(--color-bg-alt);
+  border: 1px solid var(--line-soft);
 }
 
 .invoice-form-section h2 {
@@ -81,7 +81,7 @@
 .invoice-checkbox span {
   color: var(--muted);
   font-size: 0.78rem;
-  font-weight: 900;
+  font-weight: 700;
   text-transform: none;
 }
 
@@ -89,14 +89,14 @@
 .invoice-field textarea {
   width: 100%;
   min-height: 44px;
-  border: 1px solid rgba(127, 29, 29, 0.14);
+  border: 1px solid var(--line-mid);
   border-radius: 13px;
-  background: #ffffff;
+  background: var(--surface);
   padding: 10px 12px;
   color: var(--text);
   font: inherit;
   font-size: 0.94rem;
-  font-weight: 650;
+  font-weight: 600;
   outline: none;
 }
 
@@ -108,8 +108,8 @@
 
 .invoice-field input:focus,
 .invoice-field textarea:focus {
-  border-color: rgba(185, 28, 28, 0.46);
-  box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.09);
+  border-color: var(--line-mid);
+  box-shadow: var(--ring-brand);
 }
 
 .invoice-items-editor {
@@ -126,14 +126,14 @@
 .invoice-items-editor th,
 .invoice-items-editor td {
   padding: 8px;
-  border-bottom: 1px solid rgba(127, 29, 29, 0.1);
+  border-bottom: 1px solid var(--line-soft);
   vertical-align: top;
 }
 
 .invoice-items-editor th {
   color: var(--red-900);
   font-size: 0.78rem;
-  font-weight: 900;
+  font-weight: 700;
   text-align: left;
   text-transform: none;
 }
@@ -141,9 +141,9 @@
 .invoice-item-description,
 .invoice-item-amount {
   width: 100%;
-  border: 1px solid rgba(127, 29, 29, 0.14);
-  border-radius: 12px;
-  background: #ffffff;
+  border: 1px solid var(--line-mid);
+  border-radius: var(--r-control);
+  background: var(--surface);
   padding: 10px;
   color: var(--text);
   font: inherit;
@@ -170,12 +170,12 @@
   cursor: pointer;
   font: inherit;
   font-size: 0.82rem;
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .invoice-item-remove {
-  border: 1px solid rgba(185, 28, 28, 0.16);
-  background: #fff;
+  border: 1px solid var(--line-mid);
+  background: var(--surface);
   color: var(--red-900);
   padding: 0 10px;
 }
@@ -205,11 +205,11 @@
   min-height: 44px;
   margin: 0;
   padding: 0 18px;
-  border-radius: 14px;
+  border-radius: var(--r-control);
   border: none;
-  background: linear-gradient(135deg, var(--red-700), var(--red-500));
+  background: var(--btn-primary);
   color: #ffffff;
-  box-shadow: 0 14px 28px rgba(185, 28, 28, 0.2);
+  box-shadow: var(--elev-1);
   cursor: pointer;
   font: inherit;
   font-size: 0.92rem;
@@ -217,8 +217,8 @@
 }
 
 .invoice-print-actions button:last-child {
-  border: 1px solid rgba(127, 29, 29, 0.14);
-  background: #ffffff;
+  border: 1px solid var(--line-mid);
+  background: var(--surface);
   color: var(--red-900);
   box-shadow: none;
 }
@@ -235,8 +235,8 @@
   justify-content: space-between;
   gap: 14px;
   padding: 16px;
-  border-bottom: 1px solid rgba(127, 29, 29, 0.12);
-  background: #fff7f6;
+  border-bottom: 1px solid var(--line-soft);
+  background: var(--color-bg-alt);
 }
 
 .invoice-preview-toolbar > div:first-child {
@@ -247,7 +247,7 @@
 .invoice-preview-toolbar span {
   color: var(--muted);
   font-size: 0.82rem;
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .invoice-preview-toolbar strong {
@@ -268,13 +268,20 @@
   overflow: auto;
   padding: 22px;
   background:
-    linear-gradient(135deg, rgba(255, 240, 238, 0.82), rgba(255, 251, 250, 0.92));
+    var(--surface);
 }
 
 .invoice-document {
   --invoice-theme-color: #9a1b1b;
   --invoice-theme-border: rgba(154, 27, 27, 0.28);
   --invoice-theme-soft: rgba(154, 27, 27, 0.1);
+  /* The invoice is a client document: it keeps its own type and ink. */
+  --text: #241312;
+  --font-size-section-title: 20px;
+  --font-size-card-title: 16px;
+  --font-size-small: 12px;
+  --line-height-normal: 1.45;
+  --line-height-relaxed: 1.6;
   position: relative;
   width: 210mm;
   min-height: 297mm;
